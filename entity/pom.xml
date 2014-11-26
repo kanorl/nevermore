@@ -11,5 +11,11 @@
 
     <artifactId>entity</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>com.shadow</groupId>
+            <artifactId>util</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

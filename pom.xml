@@ -11,8 +11,6 @@
     <modules>
         <module>util</module>
         <module>entity</module>
-        <module>entity-cache</module>
-        <module>entity-persistence</module>
     </modules>
 
     <properties>
