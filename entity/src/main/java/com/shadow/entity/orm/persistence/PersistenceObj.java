@@ -13,27 +13,27 @@ public final class PersistenceObj {
     private Runnable callback;
 
     public static <T extends IEntity<?>> PersistenceObj saveOf(T t, Runnable callback) {
-        PersistenceObj event = new PersistenceObj();
-        event.entity = t;
-        event.operation = PersistenceOperation.SAVE;
-        event.callback = callback;
-        return event;
+        PersistenceObj obj = new PersistenceObj();
+        obj.entity = t;
+        obj.operation = PersistenceOperation.SAVE;
+        obj.callback = callback;
+        return obj;
     }
 
     public static <T extends IEntity<?>> PersistenceObj updateOf(T t, Runnable callback) {
-        PersistenceObj event = new PersistenceObj();
-        event.entity = t;
-        event.operation = PersistenceOperation.UPDATE;
-        event.callback = callback;
-        return event;
+        PersistenceObj obj = new PersistenceObj();
+        obj.entity = t;
+        obj.operation = PersistenceOperation.UPDATE;
+        obj.callback = callback;
+        return obj;
     }
 
     public static <T extends IEntity<?>> PersistenceObj deleteOf(T t, Runnable callback) {
-        PersistenceObj event = new PersistenceObj();
-        event.entity = t;
-        event.operation = PersistenceOperation.DELETE;
-        event.callback = callback;
-        return event;
+        PersistenceObj obj = new PersistenceObj();
+        obj.entity = t;
+        obj.operation = PersistenceOperation.DELETE;
+        obj.callback = callback;
+        return obj;
     }
 
     public IEntity<?> getEntity() {
