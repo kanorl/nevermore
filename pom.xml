@@ -11,6 +11,8 @@
     <modules>
         <module>util</module>
         <module>entity</module>
+        <module>test</module>
+        <module>net</module>
     </modules>
 
     <properties>

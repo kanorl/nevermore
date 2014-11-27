@@ -1,10 +1,10 @@
 package com.shadow.entity.cache.injection;
 
+import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.EntityCacheService;
 import com.shadow.entity.cache.EntityCacheServiceManager;
 import com.shadow.entity.cache.annotation.Cached;
 import com.shadow.entity.cache.annotation.Inject;
-import com.shadow.entity.IEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -33,7 +33,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
-            if (!IEntity.class.isAssignableFrom(bean.getClass())) {
+            if (!EntityCacheService.class.isAssignableFrom(field.getType())) {
                 return;
             }
             Type type = field.getGenericType();

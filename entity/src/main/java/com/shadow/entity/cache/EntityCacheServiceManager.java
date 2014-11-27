@@ -1,6 +1,5 @@
 package com.shadow.entity.cache;
 
-import com.shadow.entity.cache.ramcache.RamEntityCacheService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;

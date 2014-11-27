@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-4.0.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+       http://www.springframework.org/schema/util
+       http://www.springframework.org/schema/util/spring-util-4.0.xsd
+       ">
+
+    <context:component-scan base-package="com.shadow"/>
+    <context:property-placeholder location="classpath:/server.properties"/>
+
+    <bean name="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="packagesToScan" value="com.shadow"/>
+    </bean>
+
+    <bean id="transactionManager"
+          class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!--The <tx:annotation-driven>(the transaction-manager attribute defaults to transactionManager)
+    configuration element tells Spring to examine all beans in the application context and to look
+    for beans that are annotated with @Transactional, either at the class level or at the method level.-->
+    <tx:annotation-driven/>
+
+    <!--If the proxy-target-class attribute is set to true, then class-based (cglib) proxies are created.
+    If proxy-target-class is false or if the attribute is omitted, then standard JDK interface-based proxies are created-->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <!--PersistenceExceptionTranslationPostProcessor is a bean post processor which adds an advisor
+    to any bean that’s annotated with @Repository so that any platform-specific exceptions are caught
+    and then rethrown as one of Spring’s unchecked data access exceptions-->
+    <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+
+    <util:map id="cache_size">
+        <!--<entry key="initialFactor" value="${server.cache.size.initial.factor}"/>-->
+        <entry key="default" value="${server.cache.size.default}"/>
+        <entry key="double" value="${server.cache.size.double}"/>
+        <entry key="triple" value="${server.cache.size.triple}"/>
+    </util:map>
+</beans>

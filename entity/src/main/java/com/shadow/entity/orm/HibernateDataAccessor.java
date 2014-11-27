@@ -1,6 +1,7 @@
 package com.shadow.entity.orm;
 
 import com.shadow.entity.IEntity;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 数据访问器Hibernate实现
@@ -17,7 +19,7 @@ import java.io.Serializable;
 @SuppressWarnings("unchecked")
 @Repository
 @Transactional
-public final class HibernateDataAccessor implements DataAccessor {
+public class HibernateDataAccessor implements DataAccessor {
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -38,12 +40,29 @@ public final class HibernateDataAccessor implements DataAccessor {
     }
 
     @Override
-    public <K extends Serializable, V extends IEntity<K>> void update(V v) {
+    public <V extends IEntity<?>> void update(V v) {
         currentSession().update(v);
     }
 
     @Override
-    public <K extends Serializable, V extends IEntity<K>> void delete(V v) {
+    public <V extends IEntity<?>> void delete(V v) {
         currentSession().delete(v);
+    }
+
+    @Override
+    public <V extends IEntity<?>> List<V> getAll(Class<V> clazz) {
+        return currentSession().createCriteria(clazz).list();
+    }
+
+    @Override
+    public <V extends IEntity<?>> List<V> namedQuery(Class<V> clazz, String queryName, Object... queryParams) {
+        Query query = currentSession().getNamedQuery(queryName);
+        if (queryParams != null) {
+            for (int i = 0; i < queryParams.length; i++) {
+                Object queryParam = queryParams[i];
+                query.setParameter(i, queryParam);
+            }
+        }
+        return query.list();
     }
 }

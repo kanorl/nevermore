@@ -1,17 +1,24 @@
-package com.shadow.entity.cache.ramcache;
+package com.shadow.entity.cache;
 
-import com.shadow.entity.cache.EntityCacheService;
 import com.google.common.cache.*;
 import com.google.common.collect.Sets;
+import com.shadow.entity.CachedEntity;
 import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
+import com.shadow.entity.annotation.AutoSave;
+import com.shadow.entity.annotation.PreLoaded;
+import com.shadow.entity.cache.annotation.Cached;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
+import com.shadow.entity.proxy.EntityProxyGenerator;
+import com.shadow.entity.proxy.NullEntityProxyGenerator;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -27,14 +34,31 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
     private final DataAccessor dataAccessor;
     private final PersistenceProcessor<V> persistenceProcessor;
     private final LoadingCache<K, V> cache;
-    private final Set<K> removing = Sets.newConcurrentHashSet();
+    private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
+    private final EntityProxyGenerator<K, V> proxyGenerator;
 
     public RamEntityCacheService(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
         this.clazz = clazz;
         this.dataAccessor = dataAccessor;
         this.persistenceProcessor = persistenceProcessor;
 
-        cache = CacheBuilder.newBuilder().removalListener(new DbRemovalListener()).build(new DbLoader());
+        // 代理类生成器
+        if (Arrays.stream(clazz.getDeclaredMethods()).filter(method -> method.isAnnotationPresent(AutoSave.class)).findAny().isPresent()) {
+            proxyGenerator = new EntityProxyGenerator<>(this);
+        } else {
+            proxyGenerator = new NullEntityProxyGenerator<>();
+        }
+
+        // 构建缓存
+        Cached cached = clazz.isAnnotationPresent(Cached.class) ? clazz.getAnnotation(Cached.class) : CachedEntity.class.getAnnotation(Cached.class);
+        String cacheSpec = toCacheSpec(cached);
+        cache = CacheBuilder.from(cacheSpec).removalListener(new DbRemovalListener()).build(new DbLoader());
+
+        // 预加载数据
+        PreLoaded preLoaded = clazz.getAnnotation(PreLoaded.class);
+        if (preLoaded != null) {
+            preLoaded.type().load(dataAccessor, preLoaded.queryName(), clazz).stream().forEach((V v) -> cache.put(v.getId(), v));
+        }
     }
 
     @Override
@@ -72,6 +96,10 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
 
     @Override
     public void update(@Nonnull V v) {
+        if (waitingRemoval.contains(v.getId())) {
+            LOGGER.error("Update failed: Attempting to update a object which is waiting to be deleted.");
+            return;
+        }
         persistenceProcessor.update(v);
     }
 
@@ -80,14 +108,38 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
         cache.invalidate(v.getId());
     }
 
+    private String toCacheSpec(Cached cached) {
+        StringBuilder spec = new StringBuilder();
+        spec.append("initialCapacity").append("=").append(cached.initialCapacity()).append(",");
+        spec.append("maximumSize").append("=").append(cached.maximumSize()).append(",");
+        spec.append("concurrencyLevel").append("=").append(cached.concurrencyLevel());
+        if (StringUtils.isNotEmpty(cached.expireAfterAccess())) {
+            spec.append(",").append("expireAfterAccess").append("=").append(cached.expireAfterAccess());
+        }
+        if (StringUtils.isNotEmpty(cached.expireAfterWrite())) {
+            spec.append(",").append("expireAfterWrite").append("=").append(cached.expireAfterWrite());
+        }
+        if (cached.recordStats()) {
+            spec.append(",").append("recordStats");
+        }
+        if (cached.weakKeys()) {
+            spec.append(",").append("weakKeys");
+        }
+        return spec.toString();
+    }
+
     private class DbLoader extends CacheLoader<K, V> {
 
         @Override
         public V load(@Nonnull K key) throws Exception {
-            if (removing.contains(key)) {
+            if (waitingRemoval.contains(key)) {
                 return null;
             }
-            return dataAccessor.get(key, clazz);
+            V v = dataAccessor.get(key, clazz);
+            if (v == null) {
+                return null;
+            }
+            return proxyGenerator.generate(v);
         }
     }
 
@@ -97,7 +149,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
         public void onRemoval(@Nonnull RemovalNotification<K, V> notification) {
             if (notification.getCause() == RemovalCause.EXPIRED) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Remove entry from Cache(not the DB): " + notification);
+                    LOGGER.debug("Expire entry from Cache(not the DB): " + notification);
                 }
                 return;
             }
@@ -108,8 +160,8 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
                 return;
             }
 
-            removing.add(id);
-            persistenceProcessor.delete(value, () -> removing.remove(id));
+            waitingRemoval.add(id);
+            persistenceProcessor.delete(value, () -> waitingRemoval.remove(id));
         }
     }
 }

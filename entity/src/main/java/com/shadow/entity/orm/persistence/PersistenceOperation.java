@@ -11,22 +11,22 @@ import com.shadow.entity.orm.DataAccessor;
 enum PersistenceOperation {
     SAVE {
         @Override
-        public void operation(DataAccessor dataAccessor, IEntity<?> entity) {
+        public void perform(DataAccessor dataAccessor, IEntity<?> entity) {
             dataAccessor.save(entity);
         }
     },
     UPDATE {
         @Override
-        public void operation(DataAccessor dataAccessor, IEntity<?> entity) {
+        public void perform(DataAccessor dataAccessor, IEntity<?> entity) {
             dataAccessor.update(entity);
         }
     },
     DELETE {
         @Override
-        public void operation(DataAccessor dataAccessor, IEntity<?> entity) {
+        public void perform(DataAccessor dataAccessor, IEntity<?> entity) {
             dataAccessor.delete(entity);
         }
     };
 
-    public abstract void operation(DataAccessor dataAccessor, IEntity<?> entity);
+    public abstract void perform(DataAccessor dataAccessor, IEntity<?> entity);
 }

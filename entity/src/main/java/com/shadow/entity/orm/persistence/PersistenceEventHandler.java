@@ -2,10 +2,11 @@ package com.shadow.entity.orm.persistence;
 
 import com.lmax.disruptor.EventHandler;
 import com.shadow.entity.IEntity;
+import com.shadow.entity.orm.DataAccessor;
+import com.shadow.entity.proxy.EntityProxy;
 import com.shadow.util.disruptor.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import com.shadow.entity.orm.DataAccessor;
 
 /**
  * 持久化事件Disruptor处理器
@@ -24,8 +25,11 @@ public final class PersistenceEventHandler implements EventHandler<Event<Persist
         IEntity<?> entity = e.getData().getEntity();
         PersistenceOperation operation = e.getData().getOperation();
 
-        operation.operation(dataAccessor, entity);
+        if (entity instanceof EntityProxy) {
+            entity = ((EntityProxy) entity).getEntity();
+        }
 
+        operation.perform(dataAccessor, entity);
         e.getData().getCallback().run();
     }
 }
