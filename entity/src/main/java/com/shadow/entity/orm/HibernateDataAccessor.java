@@ -49,11 +49,13 @@ public class HibernateDataAccessor implements DataAccessor {
         currentSession().delete(v);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public <V extends IEntity<?>> List<V> getAll(Class<V> clazz) {
         return currentSession().createCriteria(clazz).list();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public <V extends IEntity<?>> List<V> namedQuery(Class<V> clazz, String queryName, Object... queryParams) {
         Query query = currentSession().getNamedQuery(queryName);

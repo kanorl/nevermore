@@ -15,7 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author nevermore on 2014/11/26
  */
-public class ReflectUtil {
+public final class ReflectUtil {
     private static final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
     @Nonnull
