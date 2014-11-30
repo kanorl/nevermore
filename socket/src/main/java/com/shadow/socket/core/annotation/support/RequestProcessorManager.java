@@ -5,6 +5,7 @@ import com.shadow.socket.core.annotation.RequestHandler;
 import com.shadow.socket.core.annotation.RequestParam;
 import com.shadow.socket.core.annotation.SessionAttr;
 import com.shadow.socket.core.domain.Command;
+import com.shadow.socket.core.domain.Request;
 import com.shadow.socket.core.session.Session;
 import com.shadow.util.lang.ReflectUtil;
 import org.slf4j.Logger;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
+import javax.annotation.Nonnull;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -86,5 +89,18 @@ public final class RequestProcessorManager implements BeanPostProcessor {
     public static RequestProcessor getRequestProcessor(Command command) {
         RequestProcessor processor = REQUEST_PROCESSOR_MAP.get(command);
         return processor == null ? DEFAULT_PROCESSOR : processor;
+    }
+
+    private static class UnknownRequestProcessor extends RequestProcessor {
+        @Override
+        public Object handle(@Nonnull Request request) throws InvocationTargetException, IllegalAccessException {
+            LOGGER.error("No processor for " + request.getCommand());
+            return null;
+        }
+
+        @Override
+        public boolean isOmitResponse() {
+            return true;
+        }
     }
 }
