@@ -4,8 +4,8 @@ import com.shadow.socket.core.annotation.HandlerMethod;
 import com.shadow.socket.core.annotation.RequestHandler;
 import com.shadow.socket.core.annotation.RequestParam;
 import com.shadow.socket.core.annotation.SessionAttr;
-import com.shadow.socket.core.session.Session;
 import com.shadow.socket.core.domain.Command;
+import com.shadow.socket.core.session.Session;
 import com.shadow.util.lang.ReflectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +28,7 @@ public final class RequestProcessorManager implements BeanPostProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestProcessorManager.class);
 
     private static final Map<Command, RequestProcessor> REQUEST_PROCESSOR_MAP = new HashMap<>();
+    private static final RequestProcessor DEFAULT_PROCESSOR = new UnknownRequestProcessor();
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -84,6 +85,6 @@ public final class RequestProcessorManager implements BeanPostProcessor {
 
     public static RequestProcessor getRequestProcessor(Command command) {
         RequestProcessor processor = REQUEST_PROCESSOR_MAP.get(command);
-        return processor == null ? processor : processor;
+        return processor == null ? DEFAULT_PROCESSOR : processor;
     }
 }

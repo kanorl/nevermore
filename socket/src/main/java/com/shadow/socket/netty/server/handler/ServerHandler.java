@@ -26,10 +26,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
         request.setSession(session);
 
         RequestProcessor requestProcessor = RequestProcessorManager.getRequestProcessor(request.getCommand());
-        if (requestProcessor == null) {
-            LOGGER.error("No processor for " + request.getCommand());
-            return;
-        }
 
         Object content = null;
         int code = 0;
