@@ -1,10 +1,10 @@
 package com.shadow.socket.core.annotation.support;
 
 
-import com.shadow.socket.core.session.Session;
 import com.shadow.socket.core.annotation.SessionAttr;
 import com.shadow.socket.core.domain.AttrKey;
 import com.shadow.socket.core.domain.Request;
+import com.shadow.socket.core.session.Session;
 
 import java.lang.reflect.Method;
 

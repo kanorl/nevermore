@@ -1,46 +1,45 @@
 package com.shadow.socket.client.config;
 
 /**
- * 
  * @author yiyou
  * @date 2014年6月14日 下午11:07:25
  */
 public enum CMD {
-	ZERO,
+    ZERO,
 
-	ONE,
+    ONE,
 
-	TWO,
+    TWO,
 
     THREE,
 
-	FOUR,
+    FOUR,
 
-	FIVE,
+    FIVE,
 
-	SIX,
+    SIX,
 
-	SEVEN,
+    SEVEN,
 
-	EIGHT,
+    EIGHT,
 
-	NINE,
+    NINE,
 
-	TEN,
+    TEN,
 
-	ELEVEN,
+    ELEVEN,
 
-	TWELVE,
+    TWELVE,
 
-	THIRTEEN,
+    THIRTEEN,
 
-	FOURTEEN,
+    FOURTEEN,
 
-	FIFTEEN,
+    FIFTEEN,
 
-	SIXTEEN,
+    SIXTEEN,
 
-	SEVENTEEN,
+    SEVENTEEN,
 
     EIGHTEEN,
 

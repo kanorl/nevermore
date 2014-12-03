@@ -1,6 +1,7 @@
 package com.shadow.socket;
 
 import com.shadow.entity.User;
+import com.shadow.entity.UserDto;
 import com.shadow.entity.UserService;
 import com.shadow.socket.core.annotation.HandlerMethod;
 import com.shadow.socket.core.annotation.RequestHandler;
@@ -26,5 +27,10 @@ public class RequestHandlerTest {
     public String getUsername(int id) {
         User user = userService.getUser(id);
         return user.getUsername();
+    }
+
+    @HandlerMethod(cmd = 2)
+    public UserDto getUser(int id) {
+        return UserDto.valueOf(userService.getUser(id));
     }
 }

@@ -49,4 +49,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
         Response response = Response.valueOf(request.getCommand(), result);
         session.write(response);
     }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        LOGGER.error(cause.getMessage(), cause);
+    }
 }
