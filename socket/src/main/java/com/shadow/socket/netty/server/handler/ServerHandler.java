@@ -12,10 +12,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * @author nevermore on 2014/11/26
  */
+@Component
 @ChannelHandler.Sharable
 public class ServerHandler extends SimpleChannelInboundHandler<Request> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);

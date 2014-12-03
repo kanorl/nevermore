@@ -17,11 +17,10 @@ public final class NamedThreadFactory implements ThreadFactory {
     private ThreadGroup threadGroup;
     private String threadName;
 
-    public NamedThreadFactory(@Nonnull ThreadGroup threadGroup, String threadName) {
-        this.threadGroup = requireNonNull(threadGroup);
-        this.threadName = threadName;
+    public NamedThreadFactory(String name) {
+        this.threadGroup = new ThreadGroup(requireNonNull(name));
+        this.threadName = name;
     }
-
 
     @Override
     public Thread newThread(@Nonnull Runnable r) {

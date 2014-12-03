@@ -20,6 +20,13 @@ public final class Request {
         return request;
     }
 
+    public static Request wrap(Command command, ParameterContainer body) {
+        Request request = new Request();
+        request.command = command;
+        request.body = body;
+        return request;
+    }
+
     @Override
     public String toString() {
         return JsonUtil.toJson(this);

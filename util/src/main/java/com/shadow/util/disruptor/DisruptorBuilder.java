@@ -19,7 +19,7 @@ public final class DisruptorBuilder<T> {
 
     public static final int DEFAULT_BUFFER_SIZE = 1 << 10;
     private static final int MIN_THREAD_COUNT = 1;
-    private static final ThreadFactory DEFAULT_THREAD_FACTORY = new NamedThreadFactory(new ThreadGroup("Disruptor"), "Thread");
+    private static final ThreadFactory DEFAULT_THREAD_FACTORY = new NamedThreadFactory("Disruptor");
 
 
     public static <T> DisruptorBuilder<T> newBuilder() {

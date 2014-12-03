@@ -1,5 +1,8 @@
 package com.shadow.socket.core.domain;
 
+import com.shadow.util.codec.JsonUtil;
+
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -18,7 +21,7 @@ public final class ParameterContainer {
     }
 
     public Map<String, Object> getParams() {
-        return params;
+        return Collections.unmodifiableMap(params);
     }
 
     public ParameterContainer put(String key, Object value) {
@@ -29,5 +32,10 @@ public final class ParameterContainer {
     @SuppressWarnings("unchecked")
     public <T> T get(String key) {
         return (T) params.get(key);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJson(this);
     }
 }
