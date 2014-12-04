@@ -5,10 +5,13 @@ import com.shadow.entity.lock.IllegalLockTargetException;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.*;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author nevermore on 2014/11/27.
@@ -24,49 +27,27 @@ public @interface LockTarget {
         Object {
             @Override
             public Collection<?> extract(@Nonnull Object arg) throws IllegalLockTargetException {
-                return Collections.singletonList(checkNotNull(arg));
+                return Collections.singletonList(checkNotNull(arg, "Cannot lock a null element."));
             }
         },
         Element {
             @Override
             public Collection<?> extract(@Nonnull Object arg) throws IllegalLockTargetException {
-                checkNotNull(arg);
+                checkNotNull(arg, "Cannot lock a null element.");
 
+                Stream<?> stream;
                 if (arg instanceof Collection<?>) {
-                    Collection<?> c = (Collection<?>) arg;
-                    List<Object> lockObjects = new ArrayList<>(c.size());
-                    for (Object o : c) {
-                        if (o == null) {
-                            throw new IllegalLockTargetException("Arg annotated by @LockTarget must not contain null elements.");
-                        }
-                        lockObjects.add(o);
-                    }
-                    return lockObjects;
+                    stream = ((Collection<?>) arg).stream();
+                } else if (arg.getClass().isArray()) {
+                    stream = Arrays.stream((Object[]) arg);
+                } else {
+                    throw new IllegalLockTargetException("Unsupported lock target type.(should never happen)");
                 }
-
-                if (arg.getClass().isArray()) {
-                    Object[] array = (Object[]) arg;
-                    List<Object> lockObjects = new ArrayList<>(array.length);
-                    for (Object o : array) {
-                        if (o == null) {
-                            throw new IllegalLockTargetException("Arg annotated by @LockTarget must not contain null elements.");
-                        }
-                        lockObjects.add(arg);
-                    }
-                    return lockObjects;
-                }
-
-                throw new IllegalLockTargetException("Unsupported lock target type.(This should never be happened)");
+                stream.forEach((e) -> checkNotNull(e, "Cannot lock a null element."));
+                return stream.collect(Collectors.toList());
             }
         };
 
         public abstract Collection<?> extract(@Nonnull Object arg) throws IllegalLockTargetException;
-
-        protected <T> T checkNotNull(T t) throws IllegalLockTargetException {
-            if (t == null) {
-                throw new IllegalLockTargetException("Arg annotated by @LockTarget cannot be null.");
-            }
-            return t;
-        }
     }
 }

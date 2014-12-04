@@ -5,8 +5,8 @@ import com.shadow.entity.lock.annotation.LockTarget;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +64,7 @@ public class AutoLockedMethod {
     }
 
     public Object[] extractLockTargets(Object[] args) throws IllegalLockTargetException {
-        List<Object> lockObjects = new LinkedList<>();
+        List<Object> lockObjects = new ArrayList<>();
         for (Map.Entry<Integer, LockTarget> entry : lockTargets.entrySet()) {
             Object arg = args[entry.getKey()];
             Collection<?> targets = entry.getValue().value().extract(arg);
