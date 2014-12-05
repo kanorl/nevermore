@@ -1,6 +1,7 @@
 package com.shadow.entity;
 
 import com.shadow.entity.annotation.AutoSave;
+import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.util.codec.JsonUtil;
 
 import javax.persistence.Entity;
@@ -11,7 +12,8 @@ import java.util.Date;
  * @author nevermore on 2014/11/27
  */
 @Entity
-public class User extends CachedLifecycleEntity<Integer> {
+@Cacheable(sizeFactor = Cacheable.CacheSizeFactor.MINIMUM)
+public class User extends CacheableLifecycleEntity<Integer> {
 
     @Id
     private int id;

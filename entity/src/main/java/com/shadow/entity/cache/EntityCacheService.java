@@ -19,5 +19,5 @@ public interface EntityCacheService<K extends Serializable, V extends IEntity<K>
 
     void update(@Nonnull V v);
 
-    void remove(@Nonnull V v);
+    void remove(@Nonnull K id);
 }

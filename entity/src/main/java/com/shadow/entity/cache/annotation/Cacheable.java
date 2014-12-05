@@ -10,21 +10,14 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface Cached {
+public @interface Cacheable {
 
     /**
      * 初始化容量
      *
      * @return
      */
-    public int initialCapacity() default 10000;
-
-    /**
-     * 最大容量
-     *
-     * @return
-     */
-    public int maximumSize() default 5000;
+    public CacheSizeFactor sizeFactor() default CacheSizeFactor.NORMAL;
 
     /**
      * 并发级别
@@ -61,4 +54,20 @@ public @interface Cached {
      * @return
      */
     public boolean weakKeys() default false;
+
+    public enum CacheSizeFactor {
+        MINIMUM {
+            @Override
+            public int getSize(int size) {
+                return 16;
+            }
+        },
+        NORMAL,
+        DOUBLE,
+        TRIPLE;
+
+        public int getSize(int size) {
+            return this.ordinal() * size;
+        }
+    }
 }

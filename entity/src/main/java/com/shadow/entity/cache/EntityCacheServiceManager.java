@@ -21,13 +21,14 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
 
     private final DataAccessor dataAccessor;
     private final PersistenceEventHandler persistenceEventHandler;
+    private int defaultCacheSize;
     private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
     private LoadingCache<Class<V>, EntityCacheService<K, V>> cacheServices;
 
-    public EntityCacheServiceManager(DataAccessor dataAccessor, PersistenceEventHandler persistenceEventHandler) {
+    public EntityCacheServiceManager(DataAccessor dataAccessor, PersistenceEventHandler persistenceEventHandler, int defaultCacheSize) {
         this.dataAccessor = dataAccessor;
         this.persistenceEventHandler = persistenceEventHandler;
-
+        this.defaultCacheSize = defaultCacheSize;
         initialize();
     }
 
@@ -42,7 +43,7 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
         cacheServices = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, EntityCacheService<K, V>>() {
             @Override
             public EntityCacheService<K, V> load(@Nonnull Class<V> clazz) throws Exception {
-                return new RamEntityCacheService<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
+                return new RamEntityCacheService<>(clazz, dataAccessor, persistenceProcessors.get(clazz), defaultCacheSize);
             }
         });
     }

@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
+import com.shadow.entity.lock.exception.IllegalLockTargetException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,16 +37,13 @@ public class LockChain {
 
     public static LockChain build(@Nonnull Object... objects) {
         if (ArrayUtils.isEmpty(objects)) {
-            throw new IllegalArgumentException("Cannot lock a empty array.");
+            throw new IllegalArgumentException("找不到加锁对象。");
         }
         ObjectLock[] locks = new ObjectLock[objects.length];
         for (int i = 0; i < objects.length; i++) {
             Object obj = objects[i];
             if (obj == null) {
-                throw new NullPointerException("Cannot lock null. index=" + i);
-            }
-            if (obj instanceof Collection) {
-                LOGGER.warn("You are attempting to lock a Collection. Note that, if you mean to lock the elements in a Collection, you must invoke the toArray() method and then pass the array as the arg.");
+                throw new IllegalLockTargetException("加锁对象不能为null。");
             }
             locks[i] = LOCK_CACHE.getUnchecked(obj);
         }

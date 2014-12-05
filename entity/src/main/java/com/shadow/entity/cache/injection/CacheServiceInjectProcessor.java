@@ -3,7 +3,7 @@ package com.shadow.entity.cache.injection;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.EntityCacheService;
 import com.shadow.entity.cache.EntityCacheServiceManager;
-import com.shadow.entity.cache.annotation.Cached;
+import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Type[] types = parameterizedType.getActualTypeArguments();
             Class<V> entityClass = (Class<V>) types[1];
-            if (!entityClass.isAnnotationPresent(Cached.class)) {
+            if (!entityClass.isAnnotationPresent(Cacheable.class)) {
                 throw new RuntimeException();
             }
 

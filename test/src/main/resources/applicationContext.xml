@@ -3,19 +3,14 @@
        xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:tx="http://www.springframework.org/schema/tx"
-       xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
        http://www.springframework.org/schema/context
        http://www.springframework.org/schema/context/spring-context-4.0.xsd
        http://www.springframework.org/schema/aop
        http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
        http://www.springframework.org/schema/tx
-       http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
-       http://www.springframework.org/schema/util
-       http://www.springframework.org/schema/util/spring-util-4.0.xsd
-       ">
+       http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
 
     <context:component-scan base-package="com.shadow"/>
     <context:property-placeholder location="classpath:/server.properties"/>
@@ -42,11 +37,4 @@
     to any bean that’s annotated with @Repository so that any platform-specific exceptions are caught
     and then rethrown as one of Spring’s unchecked data access exceptions-->
     <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
-
-    <util:map id="cache_size">
-        <!--<entry key="initialFactor" value="${server.cache.size.initial.factor}"/>-->
-        <entry key="default" value="${server.cache.size.default}"/>
-        <entry key="double" value="${server.cache.size.double}"/>
-        <entry key="triple" value="${server.cache.size.triple}"/>
-    </util:map>
 </beans>

@@ -1,4 +1,4 @@
-package com.shadow.entity.lock;
+package com.shadow.entity.lock.exception;
 
 /**
  * 非法的加锁对象异常

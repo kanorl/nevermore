@@ -2,16 +2,17 @@ package com.shadow.entity.cache;
 
 import com.google.common.cache.*;
 import com.google.common.collect.Sets;
-import com.shadow.entity.CachedEntity;
+import com.shadow.entity.CacheableEntity;
 import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.annotation.AutoSave;
 import com.shadow.entity.annotation.PreLoaded;
-import com.shadow.entity.cache.annotation.Cached;
+import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.proxy.EntityProxyGenerator;
 import com.shadow.entity.proxy.NullEntityProxyGenerator;
+import com.shadow.util.lang.MathUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 内存实体缓存实现
+ * 实体类内存缓存实现
  *
  * @author nevermore on 2014/11/26.
  */
@@ -37,21 +38,21 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
     private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
     private final EntityProxyGenerator<K, V> proxyGenerator;
 
-    public RamEntityCacheService(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
+    public RamEntityCacheService(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor, int defaultCacheSize) {
         this.clazz = clazz;
         this.dataAccessor = dataAccessor;
         this.persistenceProcessor = persistenceProcessor;
 
         // 代理类生成器
-        if (Arrays.stream(clazz.getDeclaredMethods()).filter(method -> method.isAnnotationPresent(AutoSave.class)).findAny().isPresent()) {
+        if (Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class))) {
             proxyGenerator = new EntityProxyGenerator<>(this);
         } else {
             proxyGenerator = new NullEntityProxyGenerator<>();
         }
 
         // 构建缓存
-        Cached cached = clazz.isAnnotationPresent(Cached.class) ? clazz.getAnnotation(Cached.class) : CachedEntity.class.getAnnotation(Cached.class);
-        String cacheSpec = toCacheSpec(cached);
+        Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
+        String cacheSpec = toCacheSpec(cacheable, defaultCacheSize);
         cache = CacheBuilder.from(cacheSpec).removalListener(new DbRemovalListener()).build(new DbLoader());
 
         // 预加载数据
@@ -97,34 +98,41 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
     @Override
     public void update(@Nonnull V v) {
         if (waitingRemoval.contains(v.getId())) {
-            LOGGER.error("Update failed: Attempting to update a object which is waiting to be deleted.");
+            LOGGER.error("无法更新已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), v.getId());
             return;
         }
         persistenceProcessor.update(v);
     }
 
     @Override
-    public void remove(@Nonnull V v) {
-        cache.invalidate(v.getId());
+    public void remove(@Nonnull K id) {
+        cache.invalidate(id);
     }
 
-    private String toCacheSpec(Cached cached) {
-        StringBuilder spec = new StringBuilder();
-        spec.append("initialCapacity").append("=").append(cached.initialCapacity()).append(",");
-        spec.append("maximumSize").append("=").append(cached.maximumSize()).append(",");
-        spec.append("concurrencyLevel").append("=").append(cached.concurrencyLevel());
-        if (StringUtils.isNotEmpty(cached.expireAfterAccess())) {
-            spec.append(",").append("expireAfterAccess").append("=").append(cached.expireAfterAccess());
+    private String toCacheSpec(Cacheable cacheable, int defaultCacheSize) {
+        StringBuilder spec = new StringBuilder(150);
+        int maximumSize = MathUtil.ensurePowerOf2(cacheable.sizeFactor().getSize(defaultCacheSize));
+        int initialCapacity = maximumSize >> 1;
+        spec.append("initialCapacity").append("=").append(initialCapacity).append(",");
+        spec.append("maximumSize").append("=").append(maximumSize).append(",");
+        spec.append("concurrencyLevel").append("=").append(cacheable.concurrencyLevel());
+        if (StringUtils.isNotEmpty(cacheable.expireAfterAccess())) {
+            spec.append(",").append("expireAfterAccess").append("=").append(cacheable.expireAfterAccess());
         }
-        if (StringUtils.isNotEmpty(cached.expireAfterWrite())) {
-            spec.append(",").append("expireAfterWrite").append("=").append(cached.expireAfterWrite());
+        if (StringUtils.isNotEmpty(cacheable.expireAfterWrite())) {
+            spec.append(",").append("expireAfterWrite").append("=").append(cacheable.expireAfterWrite());
         }
-        if (cached.recordStats()) {
+        if (cacheable.recordStats()) {
             spec.append(",").append("recordStats");
         }
-        if (cached.weakKeys()) {
+        if (cacheable.weakKeys()) {
             spec.append(",").append("weakKeys");
         }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("实体类 [{}] 的缓存配置: {}", clazz.getSimpleName(), spec);
+        }
+
         return spec.toString();
     }
 
@@ -133,6 +141,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
         @Override
         public V load(@Nonnull K key) throws Exception {
             if (waitingRemoval.contains(key)) {
+                LOGGER.error("无法加载已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), key);
                 return null;
             }
             V v = dataAccessor.get(key, clazz);
@@ -149,7 +158,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
         public void onRemoval(@Nonnull RemovalNotification<K, V> notification) {
             if (notification.getCause() == RemovalCause.EXPIRED) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Expire entry from Cache(not the DB): " + notification);
+                    LOGGER.debug("实体缓存清除过期数据: " + notification);
                 }
                 return;
             }

@@ -26,4 +26,13 @@ public class UserService {
         return user;
     }
 
+    @AutoLocked
+    public void test(@LockTarget(LockTarget.Type.Element) int a[]) {
+
+    }
+
+
+    public void removeUser(int id) {
+        cacheService.remove(id);
+    }
 }

@@ -31,6 +31,9 @@ class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> {
 
     @Override
     public int compareTo(@Nonnull ObjectLock other) {
+        /*通常情况下，Entity对象的锁的竞争性要比非Entity对象的锁的竞争性要小得多
+         *所以优先获取非Entity对象的锁可减少其他只需要获取Entity对象的锁的线程的等待时间
+         */
         if (this.isEntity && !other.isEntity) {
             return 1;
         }

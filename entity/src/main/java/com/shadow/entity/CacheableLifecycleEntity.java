@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @author nevermore on 2014/11/26.
  */
-public abstract class CachedLifecycleEntity<K extends Serializable> extends CachedEntity<K> implements Lifecycle {
+public abstract class CacheableLifecycleEntity<K extends Serializable> extends CacheableEntity<K> implements Lifecycle {
     @Override
     public boolean onSave(Session session) throws CallbackException {
         return false;

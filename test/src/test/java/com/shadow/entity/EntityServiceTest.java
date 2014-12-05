@@ -22,8 +22,10 @@ public class EntityServiceTest {
 
     @Test
     public void test() {
-        System.out.println(userService.getUser(1));
-        System.out.println(userService.updateUsername(1, "1111"));
+        int id = 1;
+        userService.getUser(id);
+        userService.removeUser(id);
+        userService.updateUsername(id, "aaaaaaaa");
     }
 
     @After
