@@ -17,16 +17,12 @@ final class UnorderedDisruptor<T> implements DisruptorService<T> {
     private final ExecutorService executorService;
     private final RingBuffer<Event<T>> ringBuffer;
 
-    /**
-     * @param builder 建造器
-     * @param handler 事件处理器(必须为线程安全的)
-     */
     @SuppressWarnings("unchecked")
     public UnorderedDisruptor(DisruptorBuilder<? super T> builder, WorkHandler<Event<T>> handler) {
-        executorService = Executors.newFixedThreadPool(builder.getThreadCount(), builder.getThreadFactory());
+        executorService = Executors.newFixedThreadPool(builder.getThreads(), builder.getThreadFactory());
         disruptor = new Disruptor<>(Event::new, builder.getBufferSize(), executorService);
 
-        WorkHandler[] handlers = new WorkHandler[builder.getThreadCount()];
+        WorkHandler[] handlers = new WorkHandler[builder.getThreads()];
         Arrays.fill(handlers, handler);
 
         disruptor.handleEventsWithWorkerPool(handlers);

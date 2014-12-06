@@ -14,7 +14,7 @@ import java.util.concurrent.ThreadFactory;
 public final class DisruptorBuilder<T> {
 
     private int bufferSize;
-    private int threadCount;
+    private int threads;
     private ThreadFactory threadFactory;
 
     public static final int DEFAULT_BUFFER_SIZE = 1 << 10;
@@ -26,20 +26,44 @@ public final class DisruptorBuilder<T> {
         return new DisruptorBuilder<>();
     }
 
+    /**
+     * 构造一个Disruptor服务
+     *
+     * @param handler 事件处理器(必须为线程安全的)
+     * @return
+     */
     public <T1 extends T> DisruptorService<T1> build(WorkHandler<Event<T1>> handler) {
         return new UnorderedDisruptor<>(this, handler);
     }
 
+    /**
+     * Disruptor的RingBuffer大小，当RingBuffer被占满时，提交任务需要等待，直到RingBuffer有空间
+     *
+     * @param bufferSize
+     * @return
+     */
     public DisruptorBuilder<T> bufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
         return this;
     }
 
-    public DisruptorBuilder<T> threadCount(int threadCount) {
-        this.threadCount = threadCount;
+    /**
+     * 事件消费者线程数量
+     *
+     * @param threads
+     * @return
+     */
+    public DisruptorBuilder<T> threads(int threads) {
+        this.threads = threads;
         return this;
     }
 
+    /**
+     * 线程工厂
+     *
+     * @param threadFactory
+     * @return
+     */
     public DisruptorBuilder<T> threadFactory(ThreadFactory threadFactory) {
         this.threadFactory = threadFactory;
         return this;
@@ -51,8 +75,8 @@ public final class DisruptorBuilder<T> {
         return bufferSize <= 0 ? DEFAULT_BUFFER_SIZE : MathUtil.ensurePowerOf2(bufferSize);
     }
 
-    int getThreadCount() {
-        return Math.max(threadCount, MIN_THREAD_COUNT);
+    int getThreads() {
+        return Math.max(threads, MIN_THREAD_COUNT);
     }
 
     ThreadFactory getThreadFactory() {

@@ -19,7 +19,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     };
 
     public QueuedPersistenceProcessor(WorkHandler<Event<PersistenceObj>> handler, NamedThreadFactory threadFactory, int nThread) {
-        disruptorService = DisruptorBuilder.newBuilder().threadFactory(threadFactory).threadCount(nThread).build(handler);
+        disruptorService = DisruptorBuilder.newBuilder().threadFactory(threadFactory).threads(nThread).build(handler);
     }
 
     @Override

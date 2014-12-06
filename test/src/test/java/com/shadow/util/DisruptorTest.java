@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class DisruptorTest {
 
     public static void main(String[] args) throws InterruptedException {
-        DisruptorService<Integer> disruptorService = DisruptorBuilder.newBuilder().threadCount(3).build(new WorkHandler<Event<Integer>>() {
+        DisruptorService<Integer> disruptorService = DisruptorBuilder.newBuilder().threads(3).build(new WorkHandler<Event<Integer>>() {
             @Override
             public void onEvent(Event<Integer> event) throws Exception {
                 System.out.println(Thread.currentThread().getName() + ":" + event.getData());

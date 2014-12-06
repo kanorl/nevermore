@@ -29,7 +29,7 @@ public class EntityServiceTest {
     public void test() {
         PersistenceProcessor<User> persistenceProcessor = serviceManager.getPersistenceProcessor(User.class);
         Long start = System.currentTimeMillis();
-        for (int i = 0; i < 5000; i++) {
+        for (int i = 0; i < 10; i++) {
             userService.addUser(i);
         }
 
@@ -41,6 +41,6 @@ public class EntityServiceTest {
 
     @After
     public void after() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(60);
+        TimeUnit.SECONDS.sleep(10);
     }
 }

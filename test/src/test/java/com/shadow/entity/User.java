@@ -1,11 +1,14 @@
 package com.shadow.entity;
 
 import com.shadow.entity.annotation.AutoSave;
+import com.shadow.entity.annotation.PreLoaded;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.util.codec.JsonUtil;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import java.util.Date;
 
 /**
@@ -13,6 +16,8 @@ import java.util.Date;
  */
 @Entity
 @Cacheable(sizeFactor = Cacheable.CacheSizeFactor.DOUBLE)
+@PreLoaded(type = PreLoaded.Type.NAMED_QUERY, queryName = "User.init")
+@NamedQueries(@NamedQuery(name = "User.init", query = "From User where date >= curdate() "))
 public class User extends CacheableLifecycleEntity<Integer> {
 
     @Id
