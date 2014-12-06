@@ -56,4 +56,9 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     public long remainTasks() {
         return disruptorService.remainEventCount();
     }
+
+    @Override
+    public void shutdown() {
+        disruptorService.shutdown();
+    }
 }

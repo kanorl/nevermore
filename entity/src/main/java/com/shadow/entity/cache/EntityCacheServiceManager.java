@@ -9,6 +9,8 @@ import com.shadow.entity.orm.persistence.PersistenceEventHandler;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
 import com.shadow.util.thread.NamedThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -19,6 +21,8 @@ import java.io.Serializable;
  * @author nevermore on 2014/11/26.
  */
 public final class EntityCacheServiceManager<K extends Serializable, V extends IEntity<K>> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheServiceManager.class);
 
     private final DataAccessor dataAccessor;
     private final PersistenceEventHandler persistenceEventHandler;
@@ -49,6 +53,17 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
                 return new RamEntityCacheService<>(clazz, dataAccessor, persistenceProcessors.get(clazz), defaultCacheSize);
             }
         });
+    }
+
+    public void shutdown() {
+        LOGGER.error("开始关闭持久化处理器...");
+        persistenceProcessors.asMap().forEach((clazz, processor) -> {
+            processor.shutdown();
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("实体类 {} 持久化处理器已关闭...", clazz.getSimpleName());
+            }
+        });
+        LOGGER.error("完成关闭持久化处理器...");
     }
 
     public EntityCacheService<K, V> getCacheService(@Nonnull Class<V> clazz) {

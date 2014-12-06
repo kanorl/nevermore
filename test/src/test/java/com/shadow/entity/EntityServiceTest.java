@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author nevermore on 2014/11/27
  */
@@ -33,14 +31,15 @@ public class EntityServiceTest {
             userService.addUser(i);
         }
 
-        while (persistenceProcessor.remainTasks() > 0) {
-
-        }
+//        while (persistenceProcessor.remainTasks() > 0) {
+//
+//        }
         System.out.println("耗时: " + (System.currentTimeMillis() - start) + "ms");
+//        persistenceProcessor.shutdown();
     }
 
     @After
     public void after() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(10);
+//        TimeUnit.SECONDS.sleep(10);
     }
 }

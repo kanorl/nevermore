@@ -1,8 +1,11 @@
 package com.shadow.util.disruptor;
 
+import com.lmax.disruptor.ExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.dsl.Disruptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +15,7 @@ import java.util.concurrent.Executors;
  * @author nevermore on 2014/11/26
  */
 final class UnorderedDisruptor<T> implements DisruptorService<T> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnorderedDisruptor.class);
 
     private final Disruptor<Event<T>> disruptor;
     private final ExecutorService executorService;
@@ -25,6 +29,22 @@ final class UnorderedDisruptor<T> implements DisruptorService<T> {
         WorkHandler[] handlers = new WorkHandler[builder.getThreads()];
         Arrays.fill(handlers, handler);
 
+        disruptor.handleExceptionsWith(new ExceptionHandler() {
+            @Override
+            public void handleEventException(Throwable ex, long sequence, Object event) {
+                LOGGER.error("Disruptor事件处理异常: Event=" + event, ex);
+            }
+
+            @Override
+            public void handleOnStartException(Throwable ex) {
+                LOGGER.error("Disruptor启动异常", ex);
+            }
+
+            @Override
+            public void handleOnShutdownException(Throwable ex) {
+                LOGGER.error("Disruptor关闭异常", ex);
+            }
+        });
         disruptor.handleEventsWithWorkerPool(handlers);
         ringBuffer = disruptor.start();
     }
