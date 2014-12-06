@@ -13,7 +13,7 @@ import java.lang.annotation.*;
 public @interface Cacheable {
 
     /**
-     * 初始化容量
+     * 容量系数
      *
      * @return
      */
@@ -42,7 +42,7 @@ public @interface Cacheable {
     public String expireAfterWrite() default "";
 
     /**
-     * 是否记录缓存状态
+     * 是否记录缓存统计数据
      *
      * @return
      */
@@ -55,15 +55,30 @@ public @interface Cacheable {
      */
     public boolean weakKeys() default false;
 
+    /**
+     * 缓存容量系数
+     */
     public enum CacheSizeFactor {
+        /**
+         * 最小容量(16)
+         */
         MINIMUM {
             @Override
             public int getSize(int size) {
                 return 16;
             }
         },
+        /**
+         * 配置的默认容量
+         */
         NORMAL,
+        /**
+         * 默认容量2倍
+         */
         DOUBLE,
+        /**
+         * 默认容量的3倍
+         */
         TRIPLE;
 
         public int getSize(int size) {

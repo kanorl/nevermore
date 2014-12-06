@@ -1,6 +1,6 @@
 package com.shadow.util.disruptor;
 
-import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.WorkHandler;
 import com.shadow.util.lang.MathUtil;
 import com.shadow.util.thread.NamedThreadFactory;
 
@@ -26,7 +26,7 @@ public final class DisruptorBuilder<T> {
         return new DisruptorBuilder<>();
     }
 
-    public <T1 extends T> DisruptorService<T1> build(EventHandler<Event<T1>> handler) {
+    public <T1 extends T> DisruptorService<T1> build(WorkHandler<Event<T1>> handler) {
         return new UnorderedDisruptor<>(this, handler);
     }
 

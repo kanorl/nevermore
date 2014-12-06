@@ -20,4 +20,6 @@ public interface PersistenceProcessor<T extends IEntity<?>> {
     void delete(T t);
 
     void delete(T t, Runnable callback);
+
+    long remainTasks();
 }

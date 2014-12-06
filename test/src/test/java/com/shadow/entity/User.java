@@ -12,7 +12,7 @@ import java.util.Date;
  * @author nevermore on 2014/11/27
  */
 @Entity
-@Cacheable(sizeFactor = Cacheable.CacheSizeFactor.MINIMUM)
+@Cacheable(sizeFactor = Cacheable.CacheSizeFactor.DOUBLE)
 public class User extends CacheableLifecycleEntity<Integer> {
 
     @Id
@@ -20,6 +20,12 @@ public class User extends CacheableLifecycleEntity<Integer> {
     private String username;
     private String password;
     private Date date;
+
+    public static User valueOf(int id) {
+        User user = new User();
+        user.setId(id);
+        return user;
+    }
 
     @Override
     public Integer getId() {

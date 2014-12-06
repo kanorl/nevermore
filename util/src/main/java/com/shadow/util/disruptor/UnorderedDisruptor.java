@@ -1,9 +1,10 @@
 package com.shadow.util.disruptor;
 
-import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,11 +17,19 @@ final class UnorderedDisruptor<T> implements DisruptorService<T> {
     private final ExecutorService executorService;
     private final RingBuffer<Event<T>> ringBuffer;
 
+    /**
+     * @param builder 建造器
+     * @param handler 事件处理器(必须为线程安全的)
+     */
     @SuppressWarnings("unchecked")
-    public UnorderedDisruptor(DisruptorBuilder<? super T> builder, EventHandler<Event<T>> handler) {
+    public UnorderedDisruptor(DisruptorBuilder<? super T> builder, WorkHandler<Event<T>> handler) {
         executorService = Executors.newFixedThreadPool(builder.getThreadCount(), builder.getThreadFactory());
         disruptor = new Disruptor<>(Event::new, builder.getBufferSize(), executorService);
-        disruptor.handleEventsWith(handler);
+
+        WorkHandler[] handlers = new WorkHandler[builder.getThreadCount()];
+        Arrays.fill(handlers, handler);
+
+        disruptor.handleEventsWithWorkerPool(handlers);
         ringBuffer = disruptor.start();
     }
 

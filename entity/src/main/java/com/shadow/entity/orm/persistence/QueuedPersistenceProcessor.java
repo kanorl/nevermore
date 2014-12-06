@@ -1,10 +1,11 @@
 package com.shadow.entity.orm.persistence;
 
-import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.WorkHandler;
 import com.shadow.entity.IEntity;
 import com.shadow.util.disruptor.DisruptorBuilder;
 import com.shadow.util.disruptor.DisruptorService;
 import com.shadow.util.disruptor.Event;
+import com.shadow.util.thread.NamedThreadFactory;
 
 /**
  * 队列式持久化处理器
@@ -17,8 +18,8 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     private static final Runnable DEFAULT_CALLBACK = () -> {
     };
 
-    public QueuedPersistenceProcessor(EventHandler<Event<PersistenceObj>> handler) {
-        disruptorService = DisruptorBuilder.newBuilder().build(handler);
+    public QueuedPersistenceProcessor(WorkHandler<Event<PersistenceObj>> handler, NamedThreadFactory threadFactory, int nThread) {
+        disruptorService = DisruptorBuilder.newBuilder().threadFactory(threadFactory).threadCount(nThread).build(handler);
     }
 
     @Override
@@ -49,5 +50,10 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     @Override
     public void delete(T t, Runnable callback) {
         disruptorService.submit(PersistenceObj.deleteOf(t, callback));
+    }
+
+    @Override
+    public long remainTasks() {
+        return disruptorService.remainEventCount();
     }
 }

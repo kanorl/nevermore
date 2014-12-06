@@ -35,6 +35,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
     private final DataAccessor dataAccessor;
     private final PersistenceProcessor<V> persistenceProcessor;
     private final LoadingCache<K, V> cache;
+    private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
     private final EntityProxyGenerator<K, V> proxyGenerator;
 
@@ -53,7 +54,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
         String cacheSpec = toCacheSpec(cacheable, defaultCacheSize);
-        cache = CacheBuilder.from(cacheSpec).removalListener(new DbRemovalListener()).build(new DbLoader());
+        cache = CacheBuilder.from(cacheSpec).removalListener(new DbRemovalListener()).build(cacheLoader);
 
         // 预加载数据
         PreLoaded preLoaded = clazz.getAnnotation(PreLoaded.class);
@@ -79,7 +80,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
     public V getOr(@Nonnull K id, @Nonnull EntityFactory<V> factory) {
         try {
             return cache.get(id, () -> {
-                V v = cache.get(id);
+                V v = cacheLoader.load(id);
                 if (v != null) {
                     return v;
                 }
@@ -130,7 +131,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("实体类 [{}] 的缓存配置: {}", clazz.getSimpleName(), spec);
+            LOGGER.debug("实体类 [{}] 缓存配置: {}", clazz.getSimpleName(), spec);
         }
 
         return spec.toString();
@@ -156,9 +157,9 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
 
         @Override
         public void onRemoval(@Nonnull RemovalNotification<K, V> notification) {
-            if (notification.getCause() == RemovalCause.EXPIRED) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("实体缓存清除过期数据: " + notification);
+            if (notification.getCause() != RemovalCause.EXPLICIT) {
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("实体类 [{}] 缓存清理数据: Cause={}, id={}", clazz.getSimpleName(), notification.getCause(), notification.getKey());
                 }
                 return;
             }

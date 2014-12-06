@@ -8,8 +8,6 @@ import java.lang.annotation.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 对注解为@AutoLocked方法的参数使用
@@ -49,16 +47,16 @@ public @interface LockTarget {
             public Collection<?> extract(@Nonnull Object arg) throws IllegalLockTargetException {
                 checkNotNull(arg);
 
-                Stream<?> stream;
+                Collection<?> targets;
                 if (arg instanceof Collection<?>) {
-                    stream = ((Collection<?>) arg).stream();
+                    targets = ((Collection<?>) arg);
                 } else if (arg.getClass().isArray()) {
-                    stream = Arrays.stream((Object[]) arg);
+                    targets = Arrays.asList(((Object[]) arg));
                 } else {
                     throw new IllegalLockTargetException("Unsupported lock target type.(should never happen)");
                 }
-                stream.forEach((e) -> checkNotNull(e));
-                return stream.collect(Collectors.toList());
+                targets.forEach(e -> checkNotNull(e));
+                return targets;
             }
         };
 

@@ -35,4 +35,8 @@ public class UserService {
     public void removeUser(int id) {
         cacheService.remove(id);
     }
+
+    public void addUser(int id) {
+        cacheService.getOr(id, () -> User.valueOf(id));
+    }
 }

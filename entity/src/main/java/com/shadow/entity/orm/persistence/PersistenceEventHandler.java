@@ -1,6 +1,6 @@
 package com.shadow.entity.orm.persistence;
 
-import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.WorkHandler;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.proxy.EntityProxy;
@@ -14,14 +14,14 @@ import org.springframework.stereotype.Component;
  * @author nevermore on 2014/11/26.
  */
 @Component
-public final class PersistenceEventHandler implements EventHandler<Event<PersistenceObj>> {
+public final class PersistenceEventHandler implements WorkHandler<Event<PersistenceObj>> {
 
     @Autowired
     private DataAccessor dataAccessor;
 
 
     @Override
-    public void onEvent(Event<PersistenceObj> e, long l, boolean b) throws Exception {
+    public void onEvent(Event<PersistenceObj> e) throws Exception {
         IEntity<?> entity = e.getData().getEntity();
         PersistenceOperation operation = e.getData().getOperation();
 

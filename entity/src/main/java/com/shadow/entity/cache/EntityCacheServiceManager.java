@@ -8,6 +8,7 @@ import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceEventHandler;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
+import com.shadow.util.thread.NamedThreadFactory;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -22,13 +23,15 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
     private final DataAccessor dataAccessor;
     private final PersistenceEventHandler persistenceEventHandler;
     private int defaultCacheSize;
+    private int nThread;
     private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
     private LoadingCache<Class<V>, EntityCacheService<K, V>> cacheServices;
 
-    public EntityCacheServiceManager(DataAccessor dataAccessor, PersistenceEventHandler persistenceEventHandler, int defaultCacheSize) {
+    public EntityCacheServiceManager(DataAccessor dataAccessor, PersistenceEventHandler persistenceEventHandler, int defaultCacheSize, int nThread) {
         this.dataAccessor = dataAccessor;
         this.persistenceEventHandler = persistenceEventHandler;
         this.defaultCacheSize = defaultCacheSize;
+        this.nThread = nThread;
         initialize();
     }
 
@@ -36,7 +39,7 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
         persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, PersistenceProcessor<V>>() {
             @Override
             public PersistenceProcessor<V> load(@Nonnull Class<V> clazz) throws Exception {
-                return new QueuedPersistenceProcessor<>(persistenceEventHandler);
+                return new QueuedPersistenceProcessor<>(persistenceEventHandler, new NamedThreadFactory(clazz.getSimpleName() + "持久化线程"), nThread);
             }
         });
 
@@ -50,5 +53,9 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
 
     public EntityCacheService<K, V> getCacheService(@Nonnull Class<V> clazz) {
         return cacheServices.getUnchecked(clazz);
+    }
+
+    public PersistenceProcessor<V> getPersistenceProcessor(@Nonnull Class<V> clazz) {
+        return persistenceProcessors.getIfPresent(clazz);
     }
 }

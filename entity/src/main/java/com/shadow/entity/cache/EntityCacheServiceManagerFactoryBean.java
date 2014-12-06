@@ -17,12 +17,14 @@ public final class EntityCacheServiceManagerFactoryBean implements FactoryBean<E
     private DataAccessor dataAccessor;
     @Autowired
     private PersistenceEventHandler persistenceEventHandler;
-    @Value("${server.ramcache.size.default}")
+    @Value("${server.cache.size.default}")
     private int defaultCacheSize;
+    @Value("${server.persistence.thread.num}")
+    private int nThread;
 
     @Override
     public EntityCacheServiceManager getObject() throws Exception {
-        return new EntityCacheServiceManager(dataAccessor, persistenceEventHandler, defaultCacheSize);
+        return new EntityCacheServiceManager(dataAccessor, persistenceEventHandler, defaultCacheSize, nThread);
     }
 
     @Override
