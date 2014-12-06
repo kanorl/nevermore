@@ -1,7 +1,5 @@
 package com.shadow.entity;
 
-import com.shadow.entity.cache.EntityCacheServiceManager;
-import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,27 +17,19 @@ public class EntityServiceTest {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private EntityCacheServiceManager<Integer, User> serviceManager;
-
+    private long start;
 
     @Test
     public void test() {
-        PersistenceProcessor<User> persistenceProcessor = serviceManager.getPersistenceProcessor(User.class);
-        Long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         for (int i = 0; i < 10; i++) {
             userService.addUser(i);
         }
-
-//        while (persistenceProcessor.remainTasks() > 0) {
-//
-//        }
-        System.out.println("耗时: " + (System.currentTimeMillis() - start) + "ms");
-//        persistenceProcessor.shutdown();
     }
 
     @After
     public void after() throws InterruptedException {
+        System.out.println("耗时: " + (System.currentTimeMillis() - start) + "ms");
 //        TimeUnit.SECONDS.sleep(10);
     }
 }

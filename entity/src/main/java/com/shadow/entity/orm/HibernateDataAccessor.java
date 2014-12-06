@@ -5,6 +5,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,12 @@ import java.util.List;
  *
  * @author nevermore on 2014/11/26.
  */
+/*
+ * 添加depends-on，解决异常：
+ * org.springframework.beans.factory.BeanCreationNotAllowedException: Error creating bean with name 'transactionManager': Singleton bean creation not allowed while the singletons of this factory are in destruction (Do not request a bean from a BeanFactory in a destroy method implementation!)
+ * 保证transactionManager销毁顺序在本类之后
+ */
+@DependsOn("transactionManager")
 @SuppressWarnings("unchecked")
 @Repository
 @Transactional
