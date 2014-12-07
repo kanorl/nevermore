@@ -5,6 +5,7 @@ import com.shadow.socket.netty.server.handler.ServerInitializer;
 import com.shadow.socket.netty.server.handler.ServerSessionHandler;
 import com.shadow.util.thread.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -43,6 +44,7 @@ public final class SocketServer implements ApplicationListener<ApplicationEvent>
     @Autowired
     private ServerHandler handler;
 
+    private Channel channel;
     private EventLoopGroup parentGroup;
     private EventLoopGroup childGroup;
     private EventExecutorGroup executors;
@@ -50,9 +52,9 @@ public final class SocketServer implements ApplicationListener<ApplicationEvent>
 
     @PostConstruct
     private void initialize() {
-        parentGroup = newEventLoopGroup(1, new NamedThreadFactory("Socket Acceptor"));
-        childGroup = newEventLoopGroup(0, new NamedThreadFactory("Socket I/O"));// use DEFAULT_EVENT_LOOP_THREADS
-        executors = new DefaultEventExecutorGroup(Math.max(poolSize, Runtime.getRuntime().availableProcessors() * 2), new NamedThreadFactory("EventExecutor"));
+        parentGroup = newEventLoopGroup(1, new NamedThreadFactory("Socket Acceptor线程"));
+        childGroup = newEventLoopGroup(0, new NamedThreadFactory("Socket I/O线程"));// use DEFAULT_EVENT_LOOP_THREADS
+        executors = new DefaultEventExecutorGroup(Math.max(poolSize, Runtime.getRuntime().availableProcessors() * 2), new NamedThreadFactory("Socket Request Handler线程"));
         filters = filters();
     }
 
@@ -73,17 +75,26 @@ public final class SocketServer implements ApplicationListener<ApplicationEvent>
                     .childHandler(new ServerInitializer(handler, executors, filters));
             b.option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_REUSEADDR, true);
-            b.bind(port).sync();
-            LOGGER.error("Server started. Listening on port: " + port);
+            channel = b.bind(port).sync().channel();
+            LOGGER.error("服务器已启动，开始监听端口: " + port);
         } catch (Exception e) {
-            LOGGER.error("Start server failed.", e);
+            LOGGER.error("服务器启动失败", e);
         }
     }
 
     public void shutdown() {
+        if (channel == null) {
+            return;
+        }
+
+        LOGGER.error("开始 [关闭Socket服务]");
+
+        channel.close().syncUninterruptibly();
         parentGroup.shutdownGracefully();
         childGroup.shutdownGracefully();
         executors.shutdownGracefully();
+
+        LOGGER.error("完成 [关闭Socket服务]");
     }
 
     private Map<String, ChannelHandler> filters() {
