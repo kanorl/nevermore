@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * 事件总线
@@ -43,7 +46,7 @@ public class EventBus {
         executorService.shutdown();
     }
 
-    public void post(Event event) {
-        executorService.submit(() -> eventDispatcher.dispatch(event));
+    public void post(@Nonnull Event event) {
+        executorService.submit(() -> eventDispatcher.dispatch(requireNonNull(event)));
     }
 }
