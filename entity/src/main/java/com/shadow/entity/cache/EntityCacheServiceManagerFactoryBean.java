@@ -21,14 +21,12 @@ public final class EntityCacheServiceManagerFactoryBean implements FactoryBean<E
     private PersistenceEventHandler persistenceEventHandler;
     @Value("${server.cache.size.default}")
     private int defaultCacheSize;
-    @Value("${server.persistence.thread.num}")
-    private int nThread;
 
     private EntityCacheServiceManager serviceManager;
 
     @Override
     public EntityCacheServiceManager getObject() throws Exception {
-        serviceManager = new EntityCacheServiceManager(dataAccessor, persistenceEventHandler, defaultCacheSize, nThread);
+        serviceManager = new EntityCacheServiceManager(dataAccessor, persistenceEventHandler, defaultCacheSize);
         return serviceManager;
     }
 

@@ -18,8 +18,8 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     private static final Runnable DEFAULT_CALLBACK = () -> {
     };
 
-    public QueuedPersistenceProcessor(WorkHandler<Event<PersistenceObj>> handler, NamedThreadFactory threadFactory, int nThread) {
-        disruptorService = DisruptorBuilder.newBuilder().threadFactory(threadFactory).threads(nThread).build(handler);
+    public QueuedPersistenceProcessor(WorkHandler<Event<PersistenceObj>> handler, NamedThreadFactory threadFactory) {
+        disruptorService = DisruptorBuilder.newBuilder().threadFactory(threadFactory).threads(1).build(handler);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.shadow.util.codec;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,10 @@ public class JsonUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(JsonUtil.class);
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    static {
+        OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    }
 
     public static String toJson(Object o) {
         try {

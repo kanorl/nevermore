@@ -2,6 +2,7 @@ package com.shadow.util.lang;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.reflections.ReflectionUtils;
+import org.reflections.Reflections;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 
@@ -17,6 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class ReflectUtil {
     private static final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+    private static final Reflections reflections = new Reflections("");
 
     @Nonnull
     public static String[] getParamNames(@Nonnull Method method) {
@@ -39,5 +41,9 @@ public final class ReflectUtil {
         checkNotNull(annotationClass);
 
         return ReflectionUtils.getAllMethods(type, input -> input != null && input.isAnnotationPresent(annotationClass));
+    }
+
+    public static <T> Set<Class<? extends T>> getAllSubTypesOf(Class<T> clazz) {
+        return reflections.getSubTypesOf(clazz);
     }
 }

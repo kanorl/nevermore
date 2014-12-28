@@ -13,6 +13,7 @@
         <module>entity</module>
         <module>socket</module>
         <module>test</module>
+        <module>event</module>
     </modules>
 
     <properties>

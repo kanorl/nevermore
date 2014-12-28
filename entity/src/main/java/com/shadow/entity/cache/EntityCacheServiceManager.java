@@ -27,15 +27,13 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
     private final DataAccessor dataAccessor;
     private final PersistenceEventHandler persistenceEventHandler;
     private int defaultCacheSize;
-    private int nThread;
     private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
     private LoadingCache<Class<V>, EntityCacheService<K, V>> cacheServices;
 
-    public EntityCacheServiceManager(DataAccessor dataAccessor, PersistenceEventHandler persistenceEventHandler, int defaultCacheSize, int nThread) {
+    public EntityCacheServiceManager(DataAccessor dataAccessor, PersistenceEventHandler persistenceEventHandler, int defaultCacheSize) {
         this.dataAccessor = dataAccessor;
         this.persistenceEventHandler = persistenceEventHandler;
         this.defaultCacheSize = defaultCacheSize;
-        this.nThread = nThread;
         initialize();
     }
 
@@ -43,7 +41,7 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
         persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, PersistenceProcessor<V>>() {
             @Override
             public PersistenceProcessor<V> load(@Nonnull Class<V> clazz) throws Exception {
-                return new QueuedPersistenceProcessor<>(persistenceEventHandler, new NamedThreadFactory(clazz.getSimpleName() + "持久化线程"), nThread);
+                return new QueuedPersistenceProcessor<>(persistenceEventHandler, new NamedThreadFactory(clazz.getSimpleName() + "持久化线程"));
             }
         });
 
