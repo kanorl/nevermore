@@ -8,10 +8,10 @@ import io.netty.channel.ChannelHandler;
 public class MessageCodecFactory {
 
     public static ChannelHandler newEncoder() {
-        return new ResponseEncoder();
+        return new MessageEncoder();
     }
 
     public static ChannelHandler newDecoder() {
-        return new RequestDecoder();
+        return new MessageDecoder();
     }
 }

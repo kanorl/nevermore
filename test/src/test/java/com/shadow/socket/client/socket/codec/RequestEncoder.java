@@ -6,9 +6,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-/**
- * Created by LiangZengle on 2014/9/15.
- */
 public class RequestEncoder extends MessageToByteEncoder<Request> {
 
     @Override

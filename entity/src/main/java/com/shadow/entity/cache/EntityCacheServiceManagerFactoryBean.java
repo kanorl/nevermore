@@ -1,7 +1,6 @@
 package com.shadow.entity.cache;
 
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.entity.orm.persistence.PersistenceEventHandler;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,16 +16,16 @@ public final class EntityCacheServiceManagerFactoryBean implements FactoryBean<E
 
     @Autowired
     private DataAccessor dataAccessor;
-    @Autowired
-    private PersistenceEventHandler persistenceEventHandler;
     @Value("${server.cache.size.default}")
     private int defaultCacheSize;
+    @Value("${server.persistence.pool.size:1}")
+    private int persistencePoolSize;
 
     private EntityCacheServiceManager serviceManager;
 
     @Override
     public EntityCacheServiceManager getObject() throws Exception {
-        serviceManager = new EntityCacheServiceManager(dataAccessor, persistenceEventHandler, defaultCacheSize);
+        serviceManager = new EntityCacheServiceManager(dataAccessor, defaultCacheSize, persistencePoolSize);
         return serviceManager;
     }
 

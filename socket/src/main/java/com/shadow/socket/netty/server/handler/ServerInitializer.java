@@ -1,7 +1,6 @@
 package com.shadow.socket.netty.server.handler;
 
-import com.shadow.socket.netty.codec.RequestDecoder;
-import com.shadow.socket.netty.codec.ResponseEncoder;
+import com.shadow.socket.netty.codec.MessageCodecFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -33,8 +32,8 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
             p.addLast(entry.getKey(), entry.getValue());
         }
 
-        p.addLast(new RequestDecoder());
-        p.addLast(new ResponseEncoder());
+        p.addLast(MessageCodecFactory.newDecoder());
+        p.addLast(MessageCodecFactory.newEncoder());
         p.addLast(executors, "handler", handler);
     }
 }

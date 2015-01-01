@@ -1,8 +1,5 @@
 package com.shadow.socket.client.model;
 
-/**
- * Created by LiangZengle on 2014/7/22.
- */
 public class Option {
     private String name;
     private Object value;

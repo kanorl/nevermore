@@ -7,33 +7,27 @@ import com.shadow.entity.IEntity;
  *
  * @author nevermore on 2014/11/26.
  */
-public final class PersistenceObj {
+final class PersistenceObj {
     private IEntity<?> entity;
     private PersistenceOperation operation;
     private Runnable callback;
 
+    private PersistenceObj(IEntity<?> entity, PersistenceOperation operation, Runnable callback) {
+        this.entity = entity;
+        this.operation = operation;
+        this.callback = callback;
+    }
+
     public static <T extends IEntity<?>> PersistenceObj saveOf(T t, Runnable callback) {
-        PersistenceObj obj = new PersistenceObj();
-        obj.entity = t;
-        obj.operation = PersistenceOperation.SAVE;
-        obj.callback = callback;
-        return obj;
+        return new PersistenceObj(t, PersistenceOperation.SAVE, callback);
     }
 
     public static <T extends IEntity<?>> PersistenceObj updateOf(T t, Runnable callback) {
-        PersistenceObj obj = new PersistenceObj();
-        obj.entity = t;
-        obj.operation = PersistenceOperation.UPDATE;
-        obj.callback = callback;
-        return obj;
+        return new PersistenceObj(t, PersistenceOperation.UPDATE, callback);
     }
 
     public static <T extends IEntity<?>> PersistenceObj deleteOf(T t, Runnable callback) {
-        PersistenceObj obj = new PersistenceObj();
-        obj.entity = t;
-        obj.operation = PersistenceOperation.DELETE;
-        obj.callback = callback;
-        return obj;
+        return new PersistenceObj(t, PersistenceOperation.DELETE, callback);
     }
 
     public IEntity<?> getEntity() {

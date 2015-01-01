@@ -33,7 +33,7 @@ public class EventListenerManager extends InstantiationAwareBeanPostProcessorAda
      * 获取该事件的所有监听器
      *
      * @param eventType 事件类型
-     * @return a unmodified set
+     * @return a unmodifiable set
      */
     @Nonnull
     Set<EventListener<Event>> getListeners(Class<? extends Event> eventType) {

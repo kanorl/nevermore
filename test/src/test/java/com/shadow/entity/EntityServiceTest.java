@@ -20,16 +20,17 @@ public class EntityServiceTest {
     private long start;
 
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
+        int n = 5000;
         start = System.currentTimeMillis();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < n; i++) {
             userService.addUser(i);
         }
     }
 
     @After
     public void after() throws InterruptedException {
-        System.out.println("耗时: " + (System.currentTimeMillis() - start) + "ms");
+        System.err.println("耗时: " + (System.currentTimeMillis() - start) + "ms");
 //        TimeUnit.SECONDS.sleep(10);
     }
 }

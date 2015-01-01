@@ -1,11 +1,13 @@
 package com.shadow.entity.orm.persistence;
 
-import com.lmax.disruptor.WorkHandler;
 import com.shadow.entity.IEntity;
-import com.shadow.util.disruptor.DisruptorBuilder;
-import com.shadow.util.disruptor.DisruptorService;
-import com.shadow.util.disruptor.Event;
-import com.shadow.util.thread.NamedThreadFactory;
+import com.shadow.entity.orm.DataAccessor;
+import com.shadow.util.lang.MathUtil;
+
+import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * 队列式持久化处理器
@@ -14,12 +16,21 @@ import com.shadow.util.thread.NamedThreadFactory;
  */
 public class QueuedPersistenceProcessor<T extends IEntity<?>> implements PersistenceProcessor<T> {
 
-    private final DisruptorService<PersistenceObj> disruptorService;
+    private final ExecutorService[] executors;
+    private final DataAccessor dataAccessor;
     private static final Runnable DEFAULT_CALLBACK = () -> {
     };
 
-    public QueuedPersistenceProcessor(WorkHandler<Event<PersistenceObj>> handler, NamedThreadFactory threadFactory) {
-        disruptorService = DisruptorBuilder.newBuilder().threadFactory(threadFactory).threads(1).build(handler);
+    public QueuedPersistenceProcessor(DataAccessor dataAccessor, ThreadFactory threadFactory, int nThread) {
+        this.dataAccessor = dataAccessor;
+        executors = new ExecutorService[MathUtil.ensurePowerOf2(nThread)];
+        for (int i = 0; i < executors.length; i++) {
+            executors[i] = Executors.newSingleThreadExecutor(threadFactory);
+        }
+    }
+
+    private ExecutorService executor(T t) {
+        return executors[t.getId().hashCode() & (executors.length - 1)];
     }
 
     @Override
@@ -29,7 +40,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Override
     public void save(T t, Runnable callback) {
-        disruptorService.submit(PersistenceObj.saveOf(t, callback));
+        executor(t).submit(PersistenceTask.newTask(PersistenceObj.saveOf(t, callback), dataAccessor));
     }
 
     @Override
@@ -39,7 +50,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Override
     public void update(T t, Runnable callback) {
-        disruptorService.submit(PersistenceObj.updateOf(t, callback));
+        executor(t).submit(PersistenceTask.newTask(PersistenceObj.updateOf(t, callback), dataAccessor));
     }
 
     @Override
@@ -49,16 +60,16 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Override
     public void delete(T t, Runnable callback) {
-        disruptorService.submit(PersistenceObj.deleteOf(t, callback));
+        executor(t).submit(PersistenceTask.newTask(PersistenceObj.deleteOf(t, callback), dataAccessor));
     }
 
     @Override
     public long remainTasks() {
-        return disruptorService.remainEventCount();
+        return -1;
     }
 
     @Override
     public void shutdown() {
-        disruptorService.shutdown();
+        Arrays.stream(executors).forEach(ExecutorService::shutdown);
     }
 }

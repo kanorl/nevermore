@@ -28,7 +28,7 @@ public class EventBus {
 
     @Autowired
     private EventListenerManager eventListenerManager;
-    @Value("${server.event.thread.num:0}")
+    @Value("${server.event.pool.size:0}")
     private int nThread;
 
     private ExecutorService executorService;

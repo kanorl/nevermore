@@ -2,11 +2,10 @@ package com.shadow.socket.netty.server.handler;
 
 import com.shadow.socket.core.annotation.support.RequestProcessor;
 import com.shadow.socket.core.annotation.support.RequestProcessorManager;
-import com.shadow.socket.core.domain.Request;
-import com.shadow.socket.core.domain.Response;
-import com.shadow.socket.core.domain.Result;
+import com.shadow.socket.core.domain.*;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.netty.session.NettySessionManager;
+import com.shadow.util.codec.ProtostuffCodec;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -19,13 +18,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ChannelHandler.Sharable
-public class ServerHandler extends SimpleChannelInboundHandler<Request> {
+public class ServerHandler extends SimpleChannelInboundHandler<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Request request) throws Exception {
-        Session<Long> session = NettySessionManager.getSession(ctx.channel());
-        request.setSession(session);
+    protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
+        Request request = toRequest(msg, NettySessionManager.getSession(ctx.channel()));
 
         RequestProcessor requestProcessor = RequestProcessorManager.getRequestProcessor(request.getCommand());
 
@@ -45,9 +43,20 @@ public class ServerHandler extends SimpleChannelInboundHandler<Request> {
             return;
         }
 
+        Message response = toResponseMsg(request.getCommand(), code, content);
+        request.getSession().write(response);
+    }
+
+    private Message toResponseMsg(Command command, int code, Object content) {
         Result<?> result = Result.valueOf(code, content);
-        Response response = Response.valueOf(request.getCommand(), result);
-        session.write(response);
+        byte[] body = ProtostuffCodec.encode(result);
+        return Message.valueOf(command, body);
+    }
+
+    private Request toRequest(Message msg, Session<Long> session) {
+        ParameterContainer pc = new ParameterContainer();
+        ProtostuffCodec.decode(msg.getBody(), pc);
+        return Request.valueOf(msg.getCommand(), pc, session);
     }
 
     @Override

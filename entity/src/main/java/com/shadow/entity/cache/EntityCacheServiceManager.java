@@ -5,7 +5,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.entity.orm.persistence.PersistenceEventHandler;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
 import com.shadow.util.thread.NamedThreadFactory;
@@ -25,15 +24,15 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheServiceManager.class);
 
     private final DataAccessor dataAccessor;
-    private final PersistenceEventHandler persistenceEventHandler;
     private int defaultCacheSize;
+    private int persistencePoolSize;
     private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
     private LoadingCache<Class<V>, EntityCacheService<K, V>> cacheServices;
 
-    public EntityCacheServiceManager(DataAccessor dataAccessor, PersistenceEventHandler persistenceEventHandler, int defaultCacheSize) {
+    public EntityCacheServiceManager(DataAccessor dataAccessor, int defaultCacheSize, int persistencePoolSize) {
         this.dataAccessor = dataAccessor;
-        this.persistenceEventHandler = persistenceEventHandler;
         this.defaultCacheSize = defaultCacheSize;
+        this.persistencePoolSize = persistencePoolSize;
         initialize();
     }
 
@@ -41,7 +40,7 @@ public final class EntityCacheServiceManager<K extends Serializable, V extends I
         persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, PersistenceProcessor<V>>() {
             @Override
             public PersistenceProcessor<V> load(@Nonnull Class<V> clazz) throws Exception {
-                return new QueuedPersistenceProcessor<>(persistenceEventHandler, new NamedThreadFactory(clazz.getSimpleName() + "持久化线程"));
+                return new QueuedPersistenceProcessor<>(dataAccessor, new NamedThreadFactory(clazz.getSimpleName() + "持久化线程"), persistencePoolSize);
             }
         });
 
