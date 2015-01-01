@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,7 +27,7 @@ public class EventBus {
 
 
     @Autowired
-    private EventDispatcher eventDispatcher;
+    private EventListenerManager eventListenerManager;
     @Value("${server.event.thread.num:0}")
     private int nThread;
 
@@ -47,6 +48,12 @@ public class EventBus {
     }
 
     public void post(@Nonnull Event event) {
-        executorService.submit(() -> eventDispatcher.dispatch(requireNonNull(event)));
+        requireNonNull(event, "事件不能为null");
+        Set<EventListener<Event>> listeners = eventListenerManager.getListeners(event.getClass());
+        if (listeners.isEmpty()) {
+            LOGGER.error("未被监听的事件类型[{}]", event.getClass().getName());
+            return;
+        }
+        listeners.forEach(listener -> executorService.submit(() -> listener.onEvent(event)));
     }
 }
