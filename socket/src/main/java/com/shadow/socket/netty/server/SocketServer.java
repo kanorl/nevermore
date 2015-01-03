@@ -51,9 +51,9 @@ public final class SocketServer implements ApplicationListener<ContextStartedEve
 
     @PostConstruct
     private void initialize() {
-        parentGroup = newEventLoopGroup(1, new NamedThreadFactory("Socket Acceptor线程"));
-        childGroup = newEventLoopGroup(0, new NamedThreadFactory("Socket I/O线程"));// use DEFAULT_EVENT_LOOP_THREADS
-        executors = new DefaultEventExecutorGroup(Math.max(poolSize, Runtime.getRuntime().availableProcessors() * 2), new NamedThreadFactory("Socket Request Handler线程"));
+        parentGroup = newEventLoopGroup(1, new NamedThreadFactory("Socket Acceptor"));
+        childGroup = newEventLoopGroup(0, new NamedThreadFactory("Socket I/O"));// use DEFAULT_EVENT_LOOP_THREADS
+        executors = new DefaultEventExecutorGroup(Math.max(poolSize, Runtime.getRuntime().availableProcessors() * 2), new NamedThreadFactory("Socket Request Handler"));
         filters = filters();
     }
 
