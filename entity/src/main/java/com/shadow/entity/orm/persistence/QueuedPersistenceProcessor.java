@@ -2,12 +2,14 @@ package com.shadow.entity.orm.persistence;
 
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
+import com.shadow.util.concurrent.ExecutorUtil;
 import com.shadow.util.lang.MathUtil;
+import com.shadow.util.thread.NamedThreadFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 队列式持久化处理器
@@ -18,14 +20,16 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     private final ExecutorService[] executors;
     private final DataAccessor dataAccessor;
+    private final String name;
     private static final Runnable DEFAULT_CALLBACK = () -> {
     };
 
-    public QueuedPersistenceProcessor(DataAccessor dataAccessor, ThreadFactory threadFactory, int nThread) {
+    public QueuedPersistenceProcessor(DataAccessor dataAccessor, String entityName, int nThread) {
         this.dataAccessor = dataAccessor;
+        this.name = entityName + "持久化";
         executors = new ExecutorService[MathUtil.ensurePowerOf2(nThread)];
         for (int i = 0; i < executors.length; i++) {
-            executors[i] = Executors.newSingleThreadExecutor(threadFactory);
+            executors[i] = Executors.newSingleThreadExecutor(new NamedThreadFactory(name));
         }
     }
 
@@ -70,6 +74,6 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Override
     public void shutdown() {
-        Arrays.stream(executors).forEach(ExecutorService::shutdown);
+        Arrays.stream(executors).forEach(executor -> ExecutorUtil.shutdownAndAwaitTermination(executor, name, 10, TimeUnit.MILLISECONDS));
     }
 }

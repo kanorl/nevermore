@@ -19,13 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
@@ -34,7 +33,7 @@ import java.util.concurrent.ThreadFactory;
  * @author nevermore on 2014/11/26
  */
 @Component
-public final class SocketServer implements ApplicationListener<ApplicationEvent> {
+public final class SocketServer implements ApplicationListener<ContextStartedEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SocketServer.class);
 
     @Value("${server.socket.port}")
@@ -59,15 +58,11 @@ public final class SocketServer implements ApplicationListener<ApplicationEvent>
     }
 
     @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof ContextStartedEvent) {
-            start();
-        } else if (event instanceof ContextClosedEvent) {
-            shutdown();
-        }
+    public void onApplicationEvent(ContextStartedEvent event) {
+        start();
     }
 
-    public void start() {
+    private void start() {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(parentGroup, childGroup)
@@ -82,7 +77,8 @@ public final class SocketServer implements ApplicationListener<ApplicationEvent>
         }
     }
 
-    public void shutdown() {
+    @PreDestroy
+    private void shutdown() {
         if (channel == null) {
             return;
         }

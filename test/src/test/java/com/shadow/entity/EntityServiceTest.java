@@ -1,26 +1,31 @@
 package com.shadow.entity;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author nevermore on 2014/11/27
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("/applicationContext.xml")
 public class EntityServiceTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntityServiceTest.class);
 
-    @Autowired
-    private UserService userService;
+    private ClassPathXmlApplicationContext context;
 
     private long start;
 
+    @Before
+    public void before() {
+        context = new ClassPathXmlApplicationContext("/applicationContext.xml");
+        context.registerShutdownHook();
+    }
+
     @Test
     public void test() throws InterruptedException {
+        UserService userService = context.getBean(UserService.class);
         int n = 5000;
         start = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
@@ -30,7 +35,11 @@ public class EntityServiceTest {
 
     @After
     public void after() throws InterruptedException {
-        System.err.println("耗时: " + (System.currentTimeMillis() - start) + "ms");
-//        TimeUnit.SECONDS.sleep(10);
+        context.close();
+        while (context.isRunning()) {
+            Thread.yield();
+        }
+
+        LOGGER.error("耗时: " + (System.currentTimeMillis() - start) + "ms");
     }
 }

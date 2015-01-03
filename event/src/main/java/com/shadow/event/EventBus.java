@@ -1,5 +1,6 @@
 package com.shadow.event;
 
+import com.shadow.util.concurrent.ExecutorUtil;
 import com.shadow.util.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import javax.annotation.PreDestroy;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
@@ -39,12 +41,12 @@ public class EventBus {
             nThread = Runtime.getRuntime().availableProcessors();
         }
         LOGGER.error("事件处理线程池大小: " + nThread);
-        executorService = Executors.newFixedThreadPool(nThread, new NamedThreadFactory("事件处理线程"));
+        executorService = Executors.newFixedThreadPool(nThread, new NamedThreadFactory("事件处理"));
     }
 
     @PreDestroy
-    private void destroy() {
-        executorService.shutdown();
+    private void shutdown() {
+        ExecutorUtil.shutdownAndAwaitTermination(executorService, "事件处理", 10, TimeUnit.MINUTES);
     }
 
     public void post(@Nonnull Event event) {

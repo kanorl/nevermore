@@ -7,12 +7,12 @@ import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.annotation.AutoSave;
 import com.shadow.entity.annotation.PreLoaded;
+import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.proxy.EntityProxyGenerator;
 import com.shadow.entity.proxy.NullEntityProxyGenerator;
-import com.shadow.util.lang.MathUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
     private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
     private final EntityProxyGenerator<K, V> proxyGenerator;
 
-    public RamEntityCacheService(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor, int defaultCacheSize) {
+    public RamEntityCacheService(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
         this.clazz = clazz;
         this.dataAccessor = dataAccessor;
         this.persistenceProcessor = persistenceProcessor;
@@ -53,7 +53,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
-        String cacheSpec = toCacheSpec(cacheable, defaultCacheSize);
+        String cacheSpec = toCacheSpec(cacheable);
         cache = CacheBuilder.from(cacheSpec).removalListener(new DbRemovalListener()).build(cacheLoader);
 
         // 预加载数据
@@ -110,9 +110,9 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
         cache.invalidate(id);
     }
 
-    private String toCacheSpec(Cacheable cacheable, int defaultCacheSize) {
+    private String toCacheSpec(Cacheable cacheable) {
         StringBuilder spec = new StringBuilder(150);
-        int maximumSize = MathUtil.ensurePowerOf2(cacheable.sizeFactor().getSize(defaultCacheSize));
+        int maximumSize = Math.max((int) (cacheable.cacheSize().size().get() * cacheable.cacheSize().factor()), CacheSize.Size.MINIMUM.get());
         int initialCapacity = maximumSize >> 1;
         spec.append("initialCapacity").append("=").append(initialCapacity).append(",");
         spec.append("maximumSize").append("=").append(maximumSize).append(",");

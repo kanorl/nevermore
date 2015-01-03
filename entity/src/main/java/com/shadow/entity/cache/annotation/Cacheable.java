@@ -13,11 +13,11 @@ import java.lang.annotation.*;
 public @interface Cacheable {
 
     /**
-     * 容量系数
+     * 最大容量
      *
      * @return
      */
-    public CacheSizeFactor sizeFactor() default CacheSizeFactor.NORMAL;
+    public CacheSize cacheSize() default @CacheSize;
 
     /**
      * 并发级别
@@ -54,35 +54,4 @@ public @interface Cacheable {
      * @return
      */
     public boolean weakKeys() default false;
-
-    /**
-     * 缓存容量系数
-     */
-    public enum CacheSizeFactor {
-        /**
-         * 最小容量(16)
-         */
-        MINIMUM {
-            @Override
-            public int getSize(int size) {
-                return 16;
-            }
-        },
-        /**
-         * 配置的默认容量
-         */
-        NORMAL,
-        /**
-         * 默认容量2倍
-         */
-        DOUBLE,
-        /**
-         * 默认容量的3倍
-         */
-        TRIPLE;
-
-        public int getSize(int size) {
-            return this.ordinal() * size;
-        }
-    }
 }
