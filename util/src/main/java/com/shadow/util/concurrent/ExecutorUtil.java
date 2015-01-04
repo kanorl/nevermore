@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class ExecutorUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorUtil.class);
 
-    public static boolean shutdownAndAwaitTermination(ExecutorService service, String serviceName, long timeout, TimeUnit unit) {
+    public static void shutdownAndAwaitTermination(ExecutorService service, String serviceName, long timeout, TimeUnit unit) {
         LOGGER.info("开始[关闭{}线程池]", serviceName);
         service.shutdown();
         try {
@@ -28,6 +28,15 @@ public class ExecutorUtil {
             List<Runnable> tasks = service.shutdownNow();
             LOGGER.error("[{}]线程池无法在规定时间内[{} {}]关闭，未执行的任务：", serviceName, timeout, unit, JsonUtil.toJson(tasks));
         }
-        return service.isTerminated();
+    }
+
+    /**
+     * 等同于: shutdownAndAwaitTermination(service, serviceName, 10, TimeUnit.MINUTES)
+     *
+     * @param service
+     * @param serviceName
+     */
+    public static void shutdownAndAwaitTermination(ExecutorService service, String serviceName) {
+        shutdownAndAwaitTermination(service, serviceName, 10, TimeUnit.MINUTES);
     }
 }
