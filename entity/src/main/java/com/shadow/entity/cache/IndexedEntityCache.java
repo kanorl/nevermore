@@ -8,7 +8,7 @@ import java.util.Collection;
 /**
  * @author nevermore on 2015/1/5
  */
-public interface RegionEntityCache<K extends Serializable, V extends IEntity<K>> {
+public interface IndexedEntityCache<K extends Serializable, V extends IEntity<K>> {
 
     Collection<V> getAll(String fieldName, Object fieldValue);
 

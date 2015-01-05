@@ -27,7 +27,7 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
     private int persistencePoolSize;
     private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
     private LoadingCache<Class<V>, EntityCache<K, V>> entityCaches;
-    private LoadingCache<Class<V>, RegionEntityCache<K, V>> regionEntityCaches;
+    private LoadingCache<Class<V>, IndexedEntityCache<K, V>> indexedEntityCaches;
 
     public EntityCacheManager(DataAccessor dataAccessor, int persistencePoolSize) {
         this.dataAccessor = dataAccessor;
@@ -49,10 +49,10 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
                 return new EntityCacheImpl<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
             }
         });
-        regionEntityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, RegionEntityCache<K, V>>() {
+        indexedEntityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, IndexedEntityCache<K, V>>() {
             @Override
-            public RegionEntityCache<K, V> load(@Nonnull Class<V> clazz) throws Exception {
-                return new RegionEntityCacheImpl<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
+            public IndexedEntityCache<K, V> load(@Nonnull Class<V> clazz) throws Exception {
+                return new IndexedEntityCacheImpl<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
             }
         });
     }
@@ -69,8 +69,8 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
     }
 
     @Nonnull
-    public RegionEntityCache<K, V> getRegionEntityCache(@Nonnull Class<V> clazz) {
-        return regionEntityCaches.getUnchecked(clazz);
+    public IndexedEntityCache<K, V> getIndexedEntityCache(@Nonnull Class<V> clazz) {
+        return indexedEntityCaches.getUnchecked(clazz);
     }
 
 

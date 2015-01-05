@@ -87,7 +87,7 @@ public class EntityCacheImpl<K extends Serializable, V extends IEntity<K>> imple
 
                 V newObj = factory.newInstance();
                 persistenceProcessor.save(newObj);
-                return newObj;
+                return proxyGenerator.generate(newObj);
             });
         } catch (ExecutionException e) {
             // should never reach here

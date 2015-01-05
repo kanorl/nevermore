@@ -1,8 +1,6 @@
 package com.shadow.entity;
 
 import com.shadow.entity.cache.EntityCacheManager;
-import com.shadow.entity.cache.RegionEntityCache;
-import com.shadow.entity.cache.RegionEntityCacheImpl;
 import com.shadow.entity.orm.DataAccessor;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,14 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * @author nevermore on 2015/1/5
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/applicationContext.xml")
-public class RegionEntityCacheTest {
+public class IndexedEntityCacheTest {
 
     @Autowired
     private EntityCacheManager entityCacheManager;
@@ -36,8 +34,15 @@ public class RegionEntityCacheTest {
 
     @Test
     public void test() {
-        RegionEntityCache<Integer, Item> cache = new RegionEntityCacheImpl<>(Item.class, dataAccessor, entityCacheManager.getPersistenceProcessor(Item.class));
-        List<Item> items = cache.getAll("playerId", 0L);
-        System.err.println(items);
+        Collection<Item> items = itemService.getMyItems(0L);
+        System.err.println(items.toString());
+
+        Collection<Item> items2 = itemService.getEmptyItems();
+
+        for (Item item : items2) {
+            if (items.contains(item)) {
+                System.err.println(item.getId());
+            }
+        }
     }
 }

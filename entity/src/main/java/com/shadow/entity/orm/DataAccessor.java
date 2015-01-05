@@ -26,4 +26,6 @@ public interface DataAccessor {
     <V extends IEntity<?>> List<V> namedQuery(Class<V> clazz, String queryName, Object... queryParams);
 
     <V extends IEntity<?>> List<V> query(Class<V> clazz, Map<String, ?> propertyNameValues);
+
+    <K extends Serializable, V extends IEntity<K>> List<K> queryId(Class<V> clazz, Map<String, ?> propertyNameValues);
 }

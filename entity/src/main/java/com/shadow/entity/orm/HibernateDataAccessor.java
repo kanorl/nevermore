@@ -1,17 +1,19 @@
 package com.shadow.entity.orm;
 
 import com.shadow.entity.IEntity;
-import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -80,8 +82,13 @@ public class HibernateDataAccessor implements DataAccessor {
 
     @Override
     public <V extends IEntity<?>> List<V> query(Class<V> clazz, Map<String, ?> propertyNameValues) {
-        Criteria criteria = currentSession().createCriteria(clazz);
-        criteria.add(Restrictions.allEq(propertyNameValues));
-        return criteria.list();
+        return currentSession().createCriteria(clazz).add(Restrictions.allEq(propertyNameValues)).list();
+    }
+
+    @Nonnull
+    @Override
+    public <K extends Serializable, V extends IEntity<K>> List<K> queryId(Class<V> clazz, Map<String, ?> propertyNameValues) {
+        List<K> result = currentSession().createCriteria(clazz).add(Restrictions.allEq(propertyNameValues)).setProjection(Projections.id()).list();
+        return result == null ? Collections.emptyList() : Collections.unmodifiableList(result);
     }
 }

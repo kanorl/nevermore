@@ -1,10 +1,10 @@
 package com.shadow.entity.cache.injection;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.annotation.RegionIndex;
+import com.shadow.entity.annotation.IndexedProperty;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.EntityCacheManager;
-import com.shadow.entity.cache.RegionEntityCache;
+import com.shadow.entity.cache.IndexedEntityCache;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.Inject;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
-            if (!EntityCache.class.isAssignableFrom(field.getType()) && !RegionEntityCache.class.isAssignableFrom(field.getType())) {
+            if (!EntityCache.class.isAssignableFrom(field.getType()) && !IndexedEntityCache.class.isAssignableFrom(field.getType())) {
                 return;
             }
             Type type = field.getGenericType();
@@ -51,7 +51,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
 
             validate(field.getType(), entityClass);
 
-            Object value = EntityCache.class.isAssignableFrom(field.getType()) ? entityCacheManager.getEntityCache(entityClass) : entityCacheManager.getRegionEntityCache(entityClass);
+            Object value = EntityCache.class.isAssignableFrom(field.getType()) ? entityCacheManager.getEntityCache(entityClass) : entityCacheManager.getIndexedEntityCache(entityClass);
             try {
                 ReflectionUtils.makeAccessible(field);
                 field.set(bean, value);
@@ -64,8 +64,8 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     }
 
     private void validate(Class<?> fieldType, Class<V> entityClass) {
-        if ((RegionEntityCache.class.isAssignableFrom(fieldType) && org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(RegionIndex.class)).isEmpty())
-                || (EntityCache.class.isAssignableFrom(fieldType) && !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(RegionIndex.class)).isEmpty())) {
+        if ((IndexedEntityCache.class.isAssignableFrom(fieldType) && org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(IndexedProperty.class)).isEmpty())
+                || (EntityCache.class.isAssignableFrom(fieldType) && !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(IndexedProperty.class)).isEmpty())) {
             throw new UnsupportedOperationException();
         }
     }
