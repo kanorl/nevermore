@@ -4,6 +4,7 @@ import com.shadow.entity.IEntity;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据访问器接口
@@ -23,4 +24,6 @@ public interface DataAccessor {
     <V extends IEntity<?>> List<V> getAll(Class<V> clazz);
 
     <V extends IEntity<?>> List<V> namedQuery(Class<V> clazz, String queryName, Object... queryParams);
+
+    <V extends IEntity<?>> List<V> query(Class<V> clazz, Map<String, ?> propertyNameValues);
 }

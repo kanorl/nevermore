@@ -1,8 +1,10 @@
 package com.shadow.entity.cache.injection;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.cache.EntityCacheService;
-import com.shadow.entity.cache.EntityCacheServiceManager;
+import com.shadow.entity.annotation.RegionIndex;
+import com.shadow.entity.cache.EntityCache;
+import com.shadow.entity.cache.EntityCacheManager;
+import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.Inject;
 import org.slf4j.Logger;
@@ -22,18 +24,18 @@ import java.lang.reflect.Type;
  *
  * @author nevermore on 2014/11/26.
  */
+@SuppressWarnings("unchecked")
 @Component
 public class CacheServiceInjectProcessor<K extends Serializable, V extends IEntity<K>> extends InstantiationAwareBeanPostProcessorAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheServiceInjectProcessor.class);
 
     @Autowired
-    private EntityCacheServiceManager<K, V> cacheServiceManager;
+    private EntityCacheManager<K, V> entityCacheManager;
 
-    @SuppressWarnings("unchecked")
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
-            if (!EntityCacheService.class.isAssignableFrom(field.getType())) {
+            if (!EntityCache.class.isAssignableFrom(field.getType()) && !RegionEntityCache.class.isAssignableFrom(field.getType())) {
                 return;
             }
             Type type = field.getGenericType();
@@ -47,15 +49,24 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
                 throw new RuntimeException();
             }
 
-            EntityCacheService<K, V> cacheService = cacheServiceManager.getCacheService(entityClass);
+            validate(field.getType(), entityClass);
+
+            Object value = EntityCache.class.isAssignableFrom(field.getType()) ? entityCacheManager.getEntityCache(entityClass) : entityCacheManager.getRegionEntityCache(entityClass);
             try {
                 ReflectionUtils.makeAccessible(field);
-                field.set(bean, cacheService);
+                field.set(bean, value);
             } catch (IllegalAccessException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new RuntimeException(e);
             }
         }, field -> field.isAnnotationPresent(Inject.class));
         return super.postProcessBeforeInitialization(bean, beanName);
+    }
+
+    private void validate(Class<?> fieldType, Class<V> entityClass) {
+        if ((RegionEntityCache.class.isAssignableFrom(fieldType) && org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(RegionIndex.class)).isEmpty())
+                || (EntityCache.class.isAssignableFrom(fieldType) && !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(RegionIndex.class)).isEmpty())) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

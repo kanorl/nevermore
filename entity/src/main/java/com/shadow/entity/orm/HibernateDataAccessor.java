@@ -1,9 +1,11 @@
 package com.shadow.entity.orm;
 
 import com.shadow.entity.IEntity;
+import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据访问器Hibernate实现
@@ -73,5 +76,12 @@ public class HibernateDataAccessor implements DataAccessor {
             }
         }
         return query.list();
+    }
+
+    @Override
+    public <V extends IEntity<?>> List<V> query(Class<V> clazz, Map<String, ?> propertyNameValues) {
+        Criteria criteria = currentSession().createCriteria(clazz);
+        criteria.add(Restrictions.allEq(propertyNameValues));
+        return criteria.list();
     }
 }

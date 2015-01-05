@@ -1,6 +1,6 @@
 package com.shadow.entity;
 
-import com.shadow.entity.cache.EntityCacheService;
+import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.annotation.Inject;
 import com.shadow.entity.lock.annotation.AutoLocked;
 import com.shadow.entity.lock.annotation.LockTarget;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class UserService {
 
     @Inject
-    private EntityCacheService<Integer, User> cacheService;
+    private EntityCache<Integer, User> cacheService;
 
     public User getUser(int id) {
         return cacheService.get(id);

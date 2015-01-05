@@ -6,7 +6,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.annotation.AutoSave;
-import com.shadow.entity.cache.EntityCacheService;
+import com.shadow.entity.cache.EntityCache;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
@@ -35,17 +35,17 @@ public class EntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>
     private static final String CACHE_FIELD_NAME = "cacheService";
     private static final String ENTITY_FIELD_NAME = "entity";
     private final LoadingCache<Class<T>, Constructor<T>> constructorCache = CacheBuilder.newBuilder().concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new ConstructorLoader());
-    private final EntityCacheService<PK, T> entityCacheService;
+    private final EntityCache<PK, T> entityCache;
 
-    public EntityProxyGenerator(EntityCacheService<PK, T> entityCacheService) {
-        this.entityCacheService = entityCacheService;
+    public EntityProxyGenerator(EntityCache<PK, T> entityCache) {
+        this.entityCache = entityCache;
     }
 
     @SuppressWarnings("unchecked")
     public T generate(T entity) throws Exception {
         Class<T> entityClass = (Class<T>) entity.getClass();
         Constructor<T> constructor = constructorCache.getUnchecked(entityClass);
-        return constructor.newInstance(entity, entityCacheService);
+        return constructor.newInstance(entity, entityCache);
     }
 
     /**
@@ -57,7 +57,7 @@ public class EntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>
         @Override
         public Constructor<T> load(@Nonnull Class<T> entityClass) throws Exception {
             Class<T> entityProxyClass = createProxyClass(entityClass).toClass();
-            return entityProxyClass.getConstructor(entityClass, EntityCacheService.class);
+            return entityProxyClass.getConstructor(entityClass, EntityCache.class);
         }
 
         private CtClass createProxyClass(Class<? extends IEntity<?>> entityClass) throws Exception {
@@ -81,7 +81,7 @@ public class EntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>
             CtField entityField = new CtField(getCtClass(entityClass), ENTITY_FIELD_NAME, proxyClass);
             proxyClass.addField(entityField);
 
-            CtField cacheServiceField = new CtField(getCtClass(EntityCacheService.class), CACHE_FIELD_NAME, proxyClass);
+            CtField cacheServiceField = new CtField(getCtClass(EntityCache.class), CACHE_FIELD_NAME, proxyClass);
             proxyClass.addField(cacheServiceField);
         }
 
@@ -93,7 +93,7 @@ public class EntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>
          * @throws Exception
          */
         private void addConstructors(CtClass proxyClass, Class<?> entityClass) throws Exception {
-            CtConstructor constructor = new CtConstructor(getCtClasses(entityClass, EntityCacheService.class), proxyClass);
+            CtConstructor constructor = new CtConstructor(getCtClasses(entityClass, EntityCache.class), proxyClass);
             constructor.setModifiers(Modifier.PUBLIC);
             constructor.setBody("{" + "this." + ENTITY_FIELD_NAME + "=" + "$1;" + "this." + CACHE_FIELD_NAME + "=" + "$2;" + "}");
             proxyClass.addConstructor(constructor);

@@ -28,8 +28,8 @@ import java.util.concurrent.ExecutionException;
  *
  * @author nevermore on 2014/11/26.
  */
-public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>> implements EntityCacheService<K, V> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RamEntityCacheService.class);
+public class EntityCacheImpl<K extends Serializable, V extends IEntity<K>> implements EntityCache<K, V> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheImpl.class);
 
     private final Class<V> clazz;
     private final DataAccessor dataAccessor;
@@ -39,7 +39,7 @@ public class RamEntityCacheService<K extends Serializable, V extends IEntity<K>>
     private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
     private final EntityProxyGenerator<K, V> proxyGenerator;
 
-    public RamEntityCacheService(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
+    public EntityCacheImpl(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
         this.clazz = clazz;
         this.dataAccessor = dataAccessor;
         this.persistenceProcessor = persistenceProcessor;

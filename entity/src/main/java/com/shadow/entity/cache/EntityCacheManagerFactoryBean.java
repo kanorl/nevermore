@@ -14,7 +14,7 @@ import javax.annotation.PreDestroy;
  * @author nevermore on 2014/11/26.
  */
 @Component
-public final class EntityCacheServiceManagerFactoryBean implements FactoryBean<EntityCacheServiceManager> {
+public final class EntityCacheManagerFactoryBean implements FactoryBean<EntityCacheManager> {
 
     @Autowired
     private DataAccessor dataAccessor;
@@ -25,7 +25,7 @@ public final class EntityCacheServiceManagerFactoryBean implements FactoryBean<E
     @Value("${server.persistence.pool.size:1}")
     private int persistencePoolSize;
 
-    private EntityCacheServiceManager serviceManager;
+    private EntityCacheManager serviceManager;
 
     @PostConstruct
     private void init() {
@@ -34,14 +34,14 @@ public final class EntityCacheServiceManagerFactoryBean implements FactoryBean<E
     }
 
     @Override
-    public EntityCacheServiceManager getObject() throws Exception {
-        serviceManager = new EntityCacheServiceManager(dataAccessor, persistencePoolSize);
+    public EntityCacheManager getObject() throws Exception {
+        serviceManager = new EntityCacheManager(dataAccessor, persistencePoolSize);
         return serviceManager;
     }
 
     @Override
     public Class<?> getObjectType() {
-        return EntityCacheServiceManager.class;
+        return EntityCacheManager.class;
     }
 
     @Override

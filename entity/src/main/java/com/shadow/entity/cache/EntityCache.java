@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @author nevermore on 2014/11/26.
  */
-public interface EntityCacheService<K extends Serializable, V extends IEntity<K>> {
+public interface EntityCache<K extends Serializable, V extends IEntity<K>> {
 
     V get(@Nonnull K id);
 
