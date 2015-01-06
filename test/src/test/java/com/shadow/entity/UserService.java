@@ -37,6 +37,6 @@ public class UserService {
     }
 
     public void addUser(int id) {
-        cacheService.getOr(id, () -> User.valueOf(id));
+        cacheService.getOrCreate(id, () -> User.valueOf(id));
     }
 }

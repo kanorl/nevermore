@@ -4,6 +4,7 @@ import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
@@ -13,11 +14,13 @@ import java.io.Serializable;
  */
 public interface EntityCache<K extends Serializable, V extends IEntity<K>> {
 
+    @Nullable
     V get(@Nonnull K id);
 
-    V getOr(@Nonnull K id, @Nonnull EntityFactory<V> factory);
+    @Nonnull
+    V getOrCreate(@Nonnull K id, @Nonnull EntityFactory<V> factory);
 
-    void update(@Nonnull V v);
+    boolean update(@Nonnull V v);
 
     void remove(@Nonnull K id);
 }

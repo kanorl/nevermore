@@ -42,4 +42,24 @@ public class Item extends CacheableEntity<Integer> {
     public String toString() {
         return JsonUtil.toJson(this);
     }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public void setPlayerId(long playerId) {
+        this.playerId = playerId;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public long getPlayerId() {
+        return playerId;
+    }
 }

@@ -7,6 +7,8 @@ import com.shadow.entity.cache.EntityCacheManager;
 import com.shadow.entity.cache.IndexedEntityCache;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.Inject;
+import com.shadow.entity.cache.exception.IllegalCacheTypeException;
+import com.shadow.entity.cache.exception.UncacheableEntityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -46,7 +48,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
             Type[] types = parameterizedType.getActualTypeArguments();
             Class<V> entityClass = (Class<V>) types[1];
             if (!entityClass.isAnnotationPresent(Cacheable.class)) {
-                throw new RuntimeException();
+                throw new UncacheableEntityException("实体类[" + entityClass.getName() + "]不支持缓存");
             }
 
             validate(field.getType(), entityClass);
@@ -64,9 +66,12 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     }
 
     private void validate(Class<?> fieldType, Class<V> entityClass) {
-        if ((IndexedEntityCache.class.isAssignableFrom(fieldType) && org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(IndexedProperty.class)).isEmpty())
-                || (EntityCache.class.isAssignableFrom(fieldType) && !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(IndexedProperty.class)).isEmpty())) {
-            throw new UnsupportedOperationException();
+        boolean hasIndexProperty = !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(IndexedProperty.class)).isEmpty();
+        if (hasIndexProperty && EntityCache.class.isAssignableFrom(fieldType)) {
+            throw new IllegalCacheTypeException();
+        }
+        if (!hasIndexProperty && IndexedEntityCache.class.isAssignableFrom(fieldType)) {
+            throw new IllegalCacheTypeException();
         }
     }
 }

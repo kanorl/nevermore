@@ -74,6 +74,6 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Override
     public void shutdown() {
-        Arrays.stream(executors).forEach(executor -> ExecutorUtil.shutdownAndAwaitTermination(executor, name, 10, TimeUnit.MILLISECONDS));
+        Arrays.stream(executors).forEach(executor -> ExecutorUtil.shutdownAndAwaitTermination(executor, name, 10, TimeUnit.MINUTES));
     }
 }

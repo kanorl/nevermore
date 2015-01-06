@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Set;
@@ -63,6 +64,7 @@ public class EntityCacheImpl<K extends Serializable, V extends IEntity<K>> imple
         }
     }
 
+    @Nullable
     @Override
     public V get(@Nonnull K id) {
         try {
@@ -76,8 +78,9 @@ public class EntityCacheImpl<K extends Serializable, V extends IEntity<K>> imple
         }
     }
 
+    @Nonnull
     @Override
-    public V getOr(@Nonnull K id, @Nonnull EntityFactory<V> factory) {
+    public V getOrCreate(@Nonnull K id, @Nonnull EntityFactory<V> factory) {
         try {
             return cache.get(id, () -> {
                 V v = cacheLoader.load(id);
@@ -97,12 +100,13 @@ public class EntityCacheImpl<K extends Serializable, V extends IEntity<K>> imple
     }
 
     @Override
-    public void update(@Nonnull V v) {
+    public boolean update(@Nonnull V v) {
         if (waitingRemoval.contains(v.getId())) {
             LOGGER.error("无法更新已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), v.getId());
-            return;
+            return false;
         }
         persistenceProcessor.update(v);
+        return true;
     }
 
     @Override

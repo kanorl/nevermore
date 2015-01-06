@@ -1,11 +1,11 @@
 package com.shadow.entity;
 
-import com.shadow.entity.cache.EntityCacheManager;
-import com.shadow.entity.orm.DataAccessor;
+import com.shadow.entity.cache.IndexEntry;
+import com.shadow.entity.cache.IndexedEntityCache;
+import com.shadow.entity.cache.annotation.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -18,31 +18,30 @@ import java.util.Collection;
 @ContextConfiguration("/applicationContext.xml")
 public class IndexedEntityCacheTest {
 
-    @Autowired
-    private EntityCacheManager entityCacheManager;
-    @Autowired
-    private DataAccessor dataAccessor;
-    @Autowired
-    private ItemService itemService;
+    @Inject
+    private IndexedEntityCache<Integer, Item> entityCache;
 
     @Before
     public void before() {
-        for (int i = 0; i < 10; i++) {
-            itemService.add(i);
-        }
+
     }
 
     @Test
     public void test() {
-        Collection<Item> items = itemService.getMyItems(0L);
-        System.err.println(items.toString());
+        Collection<Item> items = entityCache.getAll(IndexEntry.valueOf("playerId", 0L));
+        System.out.println(items.size());
 
-        Collection<Item> items2 = itemService.getEmptyItems();
 
-        for (Item item : items2) {
-            if (items.contains(item)) {
-                System.err.println(item.getId());
-            }
+        Item item = entityCache.get(0);
+        if (item != null) {
+            item.setPlayerId(1);
+            entityCache.updateWithIndexChanged(item, IndexEntry.valueOf("playerId", 0L));
         }
+
+        Collection<Item> items2 = entityCache.getAll(IndexEntry.valueOf("playerId", 0L));
+        System.out.println(items2.size());
+
+        Collection<Item> items3 = entityCache.getAll(IndexEntry.valueOf("playerId", 1L));
+        System.out.println(items3.size());
     }
 }
