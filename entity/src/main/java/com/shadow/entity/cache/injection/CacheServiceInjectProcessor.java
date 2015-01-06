@@ -1,10 +1,10 @@
 package com.shadow.entity.cache.injection;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.annotation.IndexedProperty;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.EntityCacheManager;
 import com.shadow.entity.cache.IndexedEntityCache;
+import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.Inject;
 import com.shadow.entity.cache.exception.IllegalCacheTypeException;
@@ -66,7 +66,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     }
 
     private void validate(Class<?> fieldType, Class<V> entityClass) {
-        boolean hasIndexProperty = !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(IndexedProperty.class)).isEmpty();
+        boolean hasIndexProperty = !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(CacheIndex.class)).isEmpty();
         if (hasIndexProperty && EntityCache.class.isAssignableFrom(fieldType)) {
             throw new IllegalCacheTypeException();
         }

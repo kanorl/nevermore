@@ -35,7 +35,7 @@ public class IndexedEntityCacheTest {
         Item item = entityCache.get(0);
         if (item != null) {
             item.setPlayerId(1);
-            entityCache.updateWithIndexChanged(item, IndexEntry.valueOf("playerId", 0L));
+            entityCache.updateWithIndexValueChanged(item, IndexEntry.valueOf("playerId", 0L));
         }
 
         Collection<Item> items2 = entityCache.getAll(IndexEntry.valueOf("playerId", 0L));

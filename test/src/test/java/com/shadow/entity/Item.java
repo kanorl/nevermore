@@ -1,7 +1,7 @@
 package com.shadow.entity;
 
 import com.shadow.entity.annotation.AutoSave;
-import com.shadow.entity.annotation.IndexedProperty;
+import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.util.codec.JsonUtil;
 
 import javax.persistence.Entity;
@@ -16,10 +16,10 @@ public class Item extends CacheableEntity<Integer> {
     @Id
     private Integer id;
 
-    @IndexedProperty
+    @CacheIndex
     private int count;
 
-    @IndexedProperty
+    @CacheIndex
     private long playerId;
 
     public static Item valueOf(int id) {

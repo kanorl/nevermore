@@ -7,7 +7,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.annotation.IndexedProperty;
+import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.proxy.EntityProxy;
@@ -39,7 +39,7 @@ public class IndexedEntityCacheImpl<K extends Serializable, V extends IEntity<K>
     private final LoadingCache<String, LoadingCache<Object, Set<K>>> indexCache;
 
     public IndexedEntityCacheImpl(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
-        this.indexFields = Maps.uniqueIndex(ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(IndexedProperty.class)), Field::getName);
+        this.indexFields = Maps.uniqueIndex(ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)), Field::getName);
         this.entityCache = new EntityCacheImpl<>(clazz, dataAccessor, persistenceProcessor);
 
         // make index field accessible
@@ -98,7 +98,7 @@ public class IndexedEntityCacheImpl<K extends Serializable, V extends IEntity<K>
     }
 
     @Override
-    public void updateWithIndexChanged(@Nonnull V v, @Nonnull IndexEntry... previousIndexes) {
+    public void updateWithIndexValueChanged(@Nonnull V v, @Nonnull IndexEntry... previousIndexes) {
         if (!entityCache.update(v)) {
             return;
         }

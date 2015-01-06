@@ -23,7 +23,7 @@ public interface IndexedEntityCache<K extends Serializable, V extends IEntity<K>
 
     void update(@Nonnull V v);
 
-    void updateWithIndexChanged(@Nonnull V v, @Nonnull IndexEntry... previousIndexes);
+    void updateWithIndexValueChanged(@Nonnull V v, @Nonnull IndexEntry... previousIndexes);
 
     void remove(@Nonnull V v);
 }

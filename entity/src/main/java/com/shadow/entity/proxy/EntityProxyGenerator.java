@@ -32,7 +32,7 @@ public class EntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityProxyGenerator.class);
 
     private static final ClassPool CLASS_POOL = ClassPool.getDefault();
-    private static final String CACHE_FIELD_NAME = "cacheService";
+    private static final String CACHE_FIELD_NAME = "entityCache";
     private static final String ENTITY_FIELD_NAME = "entity";
     private final LoadingCache<Class<T>, Constructor<T>> constructorCache = CacheBuilder.newBuilder().concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new ConstructorLoader());
     private final EntityCache<PK, T> entityCache;
