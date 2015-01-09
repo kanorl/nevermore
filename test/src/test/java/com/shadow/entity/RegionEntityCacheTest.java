@@ -1,8 +1,7 @@
 package com.shadow.entity;
 
-import com.shadow.entity.cache.IndexEntry;
-import com.shadow.entity.cache.IndexedEntityCache;
-import com.shadow.entity.cache.annotation.Inject;
+import com.shadow.entity.annotation.Inject;
+import com.shadow.entity.cache.RegionEntityCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,10 +15,10 @@ import java.util.Collection;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/applicationContext.xml")
-public class IndexedEntityCacheTest {
+public class RegionEntityCacheTest {
 
     @Inject
-    private IndexedEntityCache<Integer, Item> entityCache;
+    private RegionEntityCache<Integer, Item> entityCache;
 
     @Before
     public void before() {
@@ -28,20 +27,22 @@ public class IndexedEntityCacheTest {
 
     @Test
     public void test() {
-        Collection<Item> items = entityCache.getAll(IndexEntry.valueOf("playerId", 0L));
+        Collection<Item> items = entityCache.list(0L);
         System.out.println(items.size());
 
 
         Item item = entityCache.get(0);
         if (item != null) {
-            item.setPlayerId(1);
-            entityCache.updateWithIndexValueChanged(item, IndexEntry.valueOf("playerId", 0L));
+            item.increase();
         }
 
-        Collection<Item> items2 = entityCache.getAll(IndexEntry.valueOf("playerId", 0L));
+        Collection<Item> items2 = entityCache.list(0L);
         System.out.println(items2.size());
 
-        Collection<Item> items3 = entityCache.getAll(IndexEntry.valueOf("playerId", 1L));
+        Collection<Item> items3 = entityCache.list(1L);
         System.out.println(items3.size());
+
+        Item i = entityCache.getOrCreate(1, () -> Item.valueOf(1));
+        System.out.println(i);
     }
 }

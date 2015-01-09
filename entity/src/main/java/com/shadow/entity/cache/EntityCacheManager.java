@@ -4,14 +4,15 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
+import com.shadow.entity.annotation.CacheIndex;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
@@ -27,7 +28,6 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
     private int persistencePoolSize;
     private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
     private LoadingCache<Class<V>, EntityCache<K, V>> entityCaches;
-    private LoadingCache<Class<V>, IndexedEntityCache<K, V>> indexedEntityCaches;
 
     public EntityCacheManager(DataAccessor dataAccessor, int persistencePoolSize) {
         this.dataAccessor = dataAccessor;
@@ -44,15 +44,10 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
         });
 
         entityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, EntityCache<K, V>>() {
+            @SuppressWarnings("unchecked")
             @Override
             public EntityCache<K, V> load(@Nonnull Class<V> clazz) throws Exception {
-                return new EntityCacheImpl<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
-            }
-        });
-        indexedEntityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, IndexedEntityCache<K, V>>() {
-            @Override
-            public IndexedEntityCache<K, V> load(@Nonnull Class<V> clazz) throws Exception {
-                return new IndexedEntityCacheImpl<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
+                return ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).isEmpty() ? new DefaultEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz)) : new DefaultRegionEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
             }
         });
     }
@@ -66,16 +61,5 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
     @Nonnull
     public EntityCache<K, V> getEntityCache(@Nonnull Class<V> clazz) {
         return entityCaches.getUnchecked(clazz);
-    }
-
-    @Nonnull
-    public IndexedEntityCache<K, V> getIndexedEntityCache(@Nonnull Class<V> clazz) {
-        return indexedEntityCaches.getUnchecked(clazz);
-    }
-
-
-    @Nullable
-    public PersistenceProcessor<V> getPersistenceProcessor(@Nonnull Class<V> clazz) {
-        return persistenceProcessors.getIfPresent(clazz);
     }
 }

@@ -13,7 +13,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface AutoSave {
+
     public Result forResult() default Result.NULL;
+
+    public boolean withIndexValueChanged() default false;
 
     public enum Result {
 

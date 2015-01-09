@@ -6,9 +6,9 @@ import com.shadow.entity.CacheableEntity;
 import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.annotation.AutoSave;
+import com.shadow.entity.annotation.CacheSize;
+import com.shadow.entity.annotation.Cacheable;
 import com.shadow.entity.annotation.PreLoaded;
-import com.shadow.entity.cache.annotation.CacheSize;
-import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.proxy.EntityProxyGenerator;
@@ -29,8 +29,8 @@ import java.util.concurrent.ExecutionException;
  *
  * @author nevermore on 2014/11/26.
  */
-public class EntityCacheImpl<K extends Serializable, V extends IEntity<K>> implements EntityCache<K, V> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheImpl.class);
+public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> implements EntityCache<K, V> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEntityCache.class);
 
     private final Class<V> clazz;
     private final DataAccessor dataAccessor;
@@ -38,19 +38,15 @@ public class EntityCacheImpl<K extends Serializable, V extends IEntity<K>> imple
     private final LoadingCache<K, V> cache;
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
-    private final EntityProxyGenerator<K, V> proxyGenerator;
+    private EntityProxyGenerator<K, V> proxyGenerator;
 
-    public EntityCacheImpl(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
+    public DefaultEntityCache(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
         this.clazz = clazz;
         this.dataAccessor = dataAccessor;
         this.persistenceProcessor = persistenceProcessor;
 
         // 代理类生成器
-        if (Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class))) {
-            proxyGenerator = new EntityProxyGenerator<>(this);
-        } else {
-            proxyGenerator = new NullEntityProxyGenerator<>();
-        }
+        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new EntityProxyGenerator<>(this) : new NullEntityProxyGenerator<>();
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);

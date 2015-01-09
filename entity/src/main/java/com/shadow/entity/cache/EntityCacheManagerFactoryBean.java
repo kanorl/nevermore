@@ -1,6 +1,6 @@
 package com.shadow.entity.cache;
 
-import com.shadow.entity.cache.annotation.CacheSize;
+import com.shadow.entity.annotation.CacheSize;
 import com.shadow.entity.orm.DataAccessor;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;

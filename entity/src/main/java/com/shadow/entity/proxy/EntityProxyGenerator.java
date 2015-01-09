@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.annotation.AutoSave;
 import com.shadow.entity.cache.EntityCache;
+import com.shadow.entity.cache.RegionEntityCache;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
@@ -141,14 +142,26 @@ public class EntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>
             ctMethod.setExceptionTypes(getCtClasses(method.getExceptionTypes()));
 
             StringJoiner body = new StringJoiner("", "{", "}");
+
+            keepOldIndexValue(method, body);
+
             invokeEntityMethod(method, body);
-            if (method.isAnnotationPresent(AutoSave.class)) {
-                commitEntityUpdate(method, body);
-            }
+
+            commitEntityUpdate(method, body);
+
             returnInvokeResult(method, body);
 
             ctMethod.setBody(body.toString());
             proxyClass.addMethod(ctMethod);
+        }
+
+        private void keepOldIndexValue(Method method, StringJoiner body) {
+            AutoSave autoSave = method.getAnnotation(AutoSave.class);
+            if (autoSave == null || !autoSave.withIndexValueChanged() || !(entityCache instanceof RegionEntityCache)) {
+                return;
+            }
+            body.add("Object oldValue = ((").add(RegionEntityCache.class.getCanonicalName()).add(")")
+                    .add(CACHE_FIELD_NAME).add(").getIndexValue(").add(ENTITY_FIELD_NAME).add(");");
         }
 
         private void invokeEntityMethod(Method method, StringJoiner body) {
@@ -160,13 +173,20 @@ public class EntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>
 
         private void commitEntityUpdate(Method method, StringJoiner body) {
             AutoSave autoSave = method.getAnnotation(AutoSave.class);
+            if (autoSave == null) {
+                return;
+            }
             String delimiter = "", prefix = "", suffix = "";
-            if (method.getReturnType() != Void.TYPE && autoSave != null && !autoSave.forResult().isNull()) {
+            if (method.getReturnType() != Void.TYPE && !autoSave.forResult().isNull()) {
                 prefix = "if (\"" + autoSave.forResult() + "\".equals(String.valueOf(result))) {";
                 suffix = "}";
             }
             StringJoiner stringJoiner = new StringJoiner(delimiter, prefix, suffix);
-            stringJoiner.add(CACHE_FIELD_NAME + "." + "update(entity);");
+            if (autoSave.withIndexValueChanged() && entityCache instanceof RegionEntityCache) {
+                stringJoiner.add("((").add(RegionEntityCache.class.getCanonicalName()).add(")").add(CACHE_FIELD_NAME).add(").updateWithIndexValueChanged(entity, oldValue);");
+            } else {
+                stringJoiner.add(CACHE_FIELD_NAME).add(".update(entity);");
+            }
             body.add(stringJoiner.toString());
         }
 

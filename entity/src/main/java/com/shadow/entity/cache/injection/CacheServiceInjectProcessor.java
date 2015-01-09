@@ -1,14 +1,12 @@
 package com.shadow.entity.cache.injection;
 
 import com.shadow.entity.IEntity;
+import com.shadow.entity.annotation.Cacheable;
+import com.shadow.entity.annotation.CacheIndex;
+import com.shadow.entity.annotation.Inject;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.EntityCacheManager;
-import com.shadow.entity.cache.IndexedEntityCache;
-import com.shadow.entity.cache.annotation.CacheIndex;
-import com.shadow.entity.cache.annotation.Cacheable;
-import com.shadow.entity.cache.annotation.Inject;
-import com.shadow.entity.cache.exception.IllegalCacheTypeException;
-import com.shadow.entity.cache.exception.UncacheableEntityException;
+import com.shadow.entity.cache.RegionEntityCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -18,8 +16,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Set;
 
 /**
  * 缓存服务注入处理器
@@ -37,7 +37,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
-            if (!EntityCache.class.isAssignableFrom(field.getType()) && !IndexedEntityCache.class.isAssignableFrom(field.getType())) {
+            if (!EntityCache.class.isAssignableFrom(field.getType())) {
                 return;
             }
             Type type = field.getGenericType();
@@ -48,12 +48,12 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
             Type[] types = parameterizedType.getActualTypeArguments();
             Class<V> entityClass = (Class<V>) types[1];
             if (!entityClass.isAnnotationPresent(Cacheable.class)) {
-                throw new UncacheableEntityException("实体类[" + entityClass.getName() + "]不支持缓存");
+                throw new IllegalStateException("实体类[" + entityClass.getName() + "]找不到" + Cacheable.class.getSimpleName() + "注解");
             }
 
             validate(field.getType(), entityClass);
 
-            Object value = EntityCache.class.isAssignableFrom(field.getType()) ? entityCacheManager.getEntityCache(entityClass) : entityCacheManager.getIndexedEntityCache(entityClass);
+            Object value = entityCacheManager.getEntityCache(entityClass);
             try {
                 ReflectionUtils.makeAccessible(field);
                 field.set(bean, value);
@@ -66,12 +66,12 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     }
 
     private void validate(Class<?> fieldType, Class<V> entityClass) {
-        boolean hasIndexProperty = !org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(CacheIndex.class)).isEmpty();
-        if (hasIndexProperty && EntityCache.class.isAssignableFrom(fieldType)) {
-            throw new IllegalCacheTypeException();
+        Set<Field> indexFields = org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(CacheIndex.class));
+        if (indexFields.size() > 1) {
+            throw new IllegalStateException(entityClass.getName() + "存在重复的@" + CacheIndex.class.getSimpleName() + "属性" + indexFields);
         }
-        if (!hasIndexProperty && IndexedEntityCache.class.isAssignableFrom(fieldType)) {
-            throw new IllegalCacheTypeException();
+        if (indexFields.isEmpty() && RegionEntityCache.class.isAssignableFrom(fieldType)) {
+            throw new IllegalStateException(entityClass.getName() + "找不到@" + CacheIndex.class.getSimpleName() + "属性" + "无法使用" + RegionEntityCache.class.getSimpleName() + "缓存");
         }
     }
 }
