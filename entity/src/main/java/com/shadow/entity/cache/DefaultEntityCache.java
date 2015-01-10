@@ -11,6 +11,7 @@ import com.shadow.entity.annotation.Cacheable;
 import com.shadow.entity.annotation.PreLoaded;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
+import com.shadow.entity.proxy.DefaultEntityProxyGenerator;
 import com.shadow.entity.proxy.EntityProxyGenerator;
 import com.shadow.entity.proxy.NullEntityProxyGenerator;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         this.persistenceProcessor = persistenceProcessor;
 
         // 代理类生成器
-        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new EntityProxyGenerator<>(this, clazz) : new NullEntityProxyGenerator<>();
+        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new DefaultEntityProxyGenerator<>(this, clazz) : new NullEntityProxyGenerator<>();
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);

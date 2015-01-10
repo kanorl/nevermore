@@ -1,6 +1,7 @@
 package com.shadow.entity.orm;
 
 import com.shadow.entity.IEntity;
+import com.shadow.entity.identity.IdRange;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -108,7 +109,8 @@ public class HibernateDataAccessor implements DataAccessor {
     }
 
     @Override
-    public <K extends Serializable, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz) {
-        return Optional.ofNullable((K) currentSession().createCriteria(clazz).setProjection(Projections.max(sessionFactory.getClassMetadata(clazz).getIdentifierPropertyName())).uniqueResult());
+    public <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, IdRange range) {
+        String pName = sessionFactory.getClassMetadata(clazz).getIdentifierPropertyName();
+        return Optional.ofNullable((K) currentSession().createCriteria(clazz).add(Restrictions.between(pName, range.getMin(), range.getMax())).setProjection(Projections.max(pName)).uniqueResult());
     }
 }

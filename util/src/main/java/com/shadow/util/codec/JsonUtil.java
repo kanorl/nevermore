@@ -3,10 +3,13 @@ package com.shadow.util.codec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * @author nevermore on 2014/11/27
@@ -29,13 +32,22 @@ public class JsonUtil {
         return null;
     }
 
-    public static <T> T fromJson(String json, Class<T> clazz) {
+    public static <T> T toObject(String json, Class<T> clazz) {
         try {
             return OBJECT_MAPPER.readValue(json, clazz);
         } catch (Exception e) {
             LOGGER.error("json转换失败: json={}, class={}.", json, clazz.getName());
         }
         return null;
+    }
+
+    public static <E, T extends Collection<E>> T toCollection(String json, Class<T> clazz, Class<E> elementType) {
+        CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(clazz, elementType);
+        try {
+            return OBJECT_MAPPER.readValue(json, collectionType);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static <T> T fromJson(String json, TypeReference<T> type) {

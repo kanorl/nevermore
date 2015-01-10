@@ -37,4 +37,10 @@
     to any bean that’s annotated with @Repository so that any platform-specific exceptions are caught
     and then rethrown as one of Spring’s unchecked data access exceptions-->
     <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+
+    <!--<bean class="com.shadow.util.config.ServerProperty">-->
+        <!--<property name="port" value="${server.socket.port}"/>-->
+        <!--<property name="platformName" value="${server.config.platform.name}"/>-->
+        <!--<property name="servers" value="${server.config.servers}"/>-->
+    <!--</bean>-->
 </beans>

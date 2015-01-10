@@ -11,17 +11,17 @@ import javax.persistence.Id;
  * @author nevermore on 2015/1/5
  */
 @Entity
-public class Item extends CacheableEntity<Integer> {
+public class Item extends CacheableEntity<Long> {
 
     @Id
-    private Integer id;
+    private Long id;
 
     private int count;
 
     @CacheIndex
     private long playerId;
 
-    public static Item valueOf(int id) {
+    public static Item valueOf(long id) {
         Item i = new Item();
         i.id = id;
         return i;
@@ -34,7 +34,7 @@ public class Item extends CacheableEntity<Integer> {
     }
 
     @Override
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
@@ -43,7 +43,7 @@ public class Item extends CacheableEntity<Integer> {
         return JsonUtil.toJson(this);
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

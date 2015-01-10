@@ -18,7 +18,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class RegionEntityCacheTest {
 
     @Inject
-    private RegionEntityCache<Integer, Item> entityCache;
+    private RegionEntityCache<Long, Item> entityCache;
     @Autowired
     private DataAccessor dataAccessor;
 
@@ -29,7 +29,6 @@ public class RegionEntityCacheTest {
 
     @Test
     public void test() {
-        System.out.println(dataAccessor.queryMaxId(Item.class));
 //        Collection<Item> items = entityCache.list(0L);
 //        System.out.println(items.size());
 //
