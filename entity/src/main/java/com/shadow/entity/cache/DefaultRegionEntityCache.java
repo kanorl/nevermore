@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.annotation.CacheIndex;
+import com.shadow.entity.annotation.CacheSize;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.proxy.EntityProxy;
@@ -23,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -37,13 +39,14 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     public DefaultRegionEntityCache(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
         super(clazz, dataAccessor, persistenceProcessor);
 
-        this.indexField = ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).stream().findFirst().get();
+        indexField = ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).stream().findFirst().orElse(null);
+        checkNotNull(indexField, "在%s中找不到注解为%s的属性", clazz.getSimpleName(), CacheIndex.class.getSimpleName());
         indexField.setAccessible(true);
 
-        this.indexCache = CacheBuilder.newBuilder().concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<Object, Set<K>>() {
+        this.indexCache = CacheBuilder.newBuilder().maximumSize(CacheSize.Size.DEFAULT.get()).concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<Object, Set<K>>() {
             @Override
             public Set<K> load(@Nonnull Object value) throws Exception {
-                return Sets.newConcurrentHashSet(dataAccessor.queryId(clazz, Collections.singletonMap(indexField.getName(), value)));
+                return Sets.newConcurrentHashSet(dataAccessor.queryIds(clazz, Collections.singletonMap(indexField.getName(), value)));
             }
         });
     }
@@ -107,7 +110,7 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     }
 
     private void validate(Object value) {
-        requireNonNull(value, "");
-        checkArgument(ClassUtils.isAssignable(indexField.getType(), value.getClass(), true), "");
+        requireNonNull(value, "索引值不能为null");
+        checkArgument(ClassUtils.isAssignable(indexField.getType(), value.getClass(), true), "索引值类型错误: expect [%s], given [%s]", indexField.getType(), value.getClass());
     }
 }

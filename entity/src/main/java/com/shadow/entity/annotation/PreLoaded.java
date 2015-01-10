@@ -19,11 +19,11 @@ import java.util.List;
 @Target(ElementType.TYPE)
 public @interface PreLoaded {
 
-    public Type type();
+    public Policy policy();
 
     public String queryName() default "";
 
-    public enum Type {
+    public enum Policy {
         NAMED_QUERY {
             @Override
             public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, String queryName, Class<T> clazz) {
@@ -33,7 +33,7 @@ public @interface PreLoaded {
         ALL {
             @Override
             public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, String queryName, Class<T> clazz) {
-                return dataAccessor.getAll(clazz);
+                return dataAccessor.query(clazz);
             }
         };
 

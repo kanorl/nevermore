@@ -3,17 +3,15 @@ package com.shadow.entity;
 import com.shadow.entity.annotation.AutoSave;
 import com.shadow.entity.annotation.CacheIndex;
 import com.shadow.util.codec.JsonUtil;
-import org.hibernate.Session;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import java.io.Serializable;
 
 /**
  * @author nevermore on 2015/1/5
  */
 @Entity
-public class Item extends CacheableLifecycleEntity<Integer> {
+public class Item extends CacheableEntity<Integer> {
 
     @Id
     private Integer id;
@@ -33,11 +31,6 @@ public class Item extends CacheableLifecycleEntity<Integer> {
     public void increase() {
         count++;
         playerId = 1;
-    }
-
-    @Override
-    public void onLoad(Session session, Serializable serializable) {
-        System.out.println("onLoad");
     }
 
     @Override

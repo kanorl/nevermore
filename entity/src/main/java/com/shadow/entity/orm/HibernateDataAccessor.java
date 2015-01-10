@@ -1,9 +1,11 @@
 package com.shadow.entity.orm;
 
 import com.shadow.entity.IEntity;
+import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +14,14 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static java.util.Collections.unmodifiableList;
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
 /**
  * 数据访问器Hibernate实现
@@ -30,7 +36,7 @@ import java.util.Map;
 @DependsOn("transactionManager")
 @SuppressWarnings("unchecked")
 @Repository
-@Transactional
+@Transactional(readOnly = true)
 public class HibernateDataAccessor implements DataAccessor {
 
     @Autowired
@@ -40,36 +46,31 @@ public class HibernateDataAccessor implements DataAccessor {
         return sessionFactory.getCurrentSession();
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public <K extends Serializable, V extends IEntity<K>> V get(K id, Class<V> clazz) {
+    public <K extends Serializable, V extends IEntity<K>> V get(@Nonnull K id, @Nonnull Class<V> clazz) {
         return (V) currentSession().get(clazz, id);
     }
 
+    @Transactional(readOnly = false)
     @Override
-    public <K extends Serializable, V extends IEntity<K>> K save(V v) {
+    public <K extends Serializable, V extends IEntity<K>> K save(@Nonnull V v) {
         return (K) currentSession().save(v);
     }
 
+    @Transactional(readOnly = false)
     @Override
-    public <V extends IEntity<?>> void update(V v) {
+    public <V extends IEntity<?>> void update(@Nonnull V v) {
         currentSession().update(v);
     }
 
+    @Transactional(readOnly = false)
     @Override
-    public <V extends IEntity<?>> void delete(V v) {
+    public <V extends IEntity<?>> void delete(@Nonnull V v) {
         currentSession().delete(v);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public <V extends IEntity<?>> List<V> getAll(Class<V> clazz) {
-        return currentSession().createCriteria(clazz).list();
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public <V extends IEntity<?>> List<V> namedQuery(Class<V> clazz, String queryName, Object... queryParams) {
+    public <V extends IEntity<?>> List<V> namedQuery(@Nonnull Class<V> clazz, @Nonnull String queryName, @Nullable Object... queryParams) {
         Query query = currentSession().getNamedQuery(queryName);
         if (queryParams != null) {
             for (int i = 0; i < queryParams.length; i++) {
@@ -77,18 +78,37 @@ public class HibernateDataAccessor implements DataAccessor {
                 query.setParameter(i, queryParam);
             }
         }
-        return query.list();
+        return unmodifiableList(emptyIfNull(query.list()));
     }
 
     @Override
-    public <V extends IEntity<?>> List<V> query(Class<V> clazz, Map<String, ?> propertyNameValues) {
-        return currentSession().createCriteria(clazz).add(Restrictions.allEq(propertyNameValues)).list();
+    public <V extends IEntity<?>> List<V> query(@Nonnull Class<V> clazz) {
+        return query(clazz, null);
     }
 
     @Nonnull
     @Override
-    public <K extends Serializable, V extends IEntity<K>> List<K> queryId(Class<V> clazz, Map<String, ?> propertyNameValues) {
-        List<K> result = currentSession().createCriteria(clazz).add(Restrictions.allEq(propertyNameValues)).setProjection(Projections.id()).list();
-        return result == null ? Collections.emptyList() : Collections.unmodifiableList(result);
+    public <V extends IEntity<?>, T> List<T> query(@Nonnull Class<V> clazz, @Nullable Map<String, ?> propertyNameValues, @Nullable Projection... projections) {
+        Criteria c = currentSession().createCriteria(clazz);
+        if (propertyNameValues != null) {
+            c.add(Restrictions.allEq(propertyNameValues));
+        }
+        if (projections != null) {
+            for (Projection projection : projections) {
+                c.setProjection(projection);
+            }
+        }
+        return unmodifiableList(emptyIfNull(c.list()));
+    }
+
+    @Nonnull
+    @Override
+    public <K extends Serializable, V extends IEntity<K>> List<K> queryIds(@Nonnull Class<V> clazz, @Nonnull Map<String, Object> stringObjectMap) {
+        return query(clazz, stringObjectMap, Projections.id());
+    }
+
+    @Override
+    public <K extends Serializable, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz) {
+        return Optional.ofNullable((K) currentSession().createCriteria(clazz).setProjection(Projections.max(sessionFactory.getClassMetadata(clazz).getIdentifierPropertyName())).uniqueResult());
     }
 }

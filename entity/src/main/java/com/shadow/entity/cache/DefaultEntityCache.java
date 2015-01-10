@@ -38,7 +38,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final LoadingCache<K, V> cache;
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
-    private EntityProxyGenerator<K, V> proxyGenerator;
+    private final EntityProxyGenerator<K, V> proxyGenerator;
 
     public DefaultEntityCache(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
         this.clazz = clazz;
@@ -46,7 +46,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         this.persistenceProcessor = persistenceProcessor;
 
         // 代理类生成器
-        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new EntityProxyGenerator<>(this) : new NullEntityProxyGenerator<>();
+        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new EntityProxyGenerator<>(this, clazz) : new NullEntityProxyGenerator<>();
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
@@ -56,7 +56,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         // 预加载数据
         PreLoaded preLoaded = clazz.getAnnotation(PreLoaded.class);
         if (preLoaded != null) {
-            preLoaded.type().load(dataAccessor, preLoaded.queryName(), clazz).stream().forEach(v -> cache.put(v.getId(), v));
+            preLoaded.policy().load(dataAccessor, preLoaded.queryName(), clazz).stream().forEach(v -> cache.put(v.getId(), v));
         }
     }
 

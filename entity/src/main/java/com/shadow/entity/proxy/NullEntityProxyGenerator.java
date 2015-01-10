@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class NullEntityProxyGenerator<PK extends Serializable, T extends IEntity<PK>> extends EntityProxyGenerator<PK, T> {
 
     public NullEntityProxyGenerator() {
-        super(null);
+        super(null, null);
     }
 
     @Override

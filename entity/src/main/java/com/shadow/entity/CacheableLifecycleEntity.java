@@ -14,11 +14,13 @@ import java.io.Serializable;
 public abstract class CacheableLifecycleEntity<K extends Serializable> extends CacheableEntity<K> implements Lifecycle {
     @Override
     public boolean onSave(Session session) throws CallbackException {
+        prePersist();
         return false;
     }
 
     @Override
     public boolean onUpdate(Session session) throws CallbackException {
+        prePersist();
         return false;
     }
 
@@ -29,6 +31,10 @@ public abstract class CacheableLifecycleEntity<K extends Serializable> extends C
 
     @Override
     public void onLoad(Session session, Serializable serializable) {
-
+        postLoad();
     }
+
+    public abstract void postLoad();
+
+    public abstract void prePersist();
 }

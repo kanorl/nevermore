@@ -2,7 +2,6 @@ package com.shadow.util.disruptor;
 
 import com.lmax.disruptor.WorkHandler;
 import com.shadow.util.lang.MathUtil;
-import com.shadow.util.thread.NamedThreadFactory;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -19,8 +18,6 @@ public final class DisruptorBuilder<T> {
 
     public static final int DEFAULT_BUFFER_SIZE = 1 << 10;
     private static final int MIN_THREAD_COUNT = 1;
-    private static final ThreadFactory DEFAULT_THREAD_FACTORY = new NamedThreadFactory("Disruptor");
-
 
     public static <T> DisruptorBuilder<T> newBuilder() {
         return new DisruptorBuilder<>();
@@ -29,11 +26,12 @@ public final class DisruptorBuilder<T> {
     /**
      * 构造一个Disruptor服务
      *
+     * @param name    名称
      * @param handler 事件处理器(必须为线程安全的)
      * @return
      */
-    public <T1 extends T> DisruptorService<T1> build(WorkHandler<Event<T1>> handler) {
-        return new UnorderedDisruptor<>(this, handler);
+    public <T1 extends T> DisruptorService<T1> build(String name, WorkHandler<Event<T1>> handler) {
+        return new UnorderedDisruptor<>(name, this, handler);
     }
 
     /**
@@ -58,17 +56,6 @@ public final class DisruptorBuilder<T> {
         return this;
     }
 
-    /**
-     * 线程工厂
-     *
-     * @param threadFactory
-     * @return
-     */
-    public DisruptorBuilder<T> threadFactory(ThreadFactory threadFactory) {
-        this.threadFactory = threadFactory;
-        return this;
-    }
-
     // -------------------Getter-------------------
 
     int getBufferSize() {
@@ -77,9 +64,5 @@ public final class DisruptorBuilder<T> {
 
     int getThreads() {
         return Math.max(threads, MIN_THREAD_COUNT);
-    }
-
-    ThreadFactory getThreadFactory() {
-        return threadFactory == null ? DEFAULT_THREAD_FACTORY : threadFactory;
     }
 }

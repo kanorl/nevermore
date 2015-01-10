@@ -4,6 +4,8 @@ import com.lmax.disruptor.ExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.dsl.Disruptor;
+import com.shadow.util.concurrent.ExecutorUtil;
+import com.shadow.util.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,13 +19,15 @@ import java.util.concurrent.Executors;
 final class UnorderedDisruptor<T> implements DisruptorService<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnorderedDisruptor.class);
 
+    private final String name;
     private final Disruptor<Event<T>> disruptor;
     private final ExecutorService executorService;
     private final RingBuffer<Event<T>> ringBuffer;
 
     @SuppressWarnings("unchecked")
-    public UnorderedDisruptor(DisruptorBuilder<? super T> builder, WorkHandler<Event<T>> handler) {
-        executorService = Executors.newFixedThreadPool(builder.getThreads(), builder.getThreadFactory());
+    public UnorderedDisruptor(String name, DisruptorBuilder<? super T> builder, WorkHandler<Event<T>> handler) {
+        this.name = name;
+        executorService = Executors.newFixedThreadPool(builder.getThreads(), new NamedThreadFactory(name));
         disruptor = new Disruptor<>(Event::new, builder.getBufferSize(), executorService);
 
         WorkHandler[] handlers = new WorkHandler[builder.getThreads()];
@@ -58,7 +62,7 @@ final class UnorderedDisruptor<T> implements DisruptorService<T> {
     @Override
     public void shutdown() {
         disruptor.shutdown();
-        executorService.shutdown();
+        ExecutorUtil.shutdownAndAwaitTermination(executorService, name);
     }
 
     @Override
