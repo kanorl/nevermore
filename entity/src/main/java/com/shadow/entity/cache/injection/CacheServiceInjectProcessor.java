@@ -1,8 +1,8 @@
 package com.shadow.entity.cache.injection;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.annotation.Cacheable;
 import com.shadow.entity.annotation.CacheIndex;
+import com.shadow.entity.annotation.Cacheable;
 import com.shadow.entity.annotation.Inject;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.EntityCacheManager;

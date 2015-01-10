@@ -21,9 +21,10 @@ public class Item extends CacheableEntity<Long> {
     @CacheIndex
     private long playerId;
 
-    public static Item valueOf(long id) {
+    public static Item valueOf(long id, long playerId) {
         Item i = new Item();
         i.id = id;
+        i.playerId = playerId;
         return i;
     }
 

@@ -1,61 +1,60 @@
 package com.shadow.entity.identity;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.shadow.entity.IEntity;
+import com.shadow.entity.orm.DataAccessor;
+import com.shadow.util.config.ServerProperty;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @author nevermore on 2015/1/9.
+ * @author nevermore on 2015/1/10
  */
+@Component
 public class IdGenerator {
 
-    private final short platform;
-    private final short server;
-    private final AtomicLong currentId;
+    @Autowired
+    private ServerProperty serverProperty;
+    @Autowired
+    private DataAccessor dataAccessor;
 
-    public IdGenerator(short platform, short server, long currentMaxId) {
-        this.platform = platform;
-        this.server = server;
-        this.currentId = new AtomicLong(currentMaxId);
-    }
-
-
-    public long next() {
-        return currentId.incrementAndGet();
-    }
-
-    public short getPlatform() {
-        return platform;
-    }
-
-    public short getServer() {
-        return server;
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 31)
-                .append(platform)
-                .append(server)
-                .hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
+    private final LoadingCache<Class<? extends IEntity<Long>>, LoadingCache<Short, AtomicLong>> cache = CacheBuilder.newBuilder().concurrencyLevel(16).build(new CacheLoader<Class<? extends IEntity<Long>>, LoadingCache<Short, AtomicLong>>() {
+        @Override
+        public LoadingCache<Short, AtomicLong> load(@Nonnull Class<? extends IEntity<Long>> key) throws Exception {
+            return CacheBuilder.newBuilder().build(new CacheLoader<Short, AtomicLong>() {
+                @Override
+                public AtomicLong load(@Nonnull Short server) throws Exception {
+                    Range range = IdRule.idRange(serverProperty.getPlatform(), server);
+                    long currentMaxId = dataAccessor.queryMaxId(key, range).orElse(range.getMin());
+                    return new AtomicLong(currentMaxId);
+                }
+            });
         }
-        if (this == obj) {
-            return true;
+    });
+
+    @PostConstruct
+    private void init() {
+        Range range = IdRule.platformRange();
+        Preconditions.checkState(!range.isOutOfRange(serverProperty.getPlatform()), "平台标识超出范围: platform=%s, range=%s", serverProperty.getPlatform(), range);
+    }
+
+    public long next(@Nonnull Class<? extends IEntity<Long>> entityClass, short server) {
+        long id = cache.getUnchecked(entityClass).getUnchecked(server).incrementAndGet();
+        Range range = IdRule.idRange(serverProperty.getPlatform(), server);
+        if (range.isOutOfRange(id)) {
+            throw new IllegalStateException("ID超出范围: id=" + id + ", range=" + range);
         }
-        if (this.getClass() != obj.getClass()) {
-            return false;
-        }
-        IdGenerator other = (IdGenerator) obj;
-        return new EqualsBuilder()
-                .append(this.platform, other.getPlatform())
-                .append(this.server, other.server)
-                .isEquals();
+        return id;
+    }
+
+    public long next(@Nonnull Class<? extends IEntity<Long>> entityClass, long ownerId) {
+        return next(entityClass, IdRule.server(ownerId));
     }
 }

@@ -5,36 +5,41 @@ package com.shadow.entity.identity;
  */
 public class IdRule {
 
-    private static final int platformLen = 11;
-    private static final int serverLen = 14;
-    private static final int maxLen = 63;
+    private static final int PLATFORM_LEN = 11;
+    private static final int SERVER_LEN = 14;
+    private static final int MAX_LEN = 63;
 
-    public static IdRange range(short platform, short server) {
-        long basic = (long) platform << (maxLen - platformLen);
-        basic |= (long) server << (maxLen - platformLen - serverLen);
-        long min = basic;
-        long max = basic | (1L << (maxLen - platformLen - serverLen)) - 1;
-        return new IdRange(min, max);
+
+    public static Range idRange(short platform, short server) {
+        final long min = (long) platform << (MAX_LEN - PLATFORM_LEN) | (long) server << (MAX_LEN - PLATFORM_LEN - SERVER_LEN);
+        final long max = min | (1L << (MAX_LEN - PLATFORM_LEN - SERVER_LEN)) - 1;
+        return Range.valueOf(min, max);
     }
 
     public static short platform(long id) {
-        return (short) ((id >> (maxLen - platformLen)) & ((1 << platformLen) - 1));
+        return (short) ((id >> (MAX_LEN - PLATFORM_LEN)) & ((1 << PLATFORM_LEN) - 1));
     }
 
     public static short server(long id) {
-        return (short) (id >> (maxLen - platformLen - serverLen) & ((1 << serverLen) - 1));
+        return (short) (id >> (MAX_LEN - PLATFORM_LEN - SERVER_LEN) & ((1 << SERVER_LEN) - 1));
+    }
+
+    public static Range platformRange() {
+        return Range.valueOf(1, ((1 << PLATFORM_LEN) - 1));
     }
 
     public static void main(String[] args) {
-        short platform = (1 << platformLen) - 1;
-        short serverId = (1 << serverLen) - 1;
+        short platform = (1 << PLATFORM_LEN) - 1;
+        short serverId = (1 << SERVER_LEN) - 1;
 
-        IdRange range = range(platform, serverId);
+        Range range = idRange(platform, serverId);
         System.out.println(range);
 
         System.out.println(range.getMax() - range.getMin());
 
         System.out.println(platform(range.getMin()));
         System.out.println(server(range.getMin()));
+
+        System.out.println((long) platform << (MAX_LEN - PLATFORM_LEN));
     }
 }

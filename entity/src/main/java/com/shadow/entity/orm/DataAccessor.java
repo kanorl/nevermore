@@ -1,7 +1,7 @@
 package com.shadow.entity.orm;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.identity.IdRange;
+import com.shadow.entity.identity.Range;
 import org.hibernate.criterion.Projection;
 
 import javax.annotation.Nonnull;
@@ -36,5 +36,5 @@ public interface DataAccessor {
     @Nonnull
     <K extends Serializable, V extends IEntity<K>> List<K> queryIds(@Nonnull Class<V> clazz, @Nonnull Map<String, Object> stringObjectMap);
 
-    <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, IdRange range);
+    <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range range);
 }

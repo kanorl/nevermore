@@ -25,6 +25,7 @@ public class ServerProperty {
     @Value("${server.socket.port}")
     private String port;
     private String platformName;
+    @Value("${server.config.platform:-1}")
     private short platform;
     private List<Short> servers;
 
@@ -41,8 +42,13 @@ public class ServerProperty {
     public void setServers(String servers) {
         checkState(this.servers == null, "重复初始化");
         List<Short> list = new ArrayList<>(JsonUtil.toCollection(servers, Set.class, Short.class));
+        if (list.isEmpty()) {
+            throw new IllegalStateException("服标识未设置");
+        }
         Collections.sort(list);
         this.servers = Collections.unmodifiableList(list);
+
+        LOGGER.error("服标识：{}", list);
     }
 
     @Value("${server.config.platform.name}")
@@ -50,12 +56,15 @@ public class ServerProperty {
         checkArgument(Pattern.compile("[0-9a-zA-Z]+").matcher(platformName).matches(), "属性[server.config.platform.name]的值只能包含数字和字母");
         checkState(this.platformName == null, "重复初始化");
         this.platformName = platformName;
-        this.platform = toPlatformId(platformName);
 
-        LOGGER.error("平台配置：name={}, id={}", this.platformName, this.platform);
+        if (platform <= 0) {
+            platform = toPlatform(platformName);
+        }
+
+        LOGGER.error("平台标识：name={}, id={}", this.platformName, this.platform);
     }
 
-    private short toPlatformId(String platformName) {
+    private short toPlatform(String platformName) {
         short id = 0;
         char[] arr = platformName.toCharArray();
         for (int i = 0; i < arr.length; i++) {
