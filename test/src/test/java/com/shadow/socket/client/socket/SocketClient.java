@@ -1,5 +1,6 @@
 package com.shadow.socket.client.socket;
 
+import com.shadow.util.codec.JsonUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -33,6 +34,7 @@ public final class SocketClient {
     public void send(Object obj) {
         if (channel.isWritable()) {
             channel.writeAndFlush(obj);
+            System.err.println("send->" + JsonUtil.toJson(obj));
         }
     }
 }

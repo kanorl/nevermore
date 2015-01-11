@@ -17,7 +17,7 @@ import java.util.Date;
  */
 @Entity
 @Cacheable(cacheSize = @CacheSize(factor = 2))
-@PreLoaded(policy = PreLoaded.Policy.NAMED_QUERY, queryName = "User.init")
+@PreLoaded(policy = PreLoaded.Policy.NAMED_QUERY)
 @NamedQueries(@NamedQuery(name = "User.init", query = "From User where date >= curdate() "))
 public class User extends CacheableLifecycleEntity<Integer> {
 

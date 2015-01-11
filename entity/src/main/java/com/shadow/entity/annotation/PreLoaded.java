@@ -21,22 +21,20 @@ public @interface PreLoaded {
 
     public Policy policy();
 
-    public String queryName() default "";
-
     public enum Policy {
         NAMED_QUERY {
             @Override
-            public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, String queryName, Class<T> clazz) {
-                return dataAccessor.namedQuery(clazz, queryName);
+            public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, Class<T> clazz) {
+                return dataAccessor.namedQuery(clazz, clazz.getSimpleName() + ".init");
             }
         },
         ALL {
             @Override
-            public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, String queryName, Class<T> clazz) {
+            public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, Class<T> clazz) {
                 return dataAccessor.query(clazz);
             }
         };
 
-        public abstract <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, String queryName, Class<T> clazz);
+        public abstract <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, Class<T> clazz);
     }
 }

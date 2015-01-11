@@ -109,8 +109,8 @@ public class Client {
         if (socketClient == null) {
             JOptionPane.showMessageDialog(null, "服务器未连接!");
         }
-        int module = topPanel.getModule();
-        int cmd = topPanel.getCmd();
+        short module = topPanel.getModule();
+        byte cmd = topPanel.getCmd();
 
         if (module < 0 || cmd < 0) {
             JOptionPane.showMessageDialog(null, String.format("模块/命令错误：module=%d cmd=%d", module, cmd));

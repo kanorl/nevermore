@@ -9,5 +9,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RequestHandler {
-    public int module();
+    public short module();
 }

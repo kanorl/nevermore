@@ -57,7 +57,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         // 预加载数据
         PreLoaded preLoaded = clazz.getAnnotation(PreLoaded.class);
         if (preLoaded != null) {
-            preLoaded.policy().load(dataAccessor, preLoaded.queryName(), clazz).stream().forEach(v -> cache.put(v.getId(), v));
+            preLoaded.policy().load(dataAccessor, clazz).stream().forEach(v -> cache.put(v.getId(), v));
         }
     }
 

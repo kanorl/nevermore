@@ -9,5 +9,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface HandlerMethod {
-    public int cmd();
+    public byte cmd();
 }

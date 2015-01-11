@@ -13,6 +13,7 @@ import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.proxy.EntityProxy;
 import org.apache.commons.lang3.ClassUtils;
 import org.reflections.ReflectionUtils;
+import org.springframework.dao.DuplicateKeyException;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -49,6 +50,20 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
                 return Sets.newConcurrentHashSet(dataAccessor.queryIds(clazz, Collections.singletonMap(indexField.getName(), value)));
             }
         });
+    }
+
+    @Override
+    public V create(@Nonnull V v) {
+        requireNonNull(v);
+        requireNonNull(v.getId(), "ID不能为null");
+        V obj = super.getOrCreate(v.getId(), () -> v);
+        V entity = obj instanceof EntityProxy ? ((EntityProxy) obj).getEntity() : obj;
+        if (v != entity) {
+            throw new DuplicateKeyException("重复的主键[" + v.getId() + "]");
+        }
+        Object value = getIndexValue(obj);
+        indexCache.getUnchecked(value).add(obj.getId());
+        return obj;
     }
 
     @Nonnull

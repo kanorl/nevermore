@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
  */
 public class MessageDecoder extends LengthFieldBasedFrameDecoder {
     public MessageDecoder() {
-        super(ByteOrder.BIG_ENDIAN, 65535, 0, 4, 0, 4, false);
+        super(ByteOrder.BIG_ENDIAN, 1024, 0, 4, 0, 4, true);
     }
 
     @Override
@@ -23,8 +23,8 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
             return null;
         }
 
-        int module = frame.readInt();
-        int cmd = frame.readInt();
+        short module = frame.readShort();
+        byte cmd = frame.readByte();
         Command command = Command.valueOf(module, cmd);
 
         byte[] data = new byte[frame.readableBytes()];

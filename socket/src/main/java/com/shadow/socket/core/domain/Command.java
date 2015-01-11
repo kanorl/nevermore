@@ -1,17 +1,18 @@
 package com.shadow.socket.core.domain;
 
-import com.shadow.util.lang.ArrayUtil;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author nevermore on 2014/11/26.
  */
 public final class Command {
-    private int module;
-    private int cmd;
+    private short module;
+    private byte cmd;
 
-    public static Command valueOf(int module, int cmd) {
+    public static Command valueOf(short module, byte cmd) {
         Command command = new Command();
         command.module = module;
         command.cmd = cmd;
@@ -19,12 +20,7 @@ public final class Command {
     }
 
     public byte[] toBytes() {
-        byte[] data = new byte[8];
-        int offset = 0;
-        ArrayUtil.fill(module, data, offset);
-        offset += 4;
-        ArrayUtil.fill(cmd, data, offset);
-        return data;
+        return ByteBuffer.allocate(3).putShort(module).put(cmd).array();
     }
 
     @Override
@@ -58,19 +54,11 @@ public final class Command {
         return "Command[module=" + module + ", cmd=" + cmd + "]";
     }
 
-    public int getModule() {
+    public short getModule() {
         return module;
     }
 
-    public void setModule(int module) {
-        this.module = module;
-    }
-
-    public int getCmd() {
+    public byte getCmd() {
         return cmd;
-    }
-
-    public void setCmd(int cmd) {
-        this.cmd = cmd;
     }
 }

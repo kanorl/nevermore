@@ -21,8 +21,8 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
             return null;
         }
 
-        int module = frame.readInt();
-        int cmd = frame.readInt();
+        short module = frame.readShort();
+        byte cmd = frame.readByte();
         Command command = Command.valueOf(module, cmd);
 
         byte[] data = new byte[frame.readableBytes()];

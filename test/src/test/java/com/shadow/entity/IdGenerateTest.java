@@ -3,7 +3,7 @@ package com.shadow.entity;
 import com.shadow.entity.annotation.Inject;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.RegionEntityCache;
-import com.shadow.entity.identity.IdGenerator;
+import com.shadow.entity.id.IdGenerator;
 import com.shadow.util.codec.JsonUtil;
 import com.shadow.util.config.ServerProperty;
 import org.junit.Test;
@@ -30,14 +30,15 @@ public class IdGenerateTest {
 
     @Test
     public void test() {
-        short server = serverProperty.getServers().get(0);
-        long playerId = idGenerator.next(Player.class, server);
-//        long playerId = 3057944421862473729L;
+//        short server = serverProperty.getServers().get(0);
+//        long playerId = idGenerator.next(Player.class, server);
+        long playerId = 3057944421862473729L;
         Player player = playerCache.getOrCreate(playerId, () -> Player.valueOf(playerId));
 
 
         long itemId = idGenerator.next(Item.class, playerId);
-        Item item = itemCache.getOrCreate(itemId, () -> Item.valueOf(itemId, playerId));
+//        long itemId = 3057944421862473729L;
+        Item item = itemCache.create(Item.valueOf(itemId, playerId));
 
         System.out.println(JsonUtil.toJson(player));
         System.out.println(JsonUtil.toJson(item));

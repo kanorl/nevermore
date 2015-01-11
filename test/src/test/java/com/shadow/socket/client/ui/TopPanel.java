@@ -105,12 +105,12 @@ public class TopPanel extends JPanel {
 
             for (Field field : Module.class.getDeclaredFields()) {
                 String name = field.getName();
-                int value = (Integer) field.get(null);
+                short value = (short) field.get(null);
                 moduleField.addItem(Option.valueOf(name, value));
             }
             for (CMD cmd : CMD.values()) {
                 String name = cmd.name();
-                int value = cmd.ordinal();
+                byte value = (byte) cmd.ordinal();
                 cmdField.addItem(Option.valueOf(name, value));
             }
         } catch (IllegalAccessException e) {
@@ -172,20 +172,20 @@ public class TopPanel extends JPanel {
 //        }
     }
 
-    public int getModule() {
+    public short getModule() {
         Option option = (Option) moduleField.getSelectedItem();
         if (option == null) {
             return -1;
         }
-        return (Integer) option.getValue();
+        return (short) option.getValue();
     }
 
-    public int getCmd() {
+    public byte getCmd() {
         Option option = (Option) cmdField.getSelectedItem();
         if (option == null) {
             return -1;
         }
-        return (Integer) option.getValue();
+        return (byte) option.getValue();
     }
 
     public void onLogin() {

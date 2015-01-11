@@ -29,7 +29,7 @@ public final class ParameterContainer {
     /**
      * @return a unmodifiable map
      */
-    public Map<String, Object> getAll() {
+    public Map<String, Object> getParams() {
         return Collections.unmodifiableMap(params);
     }
 

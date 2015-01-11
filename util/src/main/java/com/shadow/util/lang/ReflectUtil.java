@@ -36,14 +36,15 @@ public final class ReflectUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static <A extends Annotation> Set<Method> getDeclaredMethodsAnnotatedBy(@Nonnull Class<?> type, @Nonnull Class<A> annotationClass) {
+    public static <A extends Annotation> Set<Method> getDeclaredMethodsAnnotatedWith(@Nonnull Class<?> type, @Nonnull Class<A> annotationClass) {
         checkNotNull(type);
         checkNotNull(annotationClass);
 
         return ReflectionUtils.getAllMethods(type, input -> input != null && input.isAnnotationPresent(annotationClass));
     }
 
-    public static <T> Set<Class<? extends T>> getAllSubTypesOf(Class<T> clazz) {
+    public static <T> Set<Class<? extends T>> getAllSubTypesOf(@Nonnull Class<T> clazz) {
+        checkNotNull(clazz);
         return reflections.getSubTypesOf(clazz);
     }
 }

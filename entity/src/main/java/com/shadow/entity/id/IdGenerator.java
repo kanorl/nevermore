@@ -1,4 +1,4 @@
-package com.shadow.entity.identity;
+package com.shadow.entity.id;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -49,7 +49,7 @@ public class IdGenerator {
         long id = cache.getUnchecked(entityClass).getUnchecked(server).incrementAndGet();
         Range range = IdRule.idRange(serverProperty.getPlatform(), server);
         if (range.isOutOfRange(id)) {
-            throw new IllegalStateException("ID超出范围: id=" + id + ", range=" + range);
+            throw new IllegalStateException("ID超出范围: class= " + entityClass.getName() + ", server= " + server + ", id=" + id + ", range=" + range);
         }
         return id;
     }

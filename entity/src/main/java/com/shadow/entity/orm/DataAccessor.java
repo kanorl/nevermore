@@ -1,7 +1,7 @@
 package com.shadow.entity.orm;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.identity.Range;
+import com.shadow.entity.id.Range;
 import org.hibernate.criterion.Projection;
 
 import javax.annotation.Nonnull;

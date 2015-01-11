@@ -1,4 +1,4 @@
-package com.shadow.entity.identity;
+package com.shadow.entity.id;
 
 /**
  * @author nevermore on 2015/1/10

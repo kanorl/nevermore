@@ -45,8 +45,8 @@ public final class RequestProcessorManager implements BeanPostProcessor {
         if (typeAnnotation == null) {
             return bean;
         }
-        int module = typeAnnotation.module();
-        Set<Method> handlerMethods = ReflectUtil.getDeclaredMethodsAnnotatedBy(bean.getClass(), HandlerMethod.class);
+        short module = typeAnnotation.module();
+        Set<Method> handlerMethods = ReflectUtil.getDeclaredMethodsAnnotatedWith(bean.getClass(), HandlerMethod.class);
         for (Method handlerMethod : handlerMethods) {
             ReflectionUtils.makeAccessible(handlerMethod);
 
@@ -76,7 +76,7 @@ public final class RequestProcessorManager implements BeanPostProcessor {
 
             RequestProcessor requestProcessor = RequestProcessor.valueOf(handlerMethod, bean, methodParameters);
 
-            int cmd = methodAnnotation.cmd();
+            byte cmd = methodAnnotation.cmd();
             Command command = Command.valueOf(module, cmd);
             RequestProcessor preProcessor = REQUEST_PROCESSOR_MAP.put(command, requestProcessor);
             if (preProcessor != null) {

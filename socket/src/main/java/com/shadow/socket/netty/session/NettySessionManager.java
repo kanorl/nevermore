@@ -34,14 +34,14 @@ public final class NettySessionManager {
         return channel.attr(SESSION_ATTRIBUTE_KEY).get();
     }
 
-    private static final int maxIdLength = String.valueOf(Long.MAX_VALUE).length();
+    private static final int MAX_ID_LENGTH = String.valueOf(Long.MAX_VALUE).length();
     private static final int SUFFIX_MAX = 2 << 12; // 8192
     private static final char APPENDER = '0';
 
     private static long nextId() {
         String prefix = String.valueOf(System.currentTimeMillis());
         String suffix = String.valueOf(next() & (SUFFIX_MAX - 1));// mod SUFFIX_MAX
-        String delimiter = StringUtils.repeat(APPENDER, maxIdLength - prefix.length() - suffix.length());
+        String delimiter = StringUtils.repeat(APPENDER, MAX_ID_LENGTH - prefix.length() - suffix.length());
         return Long.parseLong(prefix + delimiter + suffix);
     }
 

@@ -14,7 +14,7 @@ public final class ArrayUtil {
 
     public static void main(String[] args) {
         byte[] result = new byte[8];
-        ArrayUtil.fill(Integer.MIN_VALUE, result, 4);
+        ArrayUtil.fillInt(Integer.MIN_VALUE, result, 4);
         System.out.println(Arrays.toString(result));
         System.out.println(BitConverter.toInt(org.apache.commons.lang3.ArrayUtils.subarray(result, 4, result.length)));
     }
@@ -26,7 +26,15 @@ public final class ArrayUtil {
      * @param dest   目标数组
      * @param offset 目标数组偏移量
      */
-    public static void fill(int value, byte[] dest, int offset) {
+    public static void fillInt(int value, byte[] dest, int offset) {
+        fill(getBytes(value), dest, offset);
+    }
+
+    public static void fillShort(short value, byte[] dest, int offset) {
+        fill(getBytes(value), dest, offset);
+    }
+
+    public static void fillByte(byte value, byte[] dest, int offset) {
         fill(getBytes(value), dest, offset);
     }
 

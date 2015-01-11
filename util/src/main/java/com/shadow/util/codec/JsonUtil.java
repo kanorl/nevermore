@@ -28,24 +28,25 @@ public class JsonUtil {
             return OBJECT_MAPPER.writeValueAsString(o);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     public static <T> T toObject(String json, Class<T> clazz) {
         try {
             return OBJECT_MAPPER.readValue(json, clazz);
         } catch (Exception e) {
-            LOGGER.error("json转换失败: json={}, class={}.", json, clazz.getName());
+            LOGGER.error("json转换失败: json={}, class={}", json, clazz.getName());
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     public static <E, T extends Collection<E>> T toCollection(String json, Class<T> clazz, Class<E> elementType) {
         CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(clazz, elementType);
         try {
             return OBJECT_MAPPER.readValue(json, collectionType);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            LOGGER.error("json转换失败: json={}, class={}, elementType={} ", json, clazz.getName(), elementType.getName());
             throw new RuntimeException(e);
         }
     }
@@ -55,7 +56,7 @@ public class JsonUtil {
             return OBJECT_MAPPER.readValue(json, type);
         } catch (IOException e) {
             LOGGER.error("json转换失败: json={}, class={}.", json, type.getType().getTypeName());
+            throw new RuntimeException(e);
         }
-        return null;
     }
 }

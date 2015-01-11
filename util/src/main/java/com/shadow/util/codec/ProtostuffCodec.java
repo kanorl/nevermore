@@ -29,7 +29,6 @@ public class ProtostuffCodec {
 
     @Nonnull
     public static <T> byte[] encode(T obj) {
-//        requireNonNull(obj);
         if (obj == null) {
             return ArrayUtils.EMPTY_BYTE_ARRAY;
         }
