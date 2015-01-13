@@ -16,13 +16,14 @@ import static java.util.Objects.requireNonNull;
 @SuppressWarnings("unchecked")
 public class ProtobufCodec {
 
-    public static <T> void decode(@Nonnull byte[] data, @Nonnull T obj) {
+    public static <T> T decode(@Nonnull byte[] data, Class<T> type) {
         requireNonNull(data);
-        requireNonNull(obj);
+        requireNonNull(type);
 
-        Class<T> clazz = (Class<T>) obj.getClass();
-        Schema<T> schema = RuntimeSchema.getSchema(clazz);
+        Schema<T> schema = RuntimeSchema.getSchema(type);
+        T obj = schema.newMessage();
         ProtobufIOUtil.mergeFrom(data, obj, schema);
+        return obj;
     }
 
     @Nonnull

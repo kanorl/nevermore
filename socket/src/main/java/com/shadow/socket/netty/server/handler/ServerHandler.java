@@ -51,7 +51,7 @@ public class ServerHandler extends ChannelDuplexHandler {
         try {
             content = requestProcessor.handle(request);
         } catch (CheckedException e) {
-            code = e.getCode();
+            code = e.code();
             LOGGER.error(e.getMessage(), e);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -68,8 +68,7 @@ public class ServerHandler extends ChannelDuplexHandler {
     }
 
     private Request message2Request(Message msg, Session session) {
-        ParameterContainer pc = new ParameterContainer();
-        ProtostuffCodec.decode(msg.getBody(), pc);
+        ParameterContainer pc = ProtostuffCodec.decode(msg.getBody(), ParameterContainer.class);
         return Request.valueOf(msg.getCommand(), pc, session);
     }
 

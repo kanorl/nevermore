@@ -17,8 +17,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<Message> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-        Result<?> result = new Result<>();
-        ProtostuffCodec.decode(msg.getBody(), result);
+        Result<?> result = ProtostuffCodec.decode(msg.getBody(), Result.class);
         Client.INSTANCE.onPushReceived(msg.getCommand().getModule(), msg.getCommand().getCmd(), JsonUtil.toJson(result).getBytes());
     }
 }

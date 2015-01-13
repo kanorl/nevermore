@@ -5,13 +5,9 @@ package com.shadow.socket.core.exception;
  */
 public abstract class CheckedException extends RuntimeException {
 
-    private final int code;
-
-    protected CheckedException(int code) {
-        this.code = code;
+    protected CheckedException(String msg) {
+        super(msg);
     }
 
-    public int getCode() {
-        return code;
-    }
+    public abstract int code();
 }
