@@ -32,6 +32,7 @@
         <junit.version>4.11</junit.version>
         <mysql.connector.version>5.1.32</mysql.connector.version>
         <netty.version>4.0.23.Final</netty.version>
+        <poi.version>3.11</poi.version>
         <protostuff.version>1.0.8</protostuff.version>
         <reflections.version>0.9.9-RC2</reflections.version>
         <slf4j.version>1.7.7</slf4j.version>
@@ -190,6 +191,18 @@
             <groupId>com.dyuproject.protostuff</groupId>
             <artifactId>protostuff-runtime</artifactId>
             <version>${protostuff.version}</version>
+        </dependency>
+
+        <!--POI-->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
         </dependency>
     </dependencies>
 

@@ -5,14 +5,18 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.annotation.CacheIndex;
+import com.shadow.entity.annotation.CacheSize;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 
 /**
@@ -24,18 +28,23 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheManager.class);
 
-    private final DataAccessor dataAccessor;
+    @Autowired
+    private DataAccessor dataAccessor;
+    @Value("${server.cache.size.minimum}")
+    private int minimumCacheSize;
+    @Value("${server.cache.size.default}")
+    private int defaultCacheSize;
+    @Value("${server.persistence.pool.size:1}")
     private int persistencePoolSize;
+
     private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
     private LoadingCache<Class<V>, EntityCache<K, V>> entityCaches;
 
-    public EntityCacheManager(DataAccessor dataAccessor, int persistencePoolSize) {
-        this.dataAccessor = dataAccessor;
-        this.persistencePoolSize = persistencePoolSize;
-        initialize();
-    }
+    @PostConstruct
+    private void init() {
+        CacheSize.Size.MINIMUM.set(minimumCacheSize);
+        CacheSize.Size.DEFAULT.set(defaultCacheSize);
 
-    private void initialize() {
         persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, PersistenceProcessor<V>>() {
             @Override
             public PersistenceProcessor<V> load(@Nonnull Class<V> clazz) throws Exception {

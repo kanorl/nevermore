@@ -3,7 +3,7 @@ package com.shadow.socket.netty.server.handler;
 import com.shadow.socket.core.annotation.support.RequestProcessor;
 import com.shadow.socket.core.annotation.support.RequestProcessorManager;
 import com.shadow.socket.core.domain.*;
-import com.shadow.socket.core.exception.CheckedException;
+import com.shadow.util.exception.CheckedException;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.netty.server.session.ServerSessionHandler;
 import com.shadow.util.codec.ProtostuffCodec;

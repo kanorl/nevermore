@@ -1,4 +1,4 @@
-package com.shadow.entity.cache;
+package com.shadow.resource;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
@@ -7,40 +7,34 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 /**
- * @author nevermore on 2014/11/26.
+ * @author nevermore on 2015/1/14
  */
 @Component
-public final class EntityCacheManagerFactoryBean implements FactoryBean<EntityCacheManager>, ApplicationContextAware {
+public class ResourceHolderManagerFactorBean implements FactoryBean<ResourceHolderManager>, ApplicationContextAware {
 
+    private ResourceHolderManager resourceHolderManager;
     private ApplicationContext applicationContext;
-    private EntityCacheManager entityCacheManager;
 
     @PostConstruct
     private void init() {
-        entityCacheManager = applicationContext.getAutowireCapableBeanFactory().createBean(EntityCacheManager.class);
+        resourceHolderManager = applicationContext.getAutowireCapableBeanFactory().createBean(ResourceHolderManager.class);
     }
 
     @Override
-    public EntityCacheManager getObject() throws Exception {
-        return entityCacheManager;
+    public ResourceHolderManager getObject() throws Exception {
+        return resourceHolderManager;
     }
 
     @Override
     public Class<?> getObjectType() {
-        return EntityCacheManager.class;
+        return ResourceHolderManager.class;
     }
 
     @Override
     public boolean isSingleton() {
         return true;
-    }
-
-    @PreDestroy
-    private void shutdown() {
-        entityCacheManager.shutdown();
     }
 
     @Override

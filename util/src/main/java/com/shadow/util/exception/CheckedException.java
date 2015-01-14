@@ -1,11 +1,11 @@
-package com.shadow.socket.core.exception;
+package com.shadow.util.exception;
 
 /**
  * @author nevermore on 2015/1/14
  */
 public abstract class CheckedException extends RuntimeException {
 
-    protected CheckedException(String msg) {
+    public CheckedException(String msg) {
         super(msg);
     }
 
