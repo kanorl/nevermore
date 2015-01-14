@@ -1,4 +1,4 @@
-package com.shadow.socket.netty.server.handler;
+package com.shadow.socket.netty.server;
 
 import com.shadow.socket.netty.codec.MessageCodecFactory;
 import io.netty.channel.ChannelHandler;

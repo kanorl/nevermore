@@ -1,19 +1,19 @@
-package com.shadow.socket.netty.session;
+package com.shadow.socket.netty.server.session;
 
-import com.shadow.socket.core.session.AttributeSession;
+import com.shadow.socket.core.session.AbstractSession;
 import io.netty.channel.Channel;
 
 /**
  * @author nevermore on 2014/11/26
  */
-public final class NettySession extends AttributeSession<Long> {
+public final class NettySession extends AbstractSession {
     private Channel channel;
     private long id;
 
     private NettySession() {
     }
 
-    static NettySession valueOf(long id, Channel channel) {
+    public static NettySession valueOf(long id, Channel channel) {
         NettySession nettySession = new NettySession();
         nettySession.id = id;
         nettySession.channel = channel;
@@ -21,12 +21,12 @@ public final class NettySession extends AttributeSession<Long> {
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
     @Override
-    public <T> void write(T data) {
+    public void write(Object data) {
         channel.writeAndFlush(data);
     }
 }

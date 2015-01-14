@@ -4,13 +4,14 @@ import com.shadow.socket.core.annotation.support.RequestProcessor;
 import com.shadow.socket.core.annotation.support.RequestProcessorManager;
 import com.shadow.socket.core.domain.*;
 import com.shadow.socket.core.session.Session;
-import com.shadow.socket.netty.session.NettySessionManager;
+import com.shadow.socket.netty.server.session.ServerSessionHandler;
 import com.shadow.util.codec.ProtostuffCodec;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,11 +22,16 @@ import org.springframework.stereotype.Component;
 public class ServerHandler extends SimpleChannelInboundHandler<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
 
+    @Autowired
+    private ServerSessionHandler sessionHandler;
+    @Autowired
+    private RequestProcessorManager requestProcessorManager;
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-        Request request = toRequest(msg, NettySessionManager.getSession(ctx.channel()));
+        Request request = toRequest(msg, sessionHandler.getSession(ctx.channel()));
 
-        RequestProcessor requestProcessor = RequestProcessorManager.getRequestProcessor(request.getCommand());
+        RequestProcessor requestProcessor = requestProcessorManager.getProcessor(request);
 
         Object content = null;
         int code = 0;
@@ -53,7 +59,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<Message> {
         return Message.valueOf(command, body);
     }
 
-    private Request toRequest(Message msg, Session<Long> session) {
+    private Request toRequest(Message msg, Session session) {
         ParameterContainer pc = new ParameterContainer();
         ProtostuffCodec.decode(msg.getBody(), pc);
         return Request.valueOf(msg.getCommand(), pc, session);

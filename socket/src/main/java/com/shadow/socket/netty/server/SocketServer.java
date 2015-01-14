@@ -1,8 +1,7 @@
 package com.shadow.socket.netty.server;
 
 import com.shadow.socket.netty.server.handler.ServerHandler;
-import com.shadow.socket.netty.server.handler.ServerInitializer;
-import com.shadow.socket.netty.server.handler.ServerSessionHandler;
+import com.shadow.socket.netty.server.session.ServerSessionHandler;
 import com.shadow.util.thread.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -42,6 +41,8 @@ public final class SocketServer implements ApplicationListener<ContextStartedEve
     private int poolSize;
     @Autowired
     private ServerHandler handler;
+    @Autowired
+    private ServerSessionHandler sessionHandler;
 
     private Channel channel;
     private EventLoopGroup parentGroup;
@@ -95,7 +96,7 @@ public final class SocketServer implements ApplicationListener<ContextStartedEve
 
     private Map<String, ChannelHandler> filters() {
         Map<String, ChannelHandler> filters = new HashMap<>();
-        filters.put("session", new ServerSessionHandler());
+        filters.put("session", sessionHandler);
         return filters;
     }
 

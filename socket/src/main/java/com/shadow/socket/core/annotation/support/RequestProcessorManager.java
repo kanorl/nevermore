@@ -30,7 +30,7 @@ import java.util.Set;
 public final class RequestProcessorManager implements BeanPostProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestProcessorManager.class);
 
-    private static final Map<Command, RequestProcessor> REQUEST_PROCESSOR_MAP = new HashMap<>();
+    private final Map<Command, RequestProcessor> requestProcessors = new HashMap<>();
     private static final RequestProcessor DEFAULT_PROCESSOR = new UnknownRequestProcessor();
 
     @Override
@@ -78,7 +78,7 @@ public final class RequestProcessorManager implements BeanPostProcessor {
 
             byte cmd = methodAnnotation.cmd();
             Command command = Command.valueOf(module, cmd);
-            RequestProcessor preProcessor = REQUEST_PROCESSOR_MAP.put(command, requestProcessor);
+            RequestProcessor preProcessor = requestProcessors.put(command, requestProcessor);
             if (preProcessor != null) {
                 LOGGER.info("请求处理器被覆盖：" + command);
             }
@@ -86,9 +86,9 @@ public final class RequestProcessorManager implements BeanPostProcessor {
         return bean;
     }
 
-    public static RequestProcessor getRequestProcessor(Command command) {
-        RequestProcessor processor = REQUEST_PROCESSOR_MAP.get(command);
-        return processor == null ? DEFAULT_PROCESSOR : processor;
+    @Nonnull
+    public RequestProcessor getProcessor(Request request) {
+        return requestProcessors.getOrDefault(request.getCommand(), DEFAULT_PROCESSOR);
     }
 
     private static class UnknownRequestProcessor extends RequestProcessor {

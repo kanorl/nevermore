@@ -10,9 +10,9 @@ import com.shadow.util.codec.JsonUtil;
 public final class Request {
     private Command command;
     private ParameterContainer body;
-    private Session<Long> session;
+    private Session session;
 
-    public static Request valueOf(Command command, ParameterContainer body, Session<Long> session) {
+    public static Request valueOf(Command command, ParameterContainer body, Session session) {
         Request request = new Request();
         request.command = command;
         request.body = body;
@@ -44,7 +44,7 @@ public final class Request {
         return session;
     }
 
-    public void setSession(Session<Long> session) {
+    public void setSession(Session session) {
         this.session = session;
     }
 }
