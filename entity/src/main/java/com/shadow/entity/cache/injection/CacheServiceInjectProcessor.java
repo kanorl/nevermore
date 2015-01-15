@@ -38,7 +38,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
             if (!EntityCache.class.isAssignableFrom(field.getType())) {
-                return;
+                throw new RuntimeException();
             }
             Type type = field.getGenericType();
             if (!(type instanceof ParameterizedType)) {

@@ -13,7 +13,7 @@
        http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
 
     <context:component-scan base-package="com.shadow"/>
-    <context:property-placeholder location="classpath:/server.properties"/>
+    <context:property-placeholder location="classpath:server.properties"/>
 
     <bean name="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
         <property name="packagesToScan" value="com.shadow"/>
@@ -37,4 +37,12 @@
     to any bean that’s annotated with @Repository so that any platform-specific exceptions are caught
     and then rethrown as one of Spring’s unchecked data access exceptions-->
     <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+
+    <bean id="resourceConfiguration" class="com.shadow.resource.ResourceConfiguration">
+        <property name="resourceLocation" value="classpath:resource"/>
+        <property name="fileSuffix" value=".xlsx"/>
+        <property name="titleTag" value="TITLE"/>
+        <property name="ignoreTag" value="NO"/>
+        <property name="endTag" value="END"/>
+    </bean>
 </beans>

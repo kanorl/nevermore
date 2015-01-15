@@ -10,6 +10,9 @@ import org.springframework.beans.factory.config.InstantiationAwareBeanPostProces
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 /**
  * @author nevermore on 2015/1/14
  */
@@ -22,10 +25,17 @@ public class ResourceHolderInjectProcessor extends InstantiationAwareBeanPostPro
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> {
-            if (!ResourceHolder.class.isAssignableFrom(field.getType()) && !field.getType().isAnnotationPresent(Resource.class)) {
-                throw new IllegalStateException();
+            if (!ResourceHolder.class.isAssignableFrom(field.getType())) {
+                throw new UnsupportedOperationException();
             }
-            ResourceHolder<?> resourceHolder = resourceHolderManager.getResourceHolder(bean.getClass());
+            Type type = field.getGenericType();
+            if (!(type instanceof ParameterizedType)) {
+                throw new RuntimeException();
+            }
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            Type[] types = parameterizedType.getActualTypeArguments();
+            Class<?> entityClass = (Class<?>) types[0];
+            ResourceHolder<?> resourceHolder = resourceHolderManager.getResourceHolder(entityClass);
             Object value = resourceHolder;
             if (field.getType().isAnnotationPresent(Resource.class)) {
                 value = resourceHolder.get(field.getAnnotation(InjectedResource.class).value());

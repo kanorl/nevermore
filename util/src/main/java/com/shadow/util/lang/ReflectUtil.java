@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author nevermore on 2014/11/26
@@ -46,5 +47,10 @@ public final class ReflectUtil {
     public static <T> Set<Class<? extends T>> getAllSubTypesOf(@Nonnull Class<T> clazz) {
         checkNotNull(clazz);
         return reflections.getSubTypesOf(clazz);
+    }
+
+    public static <A extends Annotation> Set<Class<?>> getTypesAnnotatedWith(@Nonnull Class<A> annotationClass) {
+        requireNonNull(annotationClass);
+        return reflections.getTypesAnnotatedWith(annotationClass);
     }
 }
