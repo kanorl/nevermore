@@ -15,7 +15,6 @@ import org.springframework.beans.factory.config.InstantiationAwareBeanPostProces
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -28,11 +27,11 @@ import java.util.Set;
  */
 @SuppressWarnings("unchecked")
 @Component
-public class CacheServiceInjectProcessor<K extends Serializable, V extends IEntity<K>> extends InstantiationAwareBeanPostProcessorAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CacheServiceInjectProcessor.class);
+public class EntityCacheInjectProcessor extends InstantiationAwareBeanPostProcessorAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheInjectProcessor.class);
 
     @Autowired
-    private EntityCacheManager<K, V> entityCacheManager;
+    private EntityCacheManager entityCacheManager;
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -46,7 +45,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
             }
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Type[] types = parameterizedType.getActualTypeArguments();
-            Class<V> entityClass = (Class<V>) types[1];
+            Class<? extends IEntity<?>> entityClass = (Class<? extends IEntity<?>>) types[1];
             if (!entityClass.isAnnotationPresent(Cacheable.class)) {
                 throw new IllegalStateException("实体类[" + entityClass.getName() + "]找不到" + Cacheable.class.getSimpleName() + "注解");
             }
@@ -65,7 +64,7 @@ public class CacheServiceInjectProcessor<K extends Serializable, V extends IEnti
         return super.postProcessBeforeInitialization(bean, beanName);
     }
 
-    private void validate(Class<?> fieldType, Class<V> entityClass) {
+    private void validate(Class<?> fieldType, Class<?> entityClass) {
         Set<Field> indexFields = org.reflections.ReflectionUtils.getAllFields(entityClass, type -> type.isAnnotationPresent(CacheIndex.class));
         if (indexFields.size() > 1) {
             throw new IllegalStateException(entityClass.getName() + "存在重复的@" + CacheIndex.class.getSimpleName() + "属性" + indexFields);

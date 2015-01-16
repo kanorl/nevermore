@@ -1,4 +1,4 @@
-package com.shadow.resource.annotation;
+package com.shadow.util.injection;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,13 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author nevermore on 2015/1/13.
+ * @author nevermore on 2015/1/16
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Index {
-
-    public String name();
-
-    public byte order();
+public @interface Injected {
 }

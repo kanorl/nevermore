@@ -37,7 +37,7 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     private final LoadingCache<Object, Set<K>> indexCache;
     private final Field indexField;
 
-    public DefaultRegionEntityCache(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
+    public DefaultRegionEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
         super(clazz, dataAccessor, persistenceProcessor);
 
         indexField = ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).stream().findFirst().orElse(null);
@@ -47,7 +47,7 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
         this.indexCache = CacheBuilder.newBuilder().maximumSize(CacheSize.Size.DEFAULT.get()).concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<Object, Set<K>>() {
             @Override
             public Set<K> load(@Nonnull Object value) throws Exception {
-                return Sets.newConcurrentHashSet(dataAccessor.queryIds(clazz, Collections.singletonMap(indexField.getName(), value)));
+                return Sets.newConcurrentHashSet(dataAccessor.queryIds(DefaultRegionEntityCache.this.clazz, Collections.singletonMap(indexField.getName(), value)));
             }
         });
     }

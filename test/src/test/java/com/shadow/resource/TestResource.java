@@ -1,5 +1,6 @@
-package com.shadow.util.excel;
+package com.shadow.resource;
 
+import com.shadow.resource.annotation.Id;
 import com.shadow.resource.annotation.Resource;
 
 /**
@@ -8,6 +9,9 @@ import com.shadow.resource.annotation.Resource;
 @Resource
 public class TestResource {
 
+    public static final String NAME_INDEX = "NAME_INDEX";
+
+    @Id
     private int id;
     private String name;
 

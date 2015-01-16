@@ -24,7 +24,8 @@ import java.io.Serializable;
  *
  * @author nevermore on 2014/11/26.
  */
-public final class EntityCacheManager<K extends Serializable, V extends IEntity<K>> {
+@SuppressWarnings("unchecked")
+public final class EntityCacheManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheManager.class);
 
@@ -37,26 +38,29 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
     @Value("${server.persistence.pool.size:1}")
     private int persistencePoolSize;
 
-    private LoadingCache<Class<V>, PersistenceProcessor<V>> persistenceProcessors;
-    private LoadingCache<Class<V>, EntityCache<K, V>> entityCaches;
+    private LoadingCache<Class<? extends IEntity<?>>, PersistenceProcessor<? extends IEntity<?>>> persistenceProcessors;
+    private LoadingCache<Class<? extends IEntity<?>>, EntityCache<?, ? extends IEntity<?>>> entityCaches;
 
     @PostConstruct
     private void init() {
         CacheSize.Size.MINIMUM.set(minimumCacheSize);
         CacheSize.Size.DEFAULT.set(defaultCacheSize);
 
-        persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, PersistenceProcessor<V>>() {
+        persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends IEntity<?>>, PersistenceProcessor<? extends IEntity<?>>>() {
             @Override
-            public PersistenceProcessor<V> load(@Nonnull Class<V> clazz) throws Exception {
+            public PersistenceProcessor<? extends IEntity<?>> load(@Nonnull Class<? extends IEntity<?>> clazz) throws Exception {
                 return new QueuedPersistenceProcessor<>(dataAccessor, clazz.getSimpleName(), persistencePoolSize);
             }
         });
 
-        entityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<V>, EntityCache<K, V>>() {
+        entityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends IEntity<?>>, EntityCache<?, ?>>() {
             @SuppressWarnings("unchecked")
             @Override
-            public EntityCache<K, V> load(@Nonnull Class<V> clazz) throws Exception {
-                return ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).isEmpty() ? new DefaultEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz)) : new DefaultRegionEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
+            public EntityCache<?, ?> load(@Nonnull Class<? extends IEntity<?>> clazz) throws Exception {
+                if (ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).isEmpty()) {
+                    return new DefaultEntityCache(clazz, dataAccessor, persistenceProcessors.get(clazz));
+                }
+                return new DefaultRegionEntityCache(clazz, dataAccessor, persistenceProcessors.get(clazz));
             }
         });
     }
@@ -68,7 +72,7 @@ public final class EntityCacheManager<K extends Serializable, V extends IEntity<
     }
 
     @Nonnull
-    public EntityCache<K, V> getEntityCache(@Nonnull Class<V> clazz) {
-        return entityCaches.getUnchecked(clazz);
+    public <K extends Serializable, V extends IEntity<K>> EntityCache<K, V> getEntityCache(@Nonnull Class<? extends IEntity<?>> clazz) {
+        return (EntityCache<K, V>) entityCaches.getUnchecked(clazz);
     }
 }

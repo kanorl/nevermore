@@ -1,8 +1,6 @@
-package com.shadow.util.excel;
+package com.shadow.resource;
 
-import com.shadow.resource.ResourceHolder;
 import com.shadow.resource.annotation.InjectedResource;
-import com.shadow.util.codec.JsonUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,8 +18,10 @@ public class ResourceTest {
 
     @Test
     public void test() {
-        for (TestResource testResource : testResources.getAll()) {
-            System.out.println(JsonUtil.toJson(testResource));
-        }
+        System.out.println(testResources.get(1).getName());
+
+        long s1 = System.nanoTime();
+        System.out.println(testResources.findFirst(o -> o.getName().equals("二")).get().getId());
+        System.out.println(System.nanoTime() - s1);
     }
 }

@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> implements EntityCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEntityCache.class);
 
-    private final Class<V> clazz;
+    protected final Class<V> clazz;
     private final DataAccessor dataAccessor;
     private final PersistenceProcessor<V> persistenceProcessor;
     private final LoadingCache<K, V> cache;
@@ -41,13 +41,14 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
     private final EntityProxyGenerator<K, V> proxyGenerator;
 
-    public DefaultEntityCache(Class<V> clazz, DataAccessor dataAccessor, PersistenceProcessor<V> persistenceProcessor) {
-        this.clazz = clazz;
+    @SuppressWarnings("unchecked")
+    public DefaultEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
+        this.clazz = (Class<V>) clazz;
         this.dataAccessor = dataAccessor;
-        this.persistenceProcessor = persistenceProcessor;
+        this.persistenceProcessor = (PersistenceProcessor<V>) persistenceProcessor;
 
         // 代理类生成器
-        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new DefaultEntityProxyGenerator<>(this, clazz) : new NullEntityProxyGenerator<>();
+        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new DefaultEntityProxyGenerator<>(this, this.clazz) : new NullEntityProxyGenerator<>();
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
@@ -57,7 +58,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         // 预加载数据
         PreLoaded preLoaded = clazz.getAnnotation(PreLoaded.class);
         if (preLoaded != null) {
-            preLoaded.policy().load(dataAccessor, clazz).stream().forEach(v -> cache.put(v.getId(), v));
+            preLoaded.policy().load(dataAccessor, this.clazz).stream().forEach(v -> cache.put(v.getId(), v));
         }
     }
 
