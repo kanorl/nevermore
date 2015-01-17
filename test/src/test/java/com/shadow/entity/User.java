@@ -1,9 +1,9 @@
 package com.shadow.entity;
 
-import com.shadow.entity.annotation.AutoSave;
-import com.shadow.entity.annotation.CacheSize;
-import com.shadow.entity.annotation.Cacheable;
-import com.shadow.entity.annotation.PreLoaded;
+import com.shadow.entity.cache.annotation.AutoSave;
+import com.shadow.entity.cache.annotation.CacheSize;
+import com.shadow.entity.cache.annotation.Cacheable;
+import com.shadow.entity.cache.annotation.PreLoaded;
 import com.shadow.util.codec.JsonUtil;
 
 import javax.persistence.Entity;

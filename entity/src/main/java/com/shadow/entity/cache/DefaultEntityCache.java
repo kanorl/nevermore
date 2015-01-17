@@ -5,15 +5,14 @@ import com.google.common.collect.Sets;
 import com.shadow.entity.CacheableEntity;
 import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.annotation.AutoSave;
-import com.shadow.entity.annotation.CacheSize;
-import com.shadow.entity.annotation.Cacheable;
-import com.shadow.entity.annotation.PreLoaded;
+import com.shadow.entity.cache.annotation.CacheSize;
+import com.shadow.entity.cache.annotation.Cacheable;
+import com.shadow.entity.cache.annotation.PreLoaded;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
-import com.shadow.entity.proxy.DefaultEntityProxyGenerator;
 import com.shadow.entity.proxy.EntityProxyGenerator;
-import com.shadow.entity.proxy.NullEntityProxyGenerator;
+import com.shadow.entity.proxy.VersionedEntityProxy;
+import com.shadow.entity.proxy.VersionedEntityProxyGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -38,7 +36,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final PersistenceProcessor<V> persistenceProcessor;
     private final LoadingCache<K, V> cache;
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
-    private final Set<K> waitingRemoval = Sets.newConcurrentHashSet();
+    private final Set<K> removing = Sets.newConcurrentHashSet();
     private final EntityProxyGenerator<K, V> proxyGenerator;
 
     @SuppressWarnings("unchecked")
@@ -48,7 +46,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         this.persistenceProcessor = (PersistenceProcessor<V>) persistenceProcessor;
 
         // 代理类生成器
-        proxyGenerator = Arrays.stream(clazz.getDeclaredMethods()).anyMatch((m) -> m.isAnnotationPresent(AutoSave.class)) ? new DefaultEntityProxyGenerator<>(this, this.clazz) : new NullEntityProxyGenerator<>();
+        proxyGenerator = new VersionedEntityProxyGenerator<>(this, this.clazz);
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
@@ -99,10 +97,15 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
     @Override
     public boolean update(@Nonnull V v) {
-        if (waitingRemoval.contains(v.getId())) {
+        if (removing.contains(v.getId())) {
             LOGGER.error("无法更新已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), v.getId());
             return false;
         }
+        if (v instanceof VersionedEntityProxy) {
+            VersionedEntityProxy proxy = (VersionedEntityProxy) v;
+            proxy.postEdit();// mark as modified
+        }
+
         persistenceProcessor.update(v);
         return true;
     }
@@ -143,7 +146,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
         @Override
         public V load(@Nonnull K key) throws Exception {
-            if (waitingRemoval.contains(key)) {
+            if (removing.contains(key)) {
                 LOGGER.error("无法加载已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), key);
                 return null;
             }
@@ -159,21 +162,26 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
         @Override
         public void onRemoval(@Nonnull RemovalNotification<K, V> notification) {
-            if (notification.getCause() != RemovalCause.EXPLICIT) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("实体类 [{}] 缓存清理数据: Cause={}, id={}", clazz.getSimpleName(), notification.getCause(), notification.getKey());
-                }
-                return;
-            }
-
             K id = notification.getKey();
             V value = notification.getValue();
             if (id == null || value == null) {
                 return;
             }
 
-            waitingRemoval.add(id);
-            persistenceProcessor.delete(value, () -> waitingRemoval.remove(id));
+            if (notification.getCause() != RemovalCause.EXPLICIT) {
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("实体类 [{}] 缓存清理数据: Cause={}, id={}", clazz.getSimpleName(), notification.getCause(), notification.getKey());
+                }
+
+                if (value instanceof VersionedEntityProxy && !((VersionedEntityProxy) value).isPersisted()) {
+                    LOGGER.error("[id={}, class={}]缓存过期，同步数据到数据库", value.getId(), value.getClass().getSimpleName());
+                    dataAccessor.update(value);
+                }
+                return;
+            }
+
+            removing.add(id);
+            persistenceProcessor.delete(value, () -> removing.remove(id));
         }
     }
 }

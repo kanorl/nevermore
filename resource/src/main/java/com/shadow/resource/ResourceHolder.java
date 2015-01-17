@@ -1,7 +1,6 @@
 package com.shadow.resource;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.shadow.event.EventBus;
 import com.shadow.resource.annotation.Id;
 import com.shadow.resource.event.ResourceRefreshedEvent;
@@ -10,6 +9,8 @@ import com.shadow.resource.exception.InvalidResourceException;
 import com.shadow.resource.exception.ResourceNotFoundException;
 import com.shadow.resource.exception.ResourcePrimaryKeyNotFoundException;
 import com.shadow.resource.reader.ResourceReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
  * @author nevermore on 2015/1/13.
  */
 public class ResourceHolder<T> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceHolder.class);
 
     @Autowired
     private ResourceReader resourceReader;
@@ -31,22 +33,23 @@ public class ResourceHolder<T> {
     private EventBus eventBus;
 
     private Map<?, T> resources = Collections.emptyMap();
-    private AtomicReference<Class<?>> typeReference = new AtomicReference<>();
+    private AtomicReference<Class<T>> typeReference = new AtomicReference<>();
 
+    @SuppressWarnings("unchecked")
     public void initialize(Class<?> type) {
-        if (!typeReference.compareAndSet(null, type)) {
-            throw new IllegalStateException();
+        if (!typeReference.compareAndSet(null, (Class<T>) type)) {
+            throw new IllegalStateException("重复初始化");
         }
         load();
     }
 
     @Nonnull
     public T get(@Nonnull Object id) {
-        T t = resources.get(id);
-        if (t == null) {
-            throw new ResourceNotFoundException("id=" + id + ", class=" + typeReference.get().getSimpleName());
-        }
-        return t;
+        return find(id).orElseThrow(() -> new ResourceNotFoundException("id=" + id + ", class=" + typeReference.get().getSimpleName()));
+    }
+
+    public Optional<T> find(@Nonnull Object id) {
+        return Optional.ofNullable(resources.get(id));
     }
 
     @Nonnull
@@ -65,34 +68,48 @@ public class ResourceHolder<T> {
         return resources.values().stream().filter(predicate).findFirst();
     }
 
+    public T getFirst(@Nonnull Predicate<T> predicate) {
+        return findFirst(predicate).orElseThrow(ResourceNotFoundException::new);
+    }
+
     public void reload() {
+        LOGGER.error("开始[重新加载资源{}]", typeReference.get().getSimpleName());
         load();
+        LOGGER.error("完成[重新加载资源{}]", typeReference.get().getSimpleName());
     }
 
     @SuppressWarnings("unchecked")
     private synchronized void load() {
-        Class<T> resourceType = (Class<T>) typeReference.get();
-        Set<T> resourceBeans = resourceReader.read(resourceType);
+        LOGGER.info("开始[加载资源{}]", typeReference.get().getSimpleName());
+        Class<T> resourceType = typeReference.get();
+        List<T> resourceBeans = resourceReader.read(resourceType);
         if (Validatable.class.isAssignableFrom(resourceType)) {
             resourceBeans.forEach(bean -> Preconditions.checkState(((Validatable) bean).isValid(), new InvalidResourceException(bean)));
         }
         Field idField = Arrays.stream(resourceType.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Id.class)).findFirst().orElseThrow(() -> new ResourcePrimaryKeyNotFoundException(resourceType));
         ReflectionUtils.makeAccessible(idField);
-        Map<?, T> map = Maps.uniqueIndex(resourceBeans, bean -> {
+
+        Map<Object, T> resources;
+        if (Comparable.class.isAssignableFrom(resourceType)) {
+            Collections.sort(resourceBeans, (o1, o2) -> ((Comparable) o1).compareTo(((Comparable) o2)));
+            resources = new LinkedHashMap<>();
+        } else {
+            resources = new HashMap<>();
+        }
+        resourceBeans.forEach(bean -> {
             try {
-                return idField.get(bean);
+                Object key = idField.get(bean);
+                if (resources.putIfAbsent(key, bean) != null) {
+                    throw new DuplicateKeyException(resourceType, key);
+                }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         });
-        Map<Object, T> resources = Maps.newHashMapWithExpectedSize(map.size());
-        map.forEach((k, t) -> {
-            T old = resources.putIfAbsent(k, t);
-            if (old != null) {
-                throw new DuplicateKeyException(resourceType, k);
-            }
-        });
+
         this.resources = resources;
+
+        LOGGER.info("完成[加载资源{}]", typeReference.get().getSimpleName());
 
         eventBus.post(ResourceRefreshedEvent.valueOf(resourceType));
     }

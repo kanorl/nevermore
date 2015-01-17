@@ -2,18 +2,23 @@ package com.shadow.util.injection;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
 
 /**
  * @author nevermore on 2015/1/16
  */
-public interface InjectProcessor<T> extends BeanPostProcessor {
+public interface InjectedAnnotationProcessor<T> extends BeanPostProcessor {
 
-    void inject(T bean);
+    void inject(Object target, Field field) throws IllegalAccessException;
+
+    Class<T> fieldType();
 
     @SuppressWarnings("unchecked")
     @Override
     default Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        inject((T) bean);
+        ReflectionUtils.doWithFields(bean.getClass(), field -> inject(bean, field), field -> field.isAnnotationPresent(Injected.class) && fieldType().isAssignableFrom(field.getType()));
         return bean;
     }
 

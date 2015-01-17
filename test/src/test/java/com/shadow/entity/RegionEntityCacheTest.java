@@ -1,8 +1,8 @@
 package com.shadow.entity;
 
-import com.shadow.entity.annotation.Inject;
 import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.orm.DataAccessor;
+import com.shadow.util.injection.Injected;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("/applicationContext.xml")
 public class RegionEntityCacheTest {
 
-    @Inject
+    @Injected
     private RegionEntityCache<Long, Item> entityCache;
     @Autowired
     private DataAccessor dataAccessor;

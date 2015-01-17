@@ -2,8 +2,6 @@ package com.shadow.resource;
 
 import com.shadow.resource.annotation.Resource;
 import com.shadow.util.lang.ReflectUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -11,14 +9,12 @@ import org.springframework.context.ApplicationContextAware;
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
  * @author nevermore on 2015/1/14
  */
 public class ResourceHolderManager implements ApplicationContextAware {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceHolderManager.class);
 
     private ApplicationContext applicationContext;
     private Map<Class<?>, ResourceHolder<?>> holders = new HashMap<>();
@@ -36,17 +32,13 @@ public class ResourceHolderManager implements ApplicationContextAware {
     public <V> ResourceHolder<?> getResourceHolder(Class<V> clazz) {
         ResourceHolder<?> resourceHolder = holders.get(clazz);
         if (resourceHolder == null) {
-            throw new NoSuchElementException();
+            throw new IllegalStateException("No ResourceHolder for class[" + clazz.getName() + "]");
         }
         return resourceHolder;
     }
 
     public void reload(Class<?> clazz) {
-        ResourceHolder<?> resourceHolder = getResourceHolder(clazz);
-        if (resourceHolder == null) {
-            throw new IllegalStateException();
-        }
-        resourceHolder.reload();
+        getResourceHolder(clazz).reload();
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.shadow.entity;
 
-import com.shadow.entity.annotation.AutoSave;
-import com.shadow.entity.annotation.CacheIndex;
+import com.shadow.entity.cache.annotation.AutoSave;
+import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.util.codec.JsonUtil;
 
 import javax.persistence.Entity;

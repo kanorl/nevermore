@@ -14,7 +14,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author nevermore on 2015/1/15
@@ -26,7 +29,7 @@ public class ExcelReader implements ResourceReader {
     private ResourceConfiguration cfg;
 
     @Override
-    public <T> Set<T> read(Class<T> resourceType) {
+    public <T> List<T> read(Class<T> resourceType) {
         String filePath = getResourceFilePath(resourceType);
         try {
             File file = ResourceUtils.getFile(filePath);
@@ -36,17 +39,17 @@ public class ExcelReader implements ResourceReader {
         }
     }
 
-    private <T> Set<T> file2ResourceBeans(File file, Class<?> resourceType) {
+    private <T> List<T> file2ResourceBeans(File file, Class<?> resourceType) {
         try {
             InputStream in = new FileInputStream(file);
             Workbook workbook = WorkbookFactory.create(in);
             List<Sheet> sheets = filteredSheets(workbook, resourceType);
             if (sheets.isEmpty()) {
-                return Collections.emptySet();
+                return Collections.emptyList();
             }
             Map<String, Integer> columnIndexes = columnIndexes(sheets.get(0));
             int firstDataRow = firstDataRow(sheets.get(0));
-            Set<T> beans = new HashSet<>();
+            List<T> beans = new ArrayList<>();
             for (Sheet sheet : sheets) {
                 for (Row row : sheet) {
                     if (row.getRowNum() < firstDataRow) {

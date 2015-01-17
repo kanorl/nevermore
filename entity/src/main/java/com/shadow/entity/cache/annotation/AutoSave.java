@@ -1,4 +1,4 @@
-package com.shadow.entity.annotation;
+package com.shadow.entity.cache.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

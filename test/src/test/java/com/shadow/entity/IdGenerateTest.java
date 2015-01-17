@@ -1,11 +1,11 @@
 package com.shadow.entity;
 
-import com.shadow.entity.annotation.Inject;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.id.IdGenerator;
 import com.shadow.util.codec.JsonUtil;
 import com.shadow.util.config.ServerProperty;
+import com.shadow.util.injection.Injected;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +18,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/applicationContext.xml")
 public class IdGenerateTest {
-    @Inject
+    @Injected
     private RegionEntityCache<Long, Item> itemCache;
-    @Inject
+    @Injected
     private EntityCache<Long, Player> playerCache;
     @Autowired
     private IdGenerator idGenerator;

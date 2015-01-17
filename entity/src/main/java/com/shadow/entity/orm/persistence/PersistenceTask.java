@@ -2,12 +2,19 @@ package com.shadow.entity.orm.persistence;
 
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.entity.proxy.EntityProxy;
+import com.shadow.entity.proxy.VersionedEntityProxy;
+import com.shadow.util.codec.JsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.slf4j.helpers.MessageFormatter.format;
 
 /**
  * @author nevermore on 2015/1/1.
  */
 class PersistenceTask implements Runnable {
+    public static final Logger LOGGER = LoggerFactory.getLogger(PersistenceTask.class);
+
     private PersistenceObj obj;
     private DataAccessor dataAccessor;
 
@@ -22,14 +29,27 @@ class PersistenceTask implements Runnable {
 
     @Override
     public void run() {
-        IEntity<?> entity = obj.getEntity();
+        final IEntity<?> entity = obj.getEntity();
         PersistenceOperation operation = obj.getOperation();
 
-        if (entity instanceof EntityProxy) {
-            entity = ((EntityProxy) entity).getEntity();
+        boolean isVersionProxy = entity instanceof VersionedEntityProxy;
+
+        IEntity<?> actualEntity = isVersionProxy ? ((VersionedEntityProxy) entity).getEntity() : entity;
+
+        if (isVersionProxy && ((VersionedEntityProxy) entity).isPersisted()) {
+            return;
         }
 
-        operation.perform(dataAccessor, entity);
+        try {
+            operation.perform(dataAccessor, actualEntity);
+        } catch (Exception e) {
+            LOGGER.error(format("入库失败[class={}, entity={}]", actualEntity.getClass().getSimpleName(), JsonUtil.toJson(actualEntity)).getMessage(), e);
+            return;
+        }
+        if (isVersionProxy) {
+            ((VersionedEntityProxy) entity).postPersist();// update DB Version to Edit Version
+        }
+
         obj.getCallback().run();
     }
 }

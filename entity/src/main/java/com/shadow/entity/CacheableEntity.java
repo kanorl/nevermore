@@ -1,7 +1,7 @@
 package com.shadow.entity;
 
 
-import com.shadow.entity.annotation.Cacheable;
+import com.shadow.entity.cache.annotation.Cacheable;
 
 import java.io.Serializable;
 

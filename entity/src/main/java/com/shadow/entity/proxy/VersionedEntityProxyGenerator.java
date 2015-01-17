@@ -2,9 +2,9 @@ package com.shadow.entity.proxy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.annotation.AutoSave;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.RegionEntityCache;
+import com.shadow.entity.cache.annotation.AutoSave;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
@@ -19,22 +19,25 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 实体类的代理类生成器
  *
  * @author nevermore on 2014/11/26.
  */
-public class DefaultEntityProxyGenerator<K extends Serializable, V extends IEntity<K>> implements EntityProxyGenerator<K, V> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEntityProxyGenerator.class);
+public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEntity<K>> implements EntityProxyGenerator<K, V> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VersionedEntityProxyGenerator.class);
 
     private static final ClassPool CLASS_POOL = ClassPool.getDefault();
     private static final String CACHE_FIELD_NAME = "entityCache";
     private static final String ENTITY_FIELD_NAME = "entity";
+    private static final String EDIT_VERSION_FIELD_NAME = "editVersion";
+    private static final String DB_VERSION_FIELD_NAME = "dbVersion";
     private final Constructor<V> constructor;
     private final EntityCache<K, V> entityCache;
 
-    public DefaultEntityProxyGenerator(EntityCache<K, V> entityCache, Class<V> entityClass) {
+    public VersionedEntityProxyGenerator(EntityCache<K, V> entityCache, Class<V> entityClass) {
         this.entityCache = entityCache;
         this.constructor = getConstructor(entityClass);
     }
@@ -61,11 +64,13 @@ public class DefaultEntityProxyGenerator<K extends Serializable, V extends IEnti
 
     private CtClass createProxyClass(Class<? extends IEntity<?>> entityClass) throws Exception {
         CtClass proxyClass = CLASS_POOL.makeClass(proxyClassName(entityClass), getCtClass(entityClass));
-        proxyClass.setInterfaces(getCtClasses(EntityProxy.class));
+        proxyClass.setInterfaces(getCtClasses(VersionedEntityProxy.class));
 
         addFields(proxyClass, entityClass);
         addConstructors(proxyClass, entityClass);
         addMethods(proxyClass, entityClass);
+
+        proxyClass.writeFile("G:/");
         return proxyClass;
     }
 
@@ -78,10 +83,20 @@ public class DefaultEntityProxyGenerator<K extends Serializable, V extends IEnti
      */
     private void addFields(CtClass proxyClass, Class<? extends IEntity<?>> entityClass) throws Exception {
         CtField entityField = new CtField(getCtClass(entityClass), ENTITY_FIELD_NAME, proxyClass);
+        entityField.setModifiers(Modifier.PRIVATE);
         proxyClass.addField(entityField);
 
-        CtField cacheServiceField = new CtField(getCtClass(EntityCache.class), CACHE_FIELD_NAME, proxyClass);
-        proxyClass.addField(cacheServiceField);
+        CtField cacheField = new CtField(getCtClass(EntityCache.class), CACHE_FIELD_NAME, proxyClass);
+        cacheField.setModifiers(Modifier.PRIVATE);
+        proxyClass.addField(cacheField);
+
+        CtField editVersionField = new CtField(getCtClass(AtomicLong.class), EDIT_VERSION_FIELD_NAME, proxyClass);
+        editVersionField.setModifiers(Modifier.PRIVATE);
+        proxyClass.addField(editVersionField);
+
+        CtField dbVersionField = new CtField(getCtClass(long.class), DB_VERSION_FIELD_NAME, proxyClass);
+        dbVersionField.setModifiers(Modifier.PRIVATE | Modifier.VOLATILE);
+        proxyClass.addField(dbVersionField);
     }
 
     /**
@@ -94,7 +109,11 @@ public class DefaultEntityProxyGenerator<K extends Serializable, V extends IEnti
     private void addConstructors(CtClass proxyClass, Class<?> entityClass) throws Exception {
         CtConstructor constructor = new CtConstructor(getCtClasses(entityClass, EntityCache.class), proxyClass);
         constructor.setModifiers(Modifier.PUBLIC);
-        constructor.setBody("{" + "this." + ENTITY_FIELD_NAME + "=" + "$1;" + "this." + CACHE_FIELD_NAME + "=" + "$2;" + "}");
+        constructor.setBody(
+                "{" + "this." + ENTITY_FIELD_NAME + "=" + "$1;" +
+                        "this." + CACHE_FIELD_NAME + "=" + "$2;" +
+                        "this." + EDIT_VERSION_FIELD_NAME + "= new " + AtomicLong.class.getCanonicalName() + "();" +
+                        "}");
         proxyClass.addConstructor(constructor);
     }
 
@@ -125,13 +144,27 @@ public class DefaultEntityProxyGenerator<K extends Serializable, V extends IEnti
         annoAttr.addAnnotation(annotation);
 
         // 添加EntityProxy接口的方法实现
-        Method method = EntityProxy.class.getDeclaredMethods()[0];
-        CtMethod entityProxyMethod = new CtMethod(getCtClass(method.getReturnType()), method.getName(), null, proxyClass);
-        entityProxyMethod.getMethodInfo().addAttribute(annoAttr);// 添加JsonIgnore注解
-        entityProxyMethod.setModifiers(Modifier.PUBLIC);
-        entityProxyMethod.setBody("return this." + ENTITY_FIELD_NAME + ";");
+        CtMethod getEntity = new CtMethod(getCtClass(IEntity.class), "getEntity", null, proxyClass);
+        getEntity.getMethodInfo().addAttribute(annoAttr);// 添加JsonIgnore注解
+        getEntity.setModifiers(Modifier.PUBLIC);
+        getEntity.setBody("return this." + ENTITY_FIELD_NAME + ";");
+        proxyClass.addMethod(getEntity);
 
-        proxyClass.addMethod(entityProxyMethod);
+        // 添加VersionedEntityProxy接口的方法实现
+        CtMethod postEdit = new CtMethod(getCtClass(long.class), "postEdit", null, proxyClass);
+        postEdit.setModifiers(Modifier.PUBLIC);
+        postEdit.setBody("return this." + EDIT_VERSION_FIELD_NAME + ".incrementAndGet();");
+        proxyClass.addMethod(postEdit);
+
+        CtMethod isPersisted = new CtMethod(getCtClass(boolean.class), "isPersisted", null, proxyClass);
+        isPersisted.setModifiers(Modifier.PUBLIC);
+        isPersisted.setBody("return this." + DB_VERSION_FIELD_NAME + " >= " + "this." + EDIT_VERSION_FIELD_NAME + ".get();");
+        proxyClass.addMethod(isPersisted);
+
+        CtMethod updateDbVersion = new CtMethod(getCtClass(void.class), "postPersist", null, proxyClass);
+        updateDbVersion.setModifiers(Modifier.PUBLIC);
+        updateDbVersion.setBody("this." + DB_VERSION_FIELD_NAME + " = " + "this." + EDIT_VERSION_FIELD_NAME + ".get();");
+        proxyClass.addMethod(updateDbVersion);
     }
 
     private void addMethod(CtClass proxyClass, Method method) throws Exception {

@@ -6,11 +6,11 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Sets;
 import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.annotation.CacheIndex;
-import com.shadow.entity.annotation.CacheSize;
+import com.shadow.entity.cache.annotation.CacheIndex;
+import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
-import com.shadow.entity.proxy.EntityProxy;
+import com.shadow.entity.proxy.VersionedEntityProxy;
 import org.apache.commons.lang3.ClassUtils;
 import org.reflections.ReflectionUtils;
 import org.springframework.dao.DuplicateKeyException;
@@ -56,14 +56,14 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     public V create(@Nonnull V v) {
         requireNonNull(v);
         requireNonNull(v.getId(), "ID不能为null");
-        V obj = super.getOrCreate(v.getId(), () -> v);
-        V entity = obj instanceof EntityProxy ? ((EntityProxy) obj).getEntity() : obj;
-        if (v != entity) {
+        V entity = super.getOrCreate(v.getId(), () -> v);
+        V obj = entity instanceof VersionedEntityProxy ? ((VersionedEntityProxy) entity).getEntity() : entity;
+        if (v != obj) {
             throw new DuplicateKeyException("重复的主键[" + v.getId() + "]");
         }
-        Object value = getIndexValue(obj);
-        indexCache.getUnchecked(value).add(obj.getId());
-        return obj;
+        Object indexValue = getIndexValue(entity);
+        indexCache.getUnchecked(indexValue).add(entity.getId());
+        return entity;
     }
 
     @Nonnull
@@ -115,7 +115,7 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
 
     public Object getIndexValue(@Nonnull V v) {
         requireNonNull(v);
-        IEntity<?> entity = v instanceof EntityProxy ? ((EntityProxy) v).getEntity() : v;
+        IEntity<?> entity = v instanceof VersionedEntityProxy ? ((VersionedEntityProxy) v).getEntity() : v;
         try {
             return indexField.get(entity);
         } catch (IllegalAccessException e) {

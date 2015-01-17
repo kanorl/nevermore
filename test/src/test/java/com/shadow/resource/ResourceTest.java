@@ -1,6 +1,6 @@
 package com.shadow.resource;
 
-import com.shadow.resource.annotation.InjectedResource;
+import com.shadow.util.injection.Injected;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -13,15 +13,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("/applicationContext.xml")
 public class ResourceTest {
 
-    @InjectedResource
+    @Injected
     private ResourceHolder<TestResource> testResources;
 
     @Test
     public void test() {
-        System.out.println(testResources.get(1).getName());
-
-        long s1 = System.nanoTime();
-        System.out.println(testResources.findFirst(o -> o.getName().equals("二")).get().getId());
-        System.out.println(System.nanoTime() - s1);
+        System.out.println(testResources.getAll());
     }
 }

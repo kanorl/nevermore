@@ -1,4 +1,4 @@
-package com.shadow.entity.annotation;
+package com.shadow.entity.cache.annotation;
 
 import com.google.common.base.Preconditions;
 
