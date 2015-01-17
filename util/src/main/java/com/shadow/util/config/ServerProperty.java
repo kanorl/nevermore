@@ -29,10 +29,6 @@ public class ServerProperty {
     private short platform;
     private List<Short> servers;
 
-    public void setPort(String port) {
-        this.port = port;
-    }
-
     public String getPort() {
         return port;
     }
@@ -53,8 +49,8 @@ public class ServerProperty {
 
     @Value("${server.config.platform.name}")
     public void setPlatform(String platformName) {
-        checkArgument(Pattern.compile("[0-9a-zA-Z]+").matcher(platformName).matches(), "属性[server.config.platform.name]的值只能包含数字和字母");
         checkState(this.platformName == null, "重复初始化");
+        checkArgument(Pattern.compile("[0-9a-zA-Z]+").matcher(platformName).matches(), "属性[server.config.platform.name]的值只能包含数字和字母");
         this.platformName = platformName;
 
         if (platform <= 0) {

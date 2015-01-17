@@ -4,7 +4,7 @@ import com.shadow.util.lang.ReflectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
@@ -23,11 +23,11 @@ import static java.util.Collections.unmodifiableSet;
  * @author nevermore on 2014/12/28.
  */
 @Component
-public class EventListenerManager extends InstantiationAwareBeanPostProcessorAdapter implements ApplicationListener<ContextRefreshedEvent> {
+public class EventListenerManager implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventListenerManager.class);
 
     private final Map<EventListener<Event>, Set<Class<? extends Event>>> listenerScope = new HashMap<>();
-    private final Map<Class<? extends Event>, Set<EventListener<Event>>> eventScope = new HashMap<>();
+    private Map<Class<? extends Event>, Set<EventListener<Event>>> eventScope;
 
     /**
      * 获取该事件的所有监听器
@@ -42,7 +42,7 @@ public class EventListenerManager extends InstantiationAwareBeanPostProcessorAda
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (!(bean instanceof EventListener)) {
             return bean;
         }
@@ -59,7 +59,13 @@ public class EventListenerManager extends InstantiationAwareBeanPostProcessorAda
     }
 
     @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
+
+    @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        Map<Class<? extends Event>, Set<EventListener<Event>>> eventScope = new HashMap<>();
         ReflectUtil.getAllSubTypesOf(Event.class).forEach(eventType -> {
             Set<EventListener<Event>> listeners = listenerScope.keySet().stream().filter(listener -> listenerScope.get(listener).contains(eventType)).collect(Collectors.toSet());
             eventScope.put(eventType, unmodifiableSet(listeners));
@@ -68,6 +74,7 @@ public class EventListenerManager extends InstantiationAwareBeanPostProcessorAda
                 LOGGER.info("事件[{}]的监听器: {}", eventType.getName(), listeners);
             }
         });
+        this.eventScope = Collections.unmodifiableMap(eventScope);
         listenerScope.clear();
     }
 }

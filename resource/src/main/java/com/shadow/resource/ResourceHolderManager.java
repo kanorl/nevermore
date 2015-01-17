@@ -5,8 +5,10 @@ import com.shadow.util.lang.ReflectUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -14,12 +16,12 @@ import java.util.Set;
 /**
  * @author nevermore on 2015/1/14
  */
-public class ResourceHolderManager implements ApplicationContextAware {
+@Component
+public class ResourceHolderManager implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
     private ApplicationContext applicationContext;
     private Map<Class<?>, ResourceHolder<?>> holders = new HashMap<>();
 
-    @PostConstruct
     private void init() {
         Set<Class<?>> resourceTypes = ReflectUtil.getTypesAnnotatedWith(Resource.class);
         resourceTypes.forEach(resourceType -> {
@@ -44,5 +46,10 @@ public class ResourceHolderManager implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        init();
     }
 }

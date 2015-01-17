@@ -39,7 +39,7 @@ public class EntityCacheInjector implements InjectedAnnotationProcessor<EntityCa
 
         validate(field.getType(), entityClass);
 
-        EntityCache<?, ?> value = entityCacheManager.getEntityCache(entityClass);
+        Object value = entityCacheManager.getEntityCache(entityClass);
         ReflectionUtils.makeAccessible(field);
         field.set(target, value);
     }
