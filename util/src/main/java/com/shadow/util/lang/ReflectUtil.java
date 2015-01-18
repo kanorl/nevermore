@@ -16,8 +16,11 @@ import org.springframework.util.ClassUtils;
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
@@ -27,9 +30,10 @@ import static java.util.Objects.requireNonNull;
  */
 public final class ReflectUtil {
     private static final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
-    private static final Reflections reflections = new Reflections("");
     private static final ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+    private static final MetadataReaderFactory readerFactory = new CachingMetadataReaderFactory(resourcePatternResolver);
     private static final String RESOURCE_PATTERN = "/**/*.class";
+    private static final Reflections reflections = new Reflections("");
 
     @Nonnull
     public static String[] getParamNames(@Nonnull Method method) {
@@ -64,9 +68,8 @@ public final class ReflectUtil {
         return reflections.getTypesAnnotatedWith(annotationClass);
     }
 
-    public static <A extends Annotation> Set<Class<?>> getTypesAnnotatedWith(@Nonnull Class<A> annotationClass, @Nonnull String... packagesToScan) {
+    public static Set<Class<?>> getAllTypes(@Nonnull String... packagesToScan) {
         requireNonNull(packagesToScan);
-        requireNonNull(annotationClass);
         try {
             Set<Class<?>> classes = new HashSet<>();
             for (String pkg : packagesToScan) {
@@ -79,15 +82,17 @@ public final class ReflectUtil {
                         MetadataReader reader = readerFactory.getMetadataReader(resource);
                         String className = reader.getClassMetadata().getClassName();
                         Class<?> clazz = resourcePatternResolver.getClassLoader().loadClass(className);
-                        if (clazz.isAnnotationPresent(annotationClass)) {
-                            classes.add(clazz);
-                        }
+                        classes.add(clazz);
                     }
                 }
             }
             return classes;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to scan classpath for unlisted classes", e);
+            throw new RuntimeException("类扫描异常：packages=" + Arrays.toString(packagesToScan), e);
         }
+    }
+
+    public static Set<Class<?>> getAllTypes(@Nonnull String packageToScan, Predicate<Class<?>> predicate) {
+        return getAllTypes(packageToScan).stream().filter(predicate).collect(Collectors.toSet());
     }
 }

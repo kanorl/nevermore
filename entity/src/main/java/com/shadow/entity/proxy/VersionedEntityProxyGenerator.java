@@ -1,15 +1,10 @@
 package com.shadow.entity.proxy;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.cache.annotation.AutoSave;
 import javassist.*;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.ClassFile;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.annotation.Annotation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
@@ -69,8 +64,6 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
         addFields(proxyClass, entityClass);
         addConstructors(proxyClass, entityClass);
         addMethods(proxyClass, entityClass);
-
-        proxyClass.writeFile("G:/");
         return proxyClass;
     }
 
@@ -83,19 +76,19 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
      */
     private void addFields(CtClass proxyClass, Class<? extends IEntity<?>> entityClass) throws Exception {
         CtField entityField = new CtField(getCtClass(entityClass), ENTITY_FIELD_NAME, proxyClass);
-        entityField.setModifiers(Modifier.PRIVATE);
+        entityField.setModifiers(Modifier.PRIVATE | Modifier.TRANSIENT);
         proxyClass.addField(entityField);
 
         CtField cacheField = new CtField(getCtClass(EntityCache.class), CACHE_FIELD_NAME, proxyClass);
-        cacheField.setModifiers(Modifier.PRIVATE);
+        cacheField.setModifiers(Modifier.PRIVATE | Modifier.TRANSIENT);
         proxyClass.addField(cacheField);
 
         CtField editVersionField = new CtField(getCtClass(AtomicLong.class), EDIT_VERSION_FIELD_NAME, proxyClass);
-        editVersionField.setModifiers(Modifier.PRIVATE);
+        editVersionField.setModifiers(Modifier.PRIVATE | Modifier.TRANSIENT);
         proxyClass.addField(editVersionField);
 
         CtField dbVersionField = new CtField(getCtClass(long.class), DB_VERSION_FIELD_NAME, proxyClass);
-        dbVersionField.setModifiers(Modifier.PRIVATE | Modifier.VOLATILE);
+        dbVersionField.setModifiers(Modifier.PRIVATE | Modifier.TRANSIENT | Modifier.VOLATILE);
         proxyClass.addField(dbVersionField);
     }
 
@@ -137,20 +130,19 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
         );
 
         // JsonIgnore注解
-        ClassFile classFile = proxyClass.getClassFile();
-        ConstPool constPool = classFile.getConstPool();
-        AnnotationsAttribute annoAttr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-        Annotation annotation = new Annotation(JsonIgnore.class.getCanonicalName(), constPool);
-        annoAttr.addAnnotation(annotation);
+//        ClassFile classFile = proxyClass.getClassFile();
+//        ConstPool constPool = classFile.getConstPool();
+//        AnnotationsAttribute annoAttr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+//        Annotation annotation = new Annotation(JsonIgnore.class.getCanonicalName(), constPool);
+//        annoAttr.addAnnotation(annotation);
 
-        // 添加EntityProxy接口的方法实现
+        // 添加VersionedEntityProxy接口的方法实现
         CtMethod getEntity = new CtMethod(getCtClass(IEntity.class), "getEntity", null, proxyClass);
-        getEntity.getMethodInfo().addAttribute(annoAttr);// 添加JsonIgnore注解
+//        getEntity.getMethodInfo().addAttribute(annoAttr);// 添加JsonIgnore注解
         getEntity.setModifiers(Modifier.PUBLIC);
         getEntity.setBody("return this." + ENTITY_FIELD_NAME + ";");
         proxyClass.addMethod(getEntity);
 
-        // 添加VersionedEntityProxy接口的方法实现
         CtMethod postEdit = new CtMethod(getCtClass(long.class), "postEdit", null, proxyClass);
         postEdit.setModifiers(Modifier.PUBLIC);
         postEdit.setBody("return this." + EDIT_VERSION_FIELD_NAME + ".incrementAndGet();");
