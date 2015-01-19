@@ -1,6 +1,9 @@
 package com.shadow.util.codec;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -20,7 +23,15 @@ public class JsonUtil {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
-        OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+                .setVisibilityChecker(
+                        OBJECT_MAPPER.getVisibilityChecker()
+                                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                );
     }
 
     public static String toJson(Object o) {
