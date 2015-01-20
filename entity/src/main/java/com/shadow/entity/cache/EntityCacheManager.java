@@ -49,7 +49,7 @@ public final class EntityCacheManager {
         persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends IEntity<?>>, PersistenceProcessor<? extends IEntity<?>>>() {
             @Override
             public PersistenceProcessor<? extends IEntity<?>> load(@Nonnull Class<? extends IEntity<?>> clazz) throws Exception {
-                return new QueuedPersistenceProcessor<>(dataAccessor, clazz.getSimpleName(), persistencePoolSize);
+                return new QueuedPersistenceProcessor<>(dataAccessor, persistencePoolSize, clazz);
             }
         });
 

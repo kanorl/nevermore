@@ -20,21 +20,22 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     private final ExecutorService[] executors;
     private final DataAccessor dataAccessor;
-    private final String name;
+    private final Class<T> entityType;
+    private static final NamedThreadFactory threadFactory = new NamedThreadFactory("队列持久化");
     private static final Runnable DEFAULT_CALLBACK = () -> {
     };
 
-    public QueuedPersistenceProcessor(DataAccessor dataAccessor, String entityName, int nThread) {
+    public QueuedPersistenceProcessor(DataAccessor dataAccessor, int nThread, Class<T> entityType) {
         this.dataAccessor = dataAccessor;
-        this.name = entityName + "持久化";
+        this.entityType = entityType;
         executors = new ExecutorService[MathUtil.ensurePowerOf2(nThread)];
         for (int i = 0; i < executors.length; i++) {
-            executors[i] = Executors.newSingleThreadExecutor(new NamedThreadFactory(name));
+            executors[i] = Executors.newSingleThreadExecutor(threadFactory);
         }
     }
 
     private ExecutorService executor(T t) {
-        return executors[t.getId().hashCode() & (executors.length - 1)];
+        return executors.length == 1 ? executors[0] : executors[t.getId().hashCode() & (executors.length - 1)];
     }
 
     @Override
@@ -74,6 +75,6 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Override
     public void shutdown() {
-        Arrays.stream(executors).forEach(executor -> ExecutorUtil.shutdownAndAwaitTermination(executor, name, 10, TimeUnit.MINUTES));
+        Arrays.stream(executors).forEach(executor -> ExecutorUtil.shutdownAndAwaitTermination(executor, entityType.getSimpleName() + threadFactory.getName(), 10, TimeUnit.MINUTES));
     }
 }
