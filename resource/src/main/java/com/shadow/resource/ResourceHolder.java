@@ -9,6 +9,8 @@ import com.shadow.resource.exception.InvalidResourceException;
 import com.shadow.resource.exception.ResourceNotFoundException;
 import com.shadow.resource.exception.ResourcePrimaryKeyNotFoundException;
 import com.shadow.resource.reader.ResourceReader;
+import com.shadow.util.execution.LoggedExecution;
+import com.shadow.util.execution.LogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,44 +75,41 @@ public class ResourceHolder<T> {
     }
 
     public void reload() {
-        LOGGER.error("开始[重新加载资源{}]", typeReference.get().getSimpleName());
-        load();
-        LOGGER.error("完成[重新加载资源{}]", typeReference.get().getSimpleName());
+        LoggedExecution.forName("重新加载资源{}", typeReference.get().getSimpleName()).logLevel(LogLevel.ERROR).execute(this::load);
     }
 
     @SuppressWarnings("unchecked")
     private synchronized void load() {
-        LOGGER.info("开始[加载资源{}]", typeReference.get().getSimpleName());
-        Class<T> resourceType = typeReference.get();
-        List<T> resourceBeans = resourceReader.read(resourceType);
-        if (Validatable.class.isAssignableFrom(resourceType)) {
-            resourceBeans.forEach(bean -> Preconditions.checkState(((Validatable) bean).isValid(), new InvalidResourceException(bean)));
-        }
-        Field idField = Arrays.stream(resourceType.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Id.class)).findFirst().orElseThrow(() -> new ResourcePrimaryKeyNotFoundException(resourceType));
-        ReflectionUtils.makeAccessible(idField);
-
-        Map<Object, T> resources;
-        if (Comparable.class.isAssignableFrom(resourceType)) {
-            Collections.sort(resourceBeans, (o1, o2) -> ((Comparable) o1).compareTo(((Comparable) o2)));
-            resources = new LinkedHashMap<>();
-        } else {
-            resources = new HashMap<>();
-        }
-        resourceBeans.forEach(bean -> {
-            try {
-                Object key = idField.get(bean);
-                if (resources.putIfAbsent(key, bean) != null) {
-                    throw new DuplicateKeyException(resourceType, key);
-                }
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+        LoggedExecution.forName("加载资源{}", typeReference.get().getSimpleName()).execute(() -> {
+            Class<T> resourceType = typeReference.get();
+            List<T> resourceBeans = resourceReader.read(resourceType);
+            if (Validatable.class.isAssignableFrom(resourceType)) {
+                resourceBeans.forEach(bean -> Preconditions.checkState(((Validatable) bean).isValid(), new InvalidResourceException(bean)));
             }
+            Field idField = Arrays.stream(resourceType.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Id.class)).findFirst().orElseThrow(() -> new ResourcePrimaryKeyNotFoundException(resourceType));
+            ReflectionUtils.makeAccessible(idField);
+
+            Map<Object, T> resources;
+            if (Comparable.class.isAssignableFrom(resourceType)) {
+                Collections.sort(resourceBeans, (o1, o2) -> ((Comparable) o1).compareTo(((Comparable) o2)));
+                resources = new LinkedHashMap<>();
+            } else {
+                resources = new HashMap<>();
+            }
+            resourceBeans.forEach(bean -> {
+                try {
+                    Object key = idField.get(bean);
+                    if (resources.putIfAbsent(key, bean) != null) {
+                        throw new DuplicateKeyException(resourceType, key);
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            this.resources = resources;
+
+            eventBus.post(ResourceRefreshedEvent.valueOf(resourceType));
         });
-
-        this.resources = resources;
-
-        LOGGER.info("完成[加载资源{}]", typeReference.get().getSimpleName());
-
-        eventBus.post(ResourceRefreshedEvent.valueOf(resourceType));
     }
 }

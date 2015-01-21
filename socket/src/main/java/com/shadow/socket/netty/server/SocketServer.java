@@ -2,6 +2,7 @@ package com.shadow.socket.netty.server;
 
 import com.shadow.socket.netty.server.handler.ServerHandler;
 import com.shadow.socket.netty.server.session.ServerSessionHandler;
+import com.shadow.util.execution.LoggedExecution;
 import com.shadow.util.thread.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -84,14 +85,12 @@ public final class SocketServer implements ApplicationListener<ContextStartedEve
             return;
         }
 
-        LOGGER.error("开始 [关闭Socket服务]");
-
-        channel.close().syncUninterruptibly();
-        parentGroup.shutdownGracefully();
-        childGroup.shutdownGracefully();
-        executors.shutdownGracefully();
-
-        LOGGER.error("完成 [关闭Socket服务]");
+        LoggedExecution.forName("关闭Socket服务").execute(() -> {
+            channel.close().syncUninterruptibly();
+            parentGroup.shutdownGracefully();
+            childGroup.shutdownGracefully();
+            executors.shutdownGracefully();
+        });
     }
 
     private Map<String, ChannelHandler> filters() {

@@ -9,9 +9,8 @@ import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
+import com.shadow.util.execution.LoggedExecution;
 import org.reflections.ReflectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -26,8 +25,6 @@ import java.io.Serializable;
  */
 @SuppressWarnings("unchecked")
 public final class EntityCacheManager {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(EntityCacheManager.class);
 
     @Autowired
     private DataAccessor dataAccessor;
@@ -66,9 +63,7 @@ public final class EntityCacheManager {
     }
 
     public void shutdown() {
-        LOGGER.error("开始[关闭持久化处理器]");
-        persistenceProcessors.asMap().values().forEach(PersistenceProcessor::shutdown);
-        LOGGER.error("完成[关闭持久化处理器]");
+        LoggedExecution.forName("关闭持久化处理器").execute(() -> persistenceProcessors.asMap().values().forEach(PersistenceProcessor::shutdown));
     }
 
     @Nonnull
