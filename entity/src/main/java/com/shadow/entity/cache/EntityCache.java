@@ -20,7 +20,7 @@ public interface EntityCache<K extends Serializable, V extends IEntity<K>> {
     @Nonnull
     V getOrCreate(@Nonnull K id, @Nonnull EntityFactory<V> factory);
 
-    boolean update(@Nonnull V v);
+    boolean update(@Nonnull V entity);
 
     void remove(@Nonnull K id);
 }

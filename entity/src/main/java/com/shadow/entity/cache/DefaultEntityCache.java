@@ -23,6 +23,8 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * 实体类内存缓存实现
  *
@@ -63,6 +65,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     @Nullable
     @Override
     public V get(@Nonnull K id) {
+        requireNonNull(id);
         try {
             return cache.get(id);
         } catch (CacheLoader.InvalidCacheLoadException e) {
@@ -77,17 +80,26 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     @Nonnull
     @Override
     public V getOrCreate(@Nonnull K id, @Nonnull EntityFactory<V> factory) {
+        requireNonNull(id);
+        requireNonNull(factory);
         try {
             return cache.get(id, () -> {
-                V v = cacheLoader.load(id);
-                if (v != null) {
-                    return v;
+                V entity = cacheLoader.load(id);
+                if (entity != null) {
+                    return entity;
                 }
 
-                V newObj = proxyGenerator.generate(factory.newInstance());
-                ((VersionedEntityProxy) newObj).postEdit();// mark as modified
-                persistenceProcessor.save(newObj);
-                return newObj;
+                V newEntity = factory.newInstance();
+                if (!id.equals(newEntity.getId())) {
+                    throw new IllegalArgumentException("ID不一致: id=" + id + ", factory.newInstance().getId()=" + newEntity.getId());
+                }
+
+                V proxyObj = proxyGenerator.generate(newEntity);
+                if (proxyObj instanceof VersionedEntityProxy) {
+                    ((VersionedEntityProxy) proxyObj).postEdit();// mark as modified
+                }
+                persistenceProcessor.save(proxyObj);
+                return proxyObj;
             });
         } catch (ExecutionException e) {
             // should never reach here
@@ -97,21 +109,23 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     }
 
     @Override
-    public boolean update(@Nonnull V v) {
-        if (removing.contains(v.getId())) {
-            LOGGER.error("无法更新已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), v.getId());
+    public boolean update(@Nonnull V entity) {
+        requireNonNull(entity);
+        if (removing.contains(entity.getId())) {
+            LOGGER.error("无法更新已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), entity.getId());
             return false;
         }
-        if (v instanceof VersionedEntityProxy) {
-            ((VersionedEntityProxy) v).postEdit();// mark as modified
+        if (entity instanceof VersionedEntityProxy) {
+            ((VersionedEntityProxy) entity).postEdit();// mark as modified
         }
 
-        persistenceProcessor.update(v);
+        persistenceProcessor.update(entity);
         return true;
     }
 
     @Override
     public void remove(@Nonnull K id) {
+        requireNonNull(id);
         cache.invalidate(id);
     }
 
