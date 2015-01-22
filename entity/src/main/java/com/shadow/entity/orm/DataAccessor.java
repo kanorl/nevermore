@@ -26,6 +26,8 @@ public interface DataAccessor {
 
     <V extends IEntity<?>> void delete(@Nonnull V v);
 
+    <V extends IEntity<?>> void saveOrUpdate(@Nonnull V v);
+
     <V extends IEntity<?>> List<V> namedQuery(@Nonnull Class<V> clazz, @Nonnull String queryName, @Nullable Object... queryParams);
 
     <V extends IEntity<?>> List<V> query(@Nonnull Class<V> clazz);

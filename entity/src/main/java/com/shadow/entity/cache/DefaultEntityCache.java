@@ -84,9 +84,10 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                     return v;
                 }
 
-                V newObj = factory.newInstance();
+                V newObj = proxyGenerator.generate(factory.newInstance());
+                ((VersionedEntityProxy) newObj).postEdit();// mark as modified
                 persistenceProcessor.save(newObj);
-                return proxyGenerator.generate(newObj);
+                return newObj;
             });
         } catch (ExecutionException e) {
             // should never reach here
@@ -102,8 +103,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
             return false;
         }
         if (v instanceof VersionedEntityProxy) {
-            VersionedEntityProxy proxy = (VersionedEntityProxy) v;
-            proxy.postEdit();// mark as modified
+            ((VersionedEntityProxy) v).postEdit();// mark as modified
         }
 
         persistenceProcessor.update(v);
@@ -173,9 +173,13 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                     LOGGER.info("实体类 [{}] 缓存清理数据: Cause={}, id={}", clazz.getSimpleName(), notification.getCause(), notification.getKey());
                 }
 
-                if (value instanceof VersionedEntityProxy && !((VersionedEntityProxy) value).isPersisted()) {
-                    LOGGER.error("[id={}, class={}]缓存过期，同步数据到数据库", value.getId(), value.getClass().getSimpleName());
-                    dataAccessor.update(value);
+                if (value instanceof VersionedEntityProxy) {
+                    VersionedEntityProxy proxy = (VersionedEntityProxy) value;
+                    if (!proxy.isPersisted()) {
+                        LOGGER.error("[id={}, class={}]缓存过期，同步数据到数据库", value.getId(), value.getClass().getSimpleName());
+                        dataAccessor.saveOrUpdate(proxy.getEntity());
+                        proxy.postPersist();
+                    }
                 }
                 return;
             }

@@ -3,8 +3,6 @@ package com.shadow.util.disruptor;
 import com.lmax.disruptor.WorkHandler;
 import com.shadow.util.lang.MathUtil;
 
-import java.util.concurrent.ThreadFactory;
-
 /**
  * Disruptor构造器
  *
@@ -14,8 +12,6 @@ public final class DisruptorBuilder<T> {
 
     private int bufferSize;
     private int threads;
-    private ThreadFactory threadFactory;
-
     public static final int DEFAULT_BUFFER_SIZE = 1 << 10;
     private static final int MIN_THREAD_COUNT = 1;
 

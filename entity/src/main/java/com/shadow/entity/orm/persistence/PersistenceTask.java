@@ -43,6 +43,9 @@ class PersistenceTask implements Runnable {
         try {
             operation.perform(dataAccessor, actualEntity);
         } catch (Exception e) {
+            if (isVersionProxy && ((VersionedEntityProxy) entity).isPersisted()) {
+                return;
+            }
             LOGGER.error(format("入库失败[class={}, entity={}]", actualEntity.getClass().getSimpleName(), JsonUtil.toJson(actualEntity)).getMessage(), e);
             return;
         }

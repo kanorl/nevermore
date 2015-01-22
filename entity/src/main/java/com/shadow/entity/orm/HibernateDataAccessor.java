@@ -70,6 +70,12 @@ public class HibernateDataAccessor implements DataAccessor {
         currentSession().delete(v);
     }
 
+    @Transactional(readOnly = false)
+    @Override
+    public <V extends IEntity<?>> void saveOrUpdate(@Nonnull V v) {
+        currentSession().saveOrUpdate(v);
+    }
+
     @Override
     public <V extends IEntity<?>> List<V> namedQuery(@Nonnull Class<V> clazz, @Nonnull String queryName, @Nullable Object... queryParams) {
         Query query = currentSession().getNamedQuery(queryName);
