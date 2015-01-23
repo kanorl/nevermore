@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
@@ -48,8 +47,6 @@ public final class RequestProcessorManager implements BeanPostProcessor {
         short module = typeAnnotation.module();
         Set<Method> handlerMethods = ReflectUtil.getDeclaredMethodsAnnotatedWith(bean.getClass(), HandlerMethod.class);
         for (Method handlerMethod : handlerMethods) {
-            ReflectionUtils.makeAccessible(handlerMethod);
-
             Parameter[] parameters = handlerMethod.getParameters();
             String[] paramNames = ReflectUtil.getParamNames(handlerMethod);
             HandlerMethod methodAnnotation = handlerMethod.getAnnotation(HandlerMethod.class);
@@ -80,7 +77,7 @@ public final class RequestProcessorManager implements BeanPostProcessor {
             Command command = Command.valueOf(module, cmd);
             RequestProcessor preProcessor = requestProcessors.put(command, requestProcessor);
             if (preProcessor != null) {
-                LOGGER.info("请求处理器被覆盖：" + command);
+                LOGGER.error("请求处理器被覆盖：" + command);
             }
         }
         return bean;

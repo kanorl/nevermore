@@ -2,6 +2,7 @@ package com.shadow.socket.core.annotation.support;
 
 import com.shadow.socket.core.domain.Request;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
@@ -22,8 +23,9 @@ public class RequestProcessor {
     }
 
     public static RequestProcessor valueOf(@Nonnull Method method, @Nonnull Object invoker, @Nonnull MethodParameter[] params) {
+        ReflectionUtils.makeAccessible(checkNotNull(method));
         RequestProcessor requestProcessor = new RequestProcessor();
-        requestProcessor.method = checkNotNull(method);
+        requestProcessor.method = method;
         requestProcessor.invoker = checkNotNull(invoker);
         requestProcessor.params = checkNotNull(params);
         requestProcessor.omitResponse = method.getReturnType() == Void.class;
