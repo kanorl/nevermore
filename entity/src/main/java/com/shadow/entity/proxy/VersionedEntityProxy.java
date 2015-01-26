@@ -9,6 +9,8 @@ public interface VersionedEntityProxy {
 
     <T extends IEntity<?>> T getEntity();
 
+    Object getIndexValue();
+
     long postEdit();
 
     boolean isPersisted();

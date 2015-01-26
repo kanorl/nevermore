@@ -11,12 +11,12 @@ import java.util.Collection;
  */
 public interface RegionEntityCache<K extends Serializable, V extends IEntity<K>> extends EntityCache<K, V> {
 
-    V create(@Nonnull V v);
+    V create(@Nonnull V entity);
 
     @Nonnull
     Collection<V> list(@Nonnull Object indexValue);
 
-    void updateWithIndexValueChanged(@Nonnull V v, @Nonnull Object oldIndexValue);
+    void updateWithIndexValueChanged(@Nonnull V entity, @Nonnull Object oldIndexValue);
 
-    Object getIndexValue(@Nonnull V v);
+    Object getIndexValue(@Nonnull V entity);
 }

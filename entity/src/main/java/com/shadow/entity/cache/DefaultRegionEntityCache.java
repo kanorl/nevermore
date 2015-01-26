@@ -25,8 +25,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
+import static org.slf4j.helpers.MessageFormatter.format;
 
 /**
  * @author nevermore on 2015/1/5
@@ -40,8 +40,8 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     public DefaultRegionEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
         super(clazz, dataAccessor, persistenceProcessor);
 
-        indexField = ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).stream().findFirst().orElse(null);
-        checkNotNull(indexField, "在%s中找不到注解为%s的属性", clazz.getSimpleName(), CacheIndex.class.getSimpleName());
+        indexField = ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException(format("在{}中找不到注解为{}的属性", clazz.getSimpleName(), CacheIndex.class.getSimpleName()).getMessage()));
         indexField.setAccessible(true);
 
         this.indexCache = CacheBuilder.newBuilder().maximumSize(CacheSize.Size.DEFAULT.get()).concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<Object, Set<K>>() {
@@ -90,16 +90,16 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     }
 
     @Override
-    public void updateWithIndexValueChanged(@Nonnull V v, @Nonnull Object oldIndexValue) {
-        if (!update(v)) {
+    public void updateWithIndexValueChanged(@Nonnull V entity, @Nonnull Object oldIndexValue) {
+        if (!update(entity)) {
             return;
         }
 
         validate(oldIndexValue);
 
-        indexCache.getUnchecked(oldIndexValue).remove(v.getId());
-        Object newValue = getIndexValue(v);
-        indexCache.getUnchecked(newValue).add(v.getId());
+        indexCache.getUnchecked(oldIndexValue).remove(entity.getId());
+        Object newValue = getIndexValue(entity);
+        indexCache.getUnchecked(newValue).add(entity.getId());
     }
 
     @Override
@@ -113,9 +113,11 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
         indexCache.getUnchecked(value).remove(v.getId());
     }
 
-    public Object getIndexValue(@Nonnull V v) {
-        requireNonNull(v);
-        IEntity<?> entity = v instanceof VersionedEntityProxy ? ((VersionedEntityProxy) v).getEntity() : v;
+    public Object getIndexValue(@Nonnull V entity) {
+        requireNonNull(entity);
+        if (entity instanceof VersionedEntityProxy) {
+            return ((VersionedEntityProxy) entity).getIndexValue();
+        }
         try {
             return indexField.get(entity);
         } catch (IllegalAccessException e) {

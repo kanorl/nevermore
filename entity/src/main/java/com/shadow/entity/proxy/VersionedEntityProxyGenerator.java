@@ -4,15 +4,20 @@ import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.cache.annotation.AutoSave;
+import com.shadow.entity.cache.annotation.CacheIndex;
 import javassist.*;
+import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.Nonnull;
+import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -42,17 +47,17 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
         try {
             return constructor.newInstance(entity, entityCache);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("创建实体代理失败。", e);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public Constructor<V> getConstructor(@Nonnull Class<V> entityClass) {
+    private Constructor<V> getConstructor(@Nonnull Class<V> entityClass) {
         try {
             Class<V> entityProxyClass = createProxyClass(entityClass).toClass();
             return entityProxyClass.getConstructor(entityClass, EntityCache.class);
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("创建" + entityClass.getSimpleName() + "的代理类败。", e);
             throw new RuntimeException(e);
         }
     }
@@ -157,6 +162,24 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
         updateDbVersion.setModifiers(Modifier.PUBLIC);
         updateDbVersion.setBody("this." + DB_VERSION_FIELD_NAME + " = " + "this." + EDIT_VERSION_FIELD_NAME + ".get();");
         proxyClass.addMethod(updateDbVersion);
+
+        Field indexField = Arrays.stream(entityClass.getDeclaredFields()).filter(field -> field.isAnnotationPresent(CacheIndex.class)).findFirst().orElse(null);
+        CtClass[] pTypes = null;
+        String body = "throw new " + UnsupportedOperationException.class.getCanonicalName() + "(\"找不到索引属性\");";
+        if (indexField != null) {
+            Method readMethod = new PropertyDescriptor(indexField.getName(), entityClass).getReadMethod();
+            if (readMethod == null) {
+                throw new IllegalStateException("No getter for " + CacheIndex.class.getSimpleName() + " field.");
+            }
+            pTypes = getCtClasses(readMethod.getParameterTypes());
+            Class<?> wrapperType = readMethod.getReturnType().isPrimitive() ? ClassUtils.primitiveToWrapper(readMethod.getReturnType()) : null;
+            body = wrapperType == null ? "return this." + ENTITY_FIELD_NAME + " ." + readMethod.getName() + "($$);"
+                    : "return " + wrapperType.getCanonicalName() + ".valueOf(this." + ENTITY_FIELD_NAME + " ." + readMethod.getName() + "($$));";
+        }
+        CtMethod getIndexValue = new CtMethod(getCtClass(Object.class), "getIndexValue", pTypes, proxyClass);
+        getIndexValue.setModifiers(Modifier.PUBLIC);
+        getIndexValue.setBody(body);
+        proxyClass.addMethod(getIndexValue);
     }
 
     private void addMethod(CtClass proxyClass, Method method) throws Exception {
