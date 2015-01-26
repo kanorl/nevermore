@@ -206,15 +206,15 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
         if (autoSave == null || !autoSave.withIndexValueChanged() || !(entityCache instanceof RegionEntityCache)) {
             return;
         }
-        body.add("Object oldValue = ((").add(RegionEntityCache.class.getCanonicalName()).add(")")
-                .add(CACHE_FIELD_NAME).add(").getIndexValue(").add(ENTITY_FIELD_NAME).add(");");
+        body.add("Object oldValue = ((").add(RegionEntityCache.class.getCanonicalName())
+                .add(")this.").add(CACHE_FIELD_NAME).add(").getIndexValue(this.").add(ENTITY_FIELD_NAME).add(");");
     }
 
     private void invokeEntityMethod(Method method, StringJoiner body) {
         if (method.getReturnType() != Void.TYPE) {
             body.add(method.getReturnType().getCanonicalName()).add(" result = ");
         }
-        body.add(ENTITY_FIELD_NAME).add(".").add(method.getName()).add("($$);");
+        body.add("this.").add(ENTITY_FIELD_NAME).add(".").add(method.getName()).add("($$);");
     }
 
     private void commitEntityUpdate(Method method, StringJoiner body) {
@@ -229,9 +229,9 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
         }
         StringJoiner stringJoiner = new StringJoiner(delimiter, prefix, suffix);
         if (autoSave.withIndexValueChanged() && entityCache instanceof RegionEntityCache) {
-            stringJoiner.add("((").add(RegionEntityCache.class.getCanonicalName()).add(")").add(CACHE_FIELD_NAME).add(").updateWithIndexValueChanged(entity, oldValue);");
+            stringJoiner.add("((").add(RegionEntityCache.class.getCanonicalName()).add(")this.").add(CACHE_FIELD_NAME).add(").updateWithIndexValueChanged(entity, oldValue);");
         } else {
-            stringJoiner.add(CACHE_FIELD_NAME).add(".update(entity);");
+            stringJoiner.add("this.").add(CACHE_FIELD_NAME).add(".update(entity);");
         }
         body.add(stringJoiner.toString());
     }

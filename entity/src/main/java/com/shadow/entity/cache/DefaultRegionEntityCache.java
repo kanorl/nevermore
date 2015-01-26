@@ -128,6 +128,6 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
 
     private void validate(Object value) {
         requireNonNull(value, "索引值不能为null");
-        checkArgument(ClassUtils.isAssignable(indexField.getType(), value.getClass(), true), "索引值类型错误: expect [%s], given [%s]", indexField.getType(), value.getClass());
+        checkArgument(ClassUtils.isAssignable(indexField.getType(), value.getClass(), true), "索引值类型错误: expect [%s], given [%s]", indexField.getType().getName(), value.getClass().getName());
     }
 }
