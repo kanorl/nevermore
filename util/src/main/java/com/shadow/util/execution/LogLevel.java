@@ -57,8 +57,8 @@ public enum LogLevel {
         }
     };
 
-    private static final String BEFORE_MSG_PATTERN = "开始执行 [{}] 任务";
-    private static final String AFTER_MSG_PATTERN = "完成执行 [{}] 任务，耗时{}ms";
+    private static final String BEFORE_MSG_PATTERN = "开始 {}......";
+    private static final String AFTER_MSG_PATTERN = "完成 {}，耗时 {}ms.";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(LogLevel.class);
 
