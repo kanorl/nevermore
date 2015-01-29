@@ -21,6 +21,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 import static java.util.Objects.requireNonNull;
@@ -40,6 +42,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> removing = Sets.newConcurrentHashSet();
     private final EntityProxyGenerator<K, V> proxyGenerator;
+    private final ConcurrentMap<K, V> updating = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     public DefaultEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
@@ -97,8 +100,13 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                 V proxyObj = proxyGenerator.generate(newEntity);
                 if (proxyObj instanceof VersionedEntityProxy) {
                     ((VersionedEntityProxy) proxyObj).postEdit();// mark as modified
+                    updating.put(proxyObj.getId(), proxyObj);
                 }
-                persistenceProcessor.save(proxyObj);
+                persistenceProcessor.save(proxyObj, () -> {
+                    if (proxyObj instanceof VersionedEntityProxy && ((VersionedEntityProxy) proxyObj).isPersisted()) {
+                        updating.remove(proxyObj.getId());
+                    }
+                });
                 return proxyObj;
             });
         } catch (ExecutionException e) {
@@ -117,9 +125,14 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         }
         if (entity instanceof VersionedEntityProxy) {
             ((VersionedEntityProxy) entity).postEdit();// mark as modified
+            updating.put(entity.getId(), entity);
         }
 
-        persistenceProcessor.update(entity);
+        persistenceProcessor.update(entity, () -> {
+            if (entity instanceof VersionedEntityProxy && ((VersionedEntityProxy) entity).isPersisted()) {
+                updating.remove(entity.getId());
+            }
+        });
         return true;
     }
 
@@ -164,6 +177,10 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                 LOGGER.error("无法加载已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), key);
                 return null;
             }
+            V entity = updating.get(key);
+            if (entity != null) {
+                return entity;
+            }
             V v = dataAccessor.get(key, clazz);
             if (v == null) {
                 return null;
@@ -176,27 +193,15 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
         @Override
         public void onRemoval(@Nonnull RemovalNotification<K, V> notification) {
-            K id = notification.getKey();
-            V value = notification.getValue();
-            if (id == null || value == null) {
-                return;
-            }
-
-            if (notification.getCause() != RemovalCause.EXPLICIT) {
+            if (notification.wasEvicted()) {
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("实体类 [{}] 缓存清理数据: Cause={}, id={}", clazz.getSimpleName(), notification.getCause(), notification.getKey());
                 }
-
-                if (value instanceof VersionedEntityProxy) {
-                    VersionedEntityProxy proxy = (VersionedEntityProxy) value;
-                    if (!proxy.isPersisted()) {
-                        LOGGER.error("[id={}, class={}]缓存过期，同步数据到数据库", value.getId(), value.getClass().getSimpleName());
-                        dataAccessor.saveOrUpdate(proxy.getEntity());
-                        proxy.postPersist();
-                    }
-                }
                 return;
             }
+
+            K id = notification.getKey();
+            V value = notification.getValue();
 
             removing.add(id);
             persistenceProcessor.delete(value, () -> removing.remove(id));
