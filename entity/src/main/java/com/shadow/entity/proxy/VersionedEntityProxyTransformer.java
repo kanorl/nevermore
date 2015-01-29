@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author nevermore on 2014/11/26.
  */
-public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEntity<K>> implements EntityProxyGenerator<K, V> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VersionedEntityProxyGenerator.class);
+public class VersionedEntityProxyTransformer<K extends Serializable, V extends IEntity<K>> implements EntityProxyTransformer<K, V> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VersionedEntityProxyTransformer.class);
 
     private static final ClassPool CLASS_POOL = ClassPool.getDefault();
     private static final String CACHE_FIELD_NAME = "entityCache";
@@ -37,13 +37,16 @@ public class VersionedEntityProxyGenerator<K extends Serializable, V extends IEn
     private final Constructor<V> constructor;
     private final EntityCache<K, V> entityCache;
 
-    public VersionedEntityProxyGenerator(EntityCache<K, V> entityCache, Class<V> entityClass) {
+    public VersionedEntityProxyTransformer(EntityCache<K, V> entityCache, Class<V> entityClass) {
         this.entityCache = entityCache;
         this.constructor = getConstructor(entityClass);
     }
 
     @Nonnull
-    public V generate(V entity) {
+    public V transform(V entity) {
+        if (entity instanceof VersionedEntityProxy) {
+            return entity;
+        }
         try {
             return constructor.newInstance(entity, entityCache);
         } catch (Exception e) {
