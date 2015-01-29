@@ -10,9 +10,9 @@ import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.PreLoaded;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
-import com.shadow.entity.proxy.EntityProxyTransformer;
+import com.shadow.entity.proxy.EntityProxyGenerator;
 import com.shadow.entity.proxy.VersionedEntityProxy;
-import com.shadow.entity.proxy.VersionedEntityProxyTransformer;
+import com.shadow.entity.proxy.VersionedEntityProxyGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +41,8 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final LoadingCache<K, V> cache;
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> removing = Sets.newConcurrentHashSet();
-    private final EntityProxyTransformer<K, V> proxyGenerator;
-    private final ConcurrentMap<K, UpdatingEntity> updating = new ConcurrentHashMap<>();
+    private final EntityProxyGenerator<K, V> proxyGenerator;
+    private final ConcurrentMap<K, V> updating = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     public DefaultEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
@@ -51,7 +51,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         this.persistenceProcessor = (PersistenceProcessor<V>) persistenceProcessor;
 
         // 代理类生成器
-        proxyGenerator = new VersionedEntityProxyTransformer<>(this, this.clazz);
+        proxyGenerator = new VersionedEntityProxyGenerator<>(this, this.clazz);
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
@@ -97,18 +97,14 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                     throw new IllegalArgumentException("ID不一致: id=" + id + ", factory.newInstance().getId()=" + newEntity.getId());
                 }
 
-                V proxyObj = proxyGenerator.transform(newEntity);
-                UpdatingEntity ue = null;
+                V proxyObj = proxyGenerator.generate(newEntity);
                 if (proxyObj instanceof VersionedEntityProxy) {
-                    long editVersion = ((VersionedEntityProxy) proxyObj).postEdit();// mark as modified
-                    ue = new UpdatingEntity(editVersion, proxyObj);
-                    updating.put(id, ue);
+                    ((VersionedEntityProxy) proxyObj).postEdit();// mark as modified
+                    updating.put(proxyObj.getId(), proxyObj);
                 }
-                final UpdatingEntity updatingEntity = ue;
-
                 persistenceProcessor.save(proxyObj, () -> {
                     if (proxyObj instanceof VersionedEntityProxy && ((VersionedEntityProxy) proxyObj).isPersisted()) {
-                        updating.remove(id, updatingEntity);
+                        updating.remove(proxyObj.getId());
                     }
                 });
                 return proxyObj;
@@ -127,17 +123,14 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
             LOGGER.error("无法更新已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), entity.getId());
             return false;
         }
-        UpdatingEntity ue = null;
         if (entity instanceof VersionedEntityProxy) {
-            long editVersion = ((VersionedEntityProxy) entity).postEdit();// mark as modified
-            ue = new UpdatingEntity(editVersion, entity);
-            updating.put(entity.getId(), ue);
+            ((VersionedEntityProxy) entity).postEdit();// mark as modified
+            updating.put(entity.getId(), entity);
         }
-        final UpdatingEntity updatingEntity = ue;
 
         persistenceProcessor.update(entity, () -> {
             if (entity instanceof VersionedEntityProxy && ((VersionedEntityProxy) entity).isPersisted()) {
-                updating.remove(entity.getId(), updatingEntity);
+                updating.remove(entity.getId());
             }
         });
         return true;
@@ -184,15 +177,15 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                 LOGGER.error("无法加载已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), key);
                 return null;
             }
-            UpdatingEntity ue = updating.get(key);
-            if (ue != null) {
-                return proxyGenerator.transform(ue.getEntity());
+            V entity = updating.get(key);
+            if (entity != null) {
+                return entity;
             }
             V v = dataAccessor.get(key, clazz);
             if (v == null) {
                 return null;
             }
-            return proxyGenerator.transform(v);
+            return proxyGenerator.generate(v);
         }
     }
 
@@ -209,26 +202,9 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
             K id = notification.getKey();
             V value = notification.getValue();
+
             removing.add(id);
             persistenceProcessor.delete(value, () -> removing.remove(id));
-        }
-    }
-
-    private class UpdatingEntity {
-        private final long editVersion;
-        private final V entity;
-
-        public UpdatingEntity(long editVersion, V entity) {
-            this.editVersion = editVersion;
-            this.entity = entity;
-        }
-
-        public long getEditVersion() {
-            return editVersion;
-        }
-
-        public V getEntity() {
-            return entity;
         }
     }
 }
