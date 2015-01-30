@@ -1,8 +1,6 @@
-package com.shadow.entity.proxy;
+package com.shadow.entity.cache;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.cache.EntityCache;
-import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.cache.annotation.AutoSave;
 import com.shadow.entity.cache.annotation.CacheIndex;
 import javassist.*;
@@ -26,8 +24,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author nevermore on 2014/11/26.
  */
-public class VersionedEntityProxyTransformer<K extends Serializable, V extends IEntity<K>> implements EntityProxyTransformer<K, V> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VersionedEntityProxyTransformer.class);
+public class CachedEntityWrapper<K extends Serializable, V extends IEntity<K>> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CachedEntityWrapper.class);
 
     private static final ClassPool CLASS_POOL = ClassPool.getDefault();
     private static final String CACHE_FIELD_NAME = "entityCache";
@@ -37,14 +35,14 @@ public class VersionedEntityProxyTransformer<K extends Serializable, V extends I
     private final Constructor<V> constructor;
     private final EntityCache<K, V> entityCache;
 
-    public VersionedEntityProxyTransformer(EntityCache<K, V> entityCache, Class<V> entityClass) {
+    public CachedEntityWrapper(EntityCache<K, V> entityCache, Class<V> entityClass) {
         this.entityCache = entityCache;
         this.constructor = getConstructor(entityClass);
     }
 
     @Nonnull
-    public V transform(V entity) {
-        if (entity instanceof VersionedEntityProxy) {
+    public V wrap(V entity) {
+        if (entity instanceof CachedEntity) {
             return entity;
         }
         try {
@@ -67,7 +65,7 @@ public class VersionedEntityProxyTransformer<K extends Serializable, V extends I
 
     private CtClass createProxyClass(Class<? extends IEntity<?>> entityClass) throws Exception {
         CtClass proxyClass = CLASS_POOL.makeClass(proxyClassName(entityClass), getCtClass(entityClass));
-        proxyClass.setInterfaces(getCtClasses(VersionedEntityProxy.class));
+        proxyClass.setInterfaces(getCtClasses(CachedEntity.class));
 
         addFields(proxyClass, entityClass);
         addConstructors(proxyClass, entityClass);

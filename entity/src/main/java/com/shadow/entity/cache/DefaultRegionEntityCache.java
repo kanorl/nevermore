@@ -10,7 +10,6 @@ import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
-import com.shadow.entity.proxy.VersionedEntityProxy;
 import org.apache.commons.lang3.ClassUtils;
 import org.reflections.ReflectionUtils;
 import org.springframework.dao.DuplicateKeyException;
@@ -57,7 +56,7 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
         requireNonNull(v);
         requireNonNull(v.getId(), "ID不能为null");
         V entity = super.getOrCreate(v.getId(), () -> v);
-        V obj = entity instanceof VersionedEntityProxy ? ((VersionedEntityProxy) entity).getEntity() : entity;
+        V obj = entity instanceof CachedEntity ? ((CachedEntity) entity).getEntity() : entity;
         if (v != obj) {
             throw new DuplicateKeyException("重复的主键[" + v.getId() + "]");
         }
@@ -115,8 +114,8 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
 
     public Object getIndexValue(@Nonnull V entity) {
         requireNonNull(entity);
-        if (entity instanceof VersionedEntityProxy) {
-            return ((VersionedEntityProxy) entity).getIndexValue();
+        if (entity instanceof CachedEntity) {
+            return ((CachedEntity) entity).getIndexValue();
         }
         try {
             return indexField.get(entity);

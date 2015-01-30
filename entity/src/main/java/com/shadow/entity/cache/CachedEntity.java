@@ -1,11 +1,11 @@
-package com.shadow.entity.proxy;
+package com.shadow.entity.cache;
 
 import com.shadow.entity.IEntity;
 
 /**
  * @author nevermore on 2015/1/16.
  */
-public interface VersionedEntityProxy {
+public interface CachedEntity {
 
     <T extends IEntity<?>> T getEntity();
 

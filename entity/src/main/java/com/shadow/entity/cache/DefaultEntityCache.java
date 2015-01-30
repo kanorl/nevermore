@@ -10,9 +10,6 @@ import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.PreLoaded;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
-import com.shadow.entity.proxy.EntityProxyGenerator;
-import com.shadow.entity.proxy.VersionedEntityProxy;
-import com.shadow.entity.proxy.VersionedEntityProxyGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +38,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final LoadingCache<K, V> cache;
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> removing = Sets.newConcurrentHashSet();
-    private final EntityProxyGenerator<K, V> proxyGenerator;
+    private final CachedEntityWrapper<K, V> entityWrapper;
     private final ConcurrentMap<K, V> updating = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
@@ -51,7 +48,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         this.persistenceProcessor = (PersistenceProcessor<V>) persistenceProcessor;
 
         // 代理类生成器
-        proxyGenerator = new VersionedEntityProxyGenerator<>(this, this.clazz);
+        entityWrapper = new CachedEntityWrapper<>(this, this.clazz);
 
         // 构建缓存
         Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
@@ -92,22 +89,22 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                     return entity;
                 }
 
-                V newEntity = factory.newInstance();
-                if (!id.equals(newEntity.getId())) {
-                    throw new IllegalArgumentException("ID不一致: id=" + id + ", factory.newInstance().getId()=" + newEntity.getId());
+                entity = factory.newInstance();
+                if (!id.equals(entity.getId())) {
+                    throw new IllegalArgumentException("ID不一致: id=" + id + ", factory.newInstance().getId()=" + entity.getId());
                 }
 
-                V proxyObj = proxyGenerator.generate(newEntity);
-                if (proxyObj instanceof VersionedEntityProxy) {
-                    ((VersionedEntityProxy) proxyObj).postEdit();// mark as modified
-                    updating.put(proxyObj.getId(), proxyObj);
-                }
-                persistenceProcessor.save(proxyObj, () -> {
-                    if (proxyObj instanceof VersionedEntityProxy && ((VersionedEntityProxy) proxyObj).isPersisted()) {
-                        updating.remove(proxyObj.getId());
+                V cachedEntity = entityWrapper.wrap(entity);
+
+                ((CachedEntity) cachedEntity).postEdit();// mark as modified
+                updating.put(cachedEntity.getId(), cachedEntity);
+
+                persistenceProcessor.save(cachedEntity, () -> {
+                    if (((CachedEntity) cachedEntity).isPersisted()) {
+                        updating.remove(cachedEntity.getId());
                     }
                 });
-                return proxyObj;
+                return cachedEntity;
             });
         } catch (ExecutionException e) {
             // should never reach here
@@ -123,13 +120,13 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
             LOGGER.error("无法更新已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), entity.getId());
             return false;
         }
-        if (entity instanceof VersionedEntityProxy) {
-            ((VersionedEntityProxy) entity).postEdit();// mark as modified
+        if (entity instanceof CachedEntity) {
+            ((CachedEntity) entity).postEdit();// mark as modified
             updating.put(entity.getId(), entity);
         }
 
         persistenceProcessor.update(entity, () -> {
-            if (entity instanceof VersionedEntityProxy && ((VersionedEntityProxy) entity).isPersisted()) {
+            if (entity instanceof CachedEntity && ((CachedEntity) entity).isPersisted()) {
                 updating.remove(entity.getId());
             }
         });
@@ -177,15 +174,17 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                 LOGGER.error("无法加载已经被删除的数据：clazz={}, id={}", clazz.getSimpleName(), key);
                 return null;
             }
+
             V entity = updating.get(key);
             if (entity != null) {
-                return entity;
+                return entityWrapper.wrap(entity);
             }
-            V v = dataAccessor.get(key, clazz);
-            if (v == null) {
+
+            entity = dataAccessor.get(key, clazz);
+            if (entity == null) {
                 return null;
             }
-            return proxyGenerator.generate(v);
+            return entityWrapper.wrap(entity);
         }
     }
 
