@@ -18,6 +18,7 @@ import java.util.Optional;
  */
 public interface DataAccessor {
 
+    @Nullable
     <K extends Serializable, V extends IEntity<K>> V get(@Nonnull K id, @Nonnull Class<V> clazz);
 
     <K extends Serializable, V extends IEntity<K>> K save(@Nonnull V v);
@@ -30,6 +31,7 @@ public interface DataAccessor {
 
     <V extends IEntity<?>> List<V> namedQuery(@Nonnull Class<V> clazz, @Nonnull String queryName, @Nullable Object... queryParams);
 
+    @Nonnull
     <V extends IEntity<?>> List<V> query(@Nonnull Class<V> clazz);
 
     @Nonnull

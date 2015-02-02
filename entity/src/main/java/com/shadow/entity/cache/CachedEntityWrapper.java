@@ -41,7 +41,7 @@ public class CachedEntityWrapper<K extends Serializable, V extends IEntity<K>> {
     }
 
     @Nonnull
-    public V wrap(V entity) {
+    public V wrap(@Nonnull V entity) {
         if (entity instanceof CachedEntity) {
             return entity;
         }

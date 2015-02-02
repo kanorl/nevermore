@@ -18,9 +18,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
@@ -39,7 +38,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> removing = Sets.newConcurrentHashSet();
     private final CachedEntityWrapper<K, V> entityWrapper;
-    private final ConcurrentMap<K, V> updating = new ConcurrentHashMap<>();
+    private final Cache<K, V> updating = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.SECONDS).build();
 
     @SuppressWarnings("unchecked")
     public DefaultEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
@@ -95,13 +94,10 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                 }
 
                 V cachedEntity = entityWrapper.wrap(entity);
-
                 ((CachedEntity) cachedEntity).postEdit();// mark as modified
-                updating.put(cachedEntity.getId(), cachedEntity);
-
                 persistenceProcessor.save(cachedEntity, () -> {
                     if (((CachedEntity) cachedEntity).isPersisted()) {
-                        updating.remove(cachedEntity.getId());
+                        updating.invalidate(cachedEntity.getId());
                     }
                 });
                 return cachedEntity;
@@ -122,12 +118,11 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         }
         if (entity instanceof CachedEntity) {
             ((CachedEntity) entity).postEdit();// mark as modified
-            updating.put(entity.getId(), entity);
         }
 
         persistenceProcessor.update(entity, () -> {
             if (entity instanceof CachedEntity && ((CachedEntity) entity).isPersisted()) {
-                updating.remove(entity.getId());
+                updating.invalidate(entity.getId());
             }
         });
         return true;
@@ -175,16 +170,13 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                 return null;
             }
 
-            V entity = updating.get(key);
-            if (entity != null) {
-                return entityWrapper.wrap(entity);
+            V dbEntity = dataAccessor.get(key, clazz);
+            V updatingEntity = updating.getIfPresent(key);
+            if (updatingEntity != null) {
+                return entityWrapper.wrap(updatingEntity);
             }
 
-            entity = dataAccessor.get(key, clazz);
-            if (entity == null) {
-                return null;
-            }
-            return entityWrapper.wrap(entity);
+            return dbEntity == null ? null : entityWrapper.wrap(dbEntity);
         }
     }
 
@@ -192,15 +184,23 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
         @Override
         public void onRemoval(@Nonnull RemovalNotification<K, V> notification) {
+            K id = notification.getKey();
+            V value = notification.getValue();
+            if (id == null || value == null) {
+                return;
+            }
+
             if (notification.wasEvicted()) {
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("实体类 [{}] 缓存清理数据: Cause={}, id={}", clazz.getSimpleName(), notification.getCause(), notification.getKey());
                 }
+
+                if (value instanceof CachedEntity && !((CachedEntity) value).isPersisted()) {
+                    updating.put(id, value);
+                }
                 return;
             }
 
-            K id = notification.getKey();
-            V value = notification.getValue();
 
             removing.add(id);
             persistenceProcessor.delete(value, () -> removing.remove(id));

@@ -29,12 +29,10 @@ public class PackageScanner {
         requireNonNull(packagesToScan);
         try {
             return Arrays.stream(packagesToScan)
-                    .map(PackageScanner::scan)
-                    .reduce(Stream::concat)
-                    .get()
+                    .flatMap(PackageScanner::scan)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
-            throw new RuntimeException("类扫描异常：packages=" + Arrays.toString(packagesToScan), e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -59,7 +57,7 @@ public class PackageScanner {
                         }
                     });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("类扫描异常：package=" + packageToScan, e);
         }
     }
 }

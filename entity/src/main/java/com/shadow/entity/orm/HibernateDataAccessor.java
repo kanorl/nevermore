@@ -47,6 +47,7 @@ public class HibernateDataAccessor implements DataAccessor {
         return sessionFactory.getCurrentSession();
     }
 
+    @Nullable
     @Override
     public <K extends Serializable, V extends IEntity<K>> V get(@Nonnull K id, @Nonnull Class<V> clazz) {
         return (V) currentSession().get(clazz, id);
@@ -88,6 +89,7 @@ public class HibernateDataAccessor implements DataAccessor {
         return unmodifiableList(emptyIfNull(query.list()));
     }
 
+    @Nonnull
     @Override
     public <V extends IEntity<?>> List<V> query(@Nonnull Class<V> clazz) {
         return query(clazz, null);
