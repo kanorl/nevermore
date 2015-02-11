@@ -43,7 +43,6 @@ public class LoggedExecution {
     }
 
     public void execute(Runnable task) {
-        long startTime = System.currentTimeMillis();
         String taskName = this.taskName;
         if (logLevel.isEnabled()) {
             if (taskNameArgs != null) {
@@ -52,6 +51,7 @@ public class LoggedExecution {
             logLevel.before(taskName);
         }
 
+        long startTime = System.currentTimeMillis();
         try {
             task.run();
         } catch (Exception e) {
@@ -65,7 +65,6 @@ public class LoggedExecution {
     }
 
     public <T> T execute(Callable<T> task) {
-        long startTime = System.currentTimeMillis();
         String taskName = this.taskName;
         if (logLevel.isEnabled()) {
             if (taskNameArgs != null) {
@@ -74,6 +73,7 @@ public class LoggedExecution {
             logLevel.before(taskName);
         }
 
+        long startTime = System.currentTimeMillis();
         T retVal;
         try {
             retVal = task.call();
