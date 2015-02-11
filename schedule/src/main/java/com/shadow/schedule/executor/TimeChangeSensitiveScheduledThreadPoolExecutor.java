@@ -33,7 +33,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package com.shadow.schedule;
+package com.shadow.schedule.executor;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -126,16 +126,21 @@ public class TimeChangeSensitiveScheduledThreadPoolExecutor
         extends ThreadPoolExecutor
         implements ScheduledExecutorService {
 
-    private static final RejectedExecutionHandler defaultHandler = new CallerRunsPolicy();
+    private static final com.shadow.schedule.executor.RejectedExecutionHandler defaultHandler = new CallerRunsPolicy();
 
-    public TimeChangeSensitiveScheduledThreadPoolExecutor(int corePoolSize, long awaitTimeout) {
+    public TimeChangeSensitiveScheduledThreadPoolExecutor(int corePoolSize, long maxAwaitMills) {
         super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
-                new DelayedWorkQueue(awaitTimeout), defaultHandler);
+                new DelayedWorkQueue(maxAwaitMills), defaultHandler);
     }
 
-    public TimeChangeSensitiveScheduledThreadPoolExecutor(int corePoolSize, ThreadFactory threadFactory, long awaitTimeout) {
+    public TimeChangeSensitiveScheduledThreadPoolExecutor(int corePoolSize, long maxAwaitMills, ThreadFactory threadFactory) {
         super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
-                new DelayedWorkQueue(awaitTimeout), threadFactory, defaultHandler);
+                new DelayedWorkQueue(maxAwaitMills), threadFactory, defaultHandler);
+    }
+
+    public TimeChangeSensitiveScheduledThreadPoolExecutor(int corePoolSize, long maxAwaitMills, ThreadFactory threadFactory, com.shadow.schedule.executor.RejectedExecutionHandler rejectedExecutionHandler) {
+        super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
+                new DelayedWorkQueue(maxAwaitMills), threadFactory, rejectedExecutionHandler);
     }
     /*
      * This class specializes ThreadPoolExecutor implementation by
@@ -883,10 +888,10 @@ public class TimeChangeSensitiveScheduledThreadPoolExecutor
          * head of the queue or a new thread may need to become leader.
          */
         private final Condition available = lock.newCondition();
-        private long awaitTimeout;
+        private long maxAwaitMills;
 
         public DelayedWorkQueue(long awaitTimeout) {
-            this.awaitTimeout = awaitTimeout;
+            this.maxAwaitMills = maxAwaitMills;
         }
 
         /**
@@ -1120,7 +1125,7 @@ public class TimeChangeSensitiveScheduledThreadPoolExecutor
                             leader = thisThread;
                             try {
 //                                available.awaitNanos(delay);
-                                available.await((delay > awaitTimeout ? awaitTimeout : delay), MILLISECONDS);
+                                available.await((delay > maxAwaitMills ? maxAwaitMills : delay), MILLISECONDS);
                             } finally {
                                 if (leader == thisThread)
                                     leader = null;

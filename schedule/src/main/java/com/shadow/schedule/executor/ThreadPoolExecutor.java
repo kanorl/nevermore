@@ -33,7 +33,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package com.shadow.schedule;
+package com.shadow.schedule.executor;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -205,8 +205,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * the Executor uses finite bounds for both maximum threads and work queue
  * capacity, and is saturated.  In either case, the {@code execute} method
  * invokes the {@link
- * RejectedExecutionHandler#rejectedExecution(Runnable, ThreadPoolExecutor)}
- * method of its {@link RejectedExecutionHandler}.  Four predefined handler
+ * com.shadow.schedule.executor.RejectedExecutionHandler#rejectedExecution(Runnable, ThreadPoolExecutor)}
+ * method of its {@link com.shadow.schedule.executor.RejectedExecutionHandler}.  Four predefined handler
  * policies are provided:
  * <p>
  * <ol>
@@ -231,7 +231,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * </ol>
  * <p>
  * It is possible to define and use other kinds of {@link
- * RejectedExecutionHandler} classes. Doing so requires some care
+ * com.shadow.schedule.executor.RejectedExecutionHandler} classes. Doing so requires some care
  * especially when policies are designed to work only under particular
  * capacity or queuing policies. </dd>
  * <p>
@@ -521,7 +521,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     /**
      * Handler called when saturated or shutdown in execute.
      */
-    private volatile RejectedExecutionHandler handler;
+    private volatile com.shadow.schedule.executor.RejectedExecutionHandler handler;
 
     /**
      * Timeout in nanoseconds for idle threads waiting for work.
@@ -554,7 +554,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     /**
      * The default rejected execution handler
      */
-    private static final RejectedExecutionHandler defaultHandler =
+    private static final com.shadow.schedule.executor.RejectedExecutionHandler defaultHandler =
             new AbortPolicy();
 
     /**
@@ -1293,7 +1293,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                               long keepAliveTime,
                               TimeUnit unit,
                               BlockingQueue<Runnable> workQueue,
-                              RejectedExecutionHandler handler) {
+                              com.shadow.schedule.executor.RejectedExecutionHandler handler) {
         this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
                 Executors.defaultThreadFactory(), handler);
     }
@@ -1331,7 +1331,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                               TimeUnit unit,
                               BlockingQueue<Runnable> workQueue,
                               ThreadFactory threadFactory,
-                              RejectedExecutionHandler handler) {
+                              com.shadow.schedule.executor.RejectedExecutionHandler handler) {
         if (corePoolSize < 0 ||
                 maximumPoolSize <= 0 ||
                 maximumPoolSize < corePoolSize ||
@@ -1538,7 +1538,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * @throws NullPointerException if handler is null
      * @see #getRejectedExecutionHandler
      */
-    public void setRejectedExecutionHandler(RejectedExecutionHandler handler) {
+    public void setRejectedExecutionHandler(com.shadow.schedule.executor.RejectedExecutionHandler handler) {
         if (handler == null)
             throw new NullPointerException();
         this.handler = handler;
@@ -1548,9 +1548,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * Returns the current handler for unexecutable tasks.
      *
      * @return the current handler
-     * @see #setRejectedExecutionHandler(RejectedExecutionHandler)
+     * @see #setRejectedExecutionHandler(com.shadow.schedule.executor.RejectedExecutionHandler)
      */
-    public RejectedExecutionHandler getRejectedExecutionHandler() {
+    public com.shadow.schedule.executor.RejectedExecutionHandler getRejectedExecutionHandler() {
         return handler;
     }
 
@@ -2036,7 +2036,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * unless the executor has been shut down, in which case the task
      * is discarded.
      */
-    public static class CallerRunsPolicy implements RejectedExecutionHandler {
+    public static class CallerRunsPolicy implements com.shadow.schedule.executor.RejectedExecutionHandler {
         /**
          * Creates a {@code CallerRunsPolicy}.
          */
@@ -2061,7 +2061,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * A handler for rejected tasks that throws a
      * {@code RejectedExecutionException}.
      */
-    public static class AbortPolicy implements RejectedExecutionHandler {
+    public static class AbortPolicy implements com.shadow.schedule.executor.RejectedExecutionHandler {
         /**
          * Creates an {@code AbortPolicy}.
          */
@@ -2086,7 +2086,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * A handler for rejected tasks that silently discards the
      * rejected task.
      */
-    public static class DiscardPolicy implements RejectedExecutionHandler {
+    public static class DiscardPolicy implements com.shadow.schedule.executor.RejectedExecutionHandler {
         /**
          * Creates a {@code DiscardPolicy}.
          */
@@ -2108,7 +2108,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * request and then retries {@code execute}, unless the executor
      * is shut down, in which case the task is discarded.
      */
-    public static class DiscardOldestPolicy implements RejectedExecutionHandler {
+    public static class DiscardOldestPolicy implements com.shadow.schedule.executor.RejectedExecutionHandler {
         /**
          * Creates a {@code DiscardOldestPolicy} for the given executor.
          */

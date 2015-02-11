@@ -33,7 +33,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package com.shadow.schedule;
+package com.shadow.schedule.executor;
 
 /**
  * A handler for tasks that cannot be executed by a {@link ThreadPoolExecutor}.
