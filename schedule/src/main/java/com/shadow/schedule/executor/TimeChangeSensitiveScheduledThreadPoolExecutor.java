@@ -126,7 +126,7 @@ public class TimeChangeSensitiveScheduledThreadPoolExecutor
         extends ThreadPoolExecutor
         implements ScheduledExecutorService {
 
-    private static final com.shadow.schedule.executor.RejectedExecutionHandler defaultHandler = new CallerRunsPolicy();
+    private static final com.shadow.schedule.executor.RejectedExecutionHandler defaultHandler = new AbortPolicy();
 
     public TimeChangeSensitiveScheduledThreadPoolExecutor(int corePoolSize, long maxAwaitMills) {
         super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,

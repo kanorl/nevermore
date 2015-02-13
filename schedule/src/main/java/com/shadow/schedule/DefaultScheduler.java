@@ -1,8 +1,8 @@
 package com.shadow.schedule;
 
-import com.shadow.schedule.executor.ThreadPoolExecutor;
 import com.shadow.schedule.executor.TimeChangeSensitiveScheduledThreadPoolExecutor;
 import com.shadow.util.execution.LoggedExecution;
+import com.shadow.util.thread.NamedThreadFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -25,11 +25,10 @@ public class DefaultScheduler extends ThreadPoolTaskScheduler implements Schedul
     private long maxAwaitMills;
     @Value("${server.schedule.poolSize:16}")
     private int poolSize;
-    private com.shadow.schedule.executor.RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
 
     @Override
     protected ScheduledExecutorService createExecutor(int poolSize, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
-        return new TimeChangeSensitiveScheduledThreadPoolExecutor(this.poolSize, maxAwaitMills, threadFactory, this.rejectedExecutionHandler);
+        return new TimeChangeSensitiveScheduledThreadPoolExecutor(this.poolSize, maxAwaitMills, new NamedThreadFactory("定时任务处理"));
     }
 
     @Override
