@@ -78,7 +78,7 @@ public class LockChain {
      * 判断指定对象的锁是否被当前线程持有(只适用于判断使用{@link com.shadow.entity.lock.LockChain}方式加的锁)
      *
      * @param o Object
-     * @return true - 该对象的锁被当前线程持有 false - 该对象的锁未被当前线程持有(如果o==null，则始终返回false)
+     * @return true - 该对象的锁被当前线程持有<br/> false - 该对象的锁未被当前线程持有(如果o==null，则始终返回false)
      * @see Thread#holdsLock(Object)
      * @see java.util.concurrent.locks.ReentrantLock#isHeldByCurrentThread()
      */

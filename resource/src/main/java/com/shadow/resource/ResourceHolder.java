@@ -9,8 +9,8 @@ import com.shadow.resource.exception.InvalidResourceException;
 import com.shadow.resource.exception.ResourceNotFoundException;
 import com.shadow.resource.exception.ResourcePrimaryKeyNotFoundException;
 import com.shadow.resource.reader.ResourceReader;
-import com.shadow.util.execution.LoggedExecution;
 import com.shadow.util.execution.LogLevel;
+import com.shadow.util.execution.LoggedExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class ResourceHolder<T> {
     @Autowired
     private EventBus eventBus;
 
-    private Map<?, T> resources = Collections.emptyMap();
+    private Map<Object, T> resources = Collections.emptyMap();
     private AtomicReference<Class<T>> typeReference = new AtomicReference<>();
 
     @SuppressWarnings("unchecked")
@@ -74,6 +74,26 @@ public class ResourceHolder<T> {
         return findFirst(predicate).orElseThrow(ResourceNotFoundException::new);
     }
 
+    public T min() {
+        if (resources.isEmpty()) {
+            throw new ResourceNotFoundException();
+        }
+        if (!(resources instanceof NavigableMap)) {
+            throw new UnsupportedOperationException("Resource is not comparable.");
+        }
+        return ((NavigableMap<Object, T>) resources).firstEntry().getValue();
+    }
+
+    public T max() {
+        if (resources.isEmpty()) {
+            throw new ResourceNotFoundException();
+        }
+        if (!(resources instanceof NavigableMap)) {
+            throw new UnsupportedOperationException("Resource is not comparable.");
+        }
+        return ((NavigableMap<Object, T>) resources).lastEntry().getValue();
+    }
+
     public void reload() {
         LoggedExecution.forName("重新加载资源{}", typeReference.get().getSimpleName()).logLevel(LogLevel.ERROR).execute(this::load);
     }
@@ -92,7 +112,7 @@ public class ResourceHolder<T> {
             Map<Object, T> resources;
             if (Comparable.class.isAssignableFrom(resourceType)) {
                 Collections.sort(resourceBeans, (o1, o2) -> ((Comparable) o1).compareTo(((Comparable) o2)));
-                resources = new LinkedHashMap<>();
+                resources = new TreeMap<>();
             } else {
                 resources = new HashMap<>();
             }

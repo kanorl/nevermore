@@ -28,7 +28,7 @@ public @interface LockTarget {
     public enum Type {
 
         /**
-         * 默认的加锁对象类型
+         * 对指定对象加锁
          */
         Object {
             @Override
@@ -39,10 +39,9 @@ public @interface LockTarget {
 
         /**
          * 仅适用于加锁对象为集合或数组时
-         * 表示对该集合或数据中的元素进行加锁
+         * 表示对该集合或数组中的元素进行加锁
          */
         Element {
-            @SuppressWarnings("Convert2MethodRef")
             @Override
             public Collection<?> extract(@Nonnull Object arg) throws IllegalLockTargetException {
                 checkNotNull(arg);
@@ -55,7 +54,7 @@ public @interface LockTarget {
                 } else {
                     throw new IllegalLockTargetException("Unsupported lock target type.(should never happen)");
                 }
-                targets.forEach(e -> checkNotNull(e));
+                targets.forEach(this::checkNotNull);
                 return targets;
             }
         };

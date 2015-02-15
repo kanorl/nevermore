@@ -1,11 +1,11 @@
 package com.shadow.entity.cache;
 
-import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * 实体类缓存接口
@@ -14,11 +14,14 @@ import java.io.Serializable;
  */
 public interface EntityCache<K extends Serializable, V extends IEntity<K>> {
 
-    @Nullable
-    V get(@Nonnull K id);
+    @Nonnull
+    V create(V entity);
 
     @Nonnull
-    V getOrCreate(@Nonnull K id, @Nonnull EntityFactory<V> factory);
+    Optional<V> get(@Nonnull K id);
+
+    @Nonnull
+    V getOrCreate(@Nonnull K id, @Nonnull Supplier<V> factory);
 
     boolean update(@Nonnull V entity);
 

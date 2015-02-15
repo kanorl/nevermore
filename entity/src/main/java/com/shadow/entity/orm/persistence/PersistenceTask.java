@@ -1,8 +1,8 @@
 package com.shadow.entity.orm.persistence;
 
 import com.shadow.entity.IEntity;
-import com.shadow.entity.orm.DataAccessor;
 import com.shadow.entity.cache.CachedEntity;
+import com.shadow.entity.orm.DataAccessor;
 import com.shadow.util.codec.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,23 +32,22 @@ class PersistenceTask implements Runnable {
         final IEntity<?> entity = obj.getEntity();
         PersistenceOperation operation = obj.getOperation();
 
-        boolean isVersionProxy = entity instanceof CachedEntity;
+        boolean isCachedEntity = entity instanceof CachedEntity;
 
-        IEntity<?> actualEntity = isVersionProxy ? ((CachedEntity) entity).getEntity() : entity;
-
-        if (isVersionProxy && ((CachedEntity) entity).isPersisted()) {
+        if (isCachedEntity && ((CachedEntity) entity).isPersisted()) {
             return;
         }
 
+        IEntity<?> actualEntity = isCachedEntity ? ((CachedEntity) entity).getEntity() : entity;
         try {
             operation.perform(dataAccessor, actualEntity);
         } catch (Exception e) {
-            if (!(isVersionProxy && ((CachedEntity) entity).isPersisted())) {
+            if (!(isCachedEntity && ((CachedEntity) entity).isPersisted())) {
                 LOGGER.error(format("入库失败[class={}, entity={}]", actualEntity.getClass().getSimpleName(), JsonUtil.toJson(actualEntity)).getMessage(), e);
                 return;
             }
         }
-        if (isVersionProxy) {
+        if (isCachedEntity) {
             ((CachedEntity) entity).postPersist();// update DB Version to Edit Version
         }
 

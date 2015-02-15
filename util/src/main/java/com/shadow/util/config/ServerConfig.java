@@ -17,8 +17,8 @@ import static com.google.common.base.Preconditions.checkState;
  * @author nevermore on 2015/1/10
  */
 @Component
-public class ServerProperty {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerProperty.class);
+public class ServerConfig {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfig.class);
 
     @Value("${server.socket.port}")
     private String port;

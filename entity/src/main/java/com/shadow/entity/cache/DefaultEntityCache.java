@@ -3,7 +3,6 @@ package com.shadow.entity.cache;
 import com.google.common.cache.*;
 import com.google.common.collect.Sets;
 import com.shadow.entity.CacheableEntity;
-import com.shadow.entity.EntityFactory;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.cache.annotation.Cacheable;
@@ -13,13 +12,16 @@ import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
@@ -38,7 +40,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
     private final Set<K> removing = Sets.newConcurrentHashSet();
     private final CachedEntityWrapper<K, V> entityWrapper;
-    private final Cache<K, V> updating = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.SECONDS).build();
+    private final ConcurrentMap<K, V> updating = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     public DefaultEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
@@ -61,14 +63,27 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         }
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public V get(@Nonnull K id) {
+    public V create(V entity) {
+        requireNonNull(entity);
+        requireNonNull(entity.getId(), "ID不能为null");
+        V entity2 = getOrCreate(entity.getId(), () -> entity);
+        V obj = entity2 instanceof CachedEntity ? ((CachedEntity) entity2).getEntity() : entity2;
+        if (entity != obj) {
+            throw new DuplicateKeyException("重复的主键[" + entity.getId() + "]");
+        }
+        return entity2;
+    }
+
+    @Nonnull
+    @Override
+    public Optional<V> get(@Nonnull K id) {
         requireNonNull(id);
         try {
-            return cache.get(id);
+            return Optional.of(cache.get(id));
         } catch (CacheLoader.InvalidCacheLoadException e) {
-            return null;
+            return Optional.empty();
         } catch (ExecutionException e) {
             // should never reach here
             LOGGER.error(e.getMessage(), e);
@@ -78,7 +93,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
     @Nonnull
     @Override
-    public V getOrCreate(@Nonnull K id, @Nonnull EntityFactory<V> factory) {
+    public V getOrCreate(@Nonnull K id, @Nonnull Supplier<V> factory) {
         requireNonNull(id);
         requireNonNull(factory);
         try {
@@ -88,16 +103,16 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                     return entity;
                 }
 
-                entity = factory.newInstance();
+                entity = factory.get();
                 if (!id.equals(entity.getId())) {
-                    throw new IllegalArgumentException("ID不一致: id=" + id + ", factory.newInstance().getId()=" + entity.getId());
+                    throw new IllegalArgumentException("ID不一致: expected=" + id + ", given=" + entity.getId());
                 }
 
                 V cachedEntity = entityWrapper.wrap(entity);
                 ((CachedEntity) cachedEntity).postEdit();// mark as modified
                 persistenceProcessor.save(cachedEntity, () -> {
                     if (((CachedEntity) cachedEntity).isPersisted()) {
-                        updating.invalidate(cachedEntity.getId());
+                        updating.remove(cachedEntity.getId());
                     }
                 });
                 return cachedEntity;
@@ -122,7 +137,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
         persistenceProcessor.update(entity, () -> {
             if (entity instanceof CachedEntity && ((CachedEntity) entity).isPersisted()) {
-                updating.invalidate(entity.getId());
+                updating.remove(entity.getId());
             }
         });
         return true;
@@ -171,7 +186,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
             }
 
             V dbEntity = dataAccessor.get(key, clazz);
-            V updatingEntity = updating.getIfPresent(key);
+            V updatingEntity = updating.remove(key);
             if (updatingEntity != null) {
                 return entityWrapper.wrap(updatingEntity);
             }

@@ -26,7 +26,7 @@ import static java.util.Collections.unmodifiableSet;
 public class EventListenerManager implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(EventListenerManager.class);
 
-    private final Map<EventListener<Event>, Set<Class<? extends Event>>> listenerScope = new HashMap<>();
+    private Map<EventListener<Event>, Set<Class<? extends Event>>> listenerScope = new HashMap<>();
     private Map<Class<? extends Event>, Set<EventListener<Event>>> eventScope;
 
     /**
@@ -75,6 +75,6 @@ public class EventListenerManager implements BeanPostProcessor, ApplicationListe
             }
         });
         this.eventScope = Collections.unmodifiableMap(eventScope);
-        listenerScope.clear();
+        listenerScope = null;// release as it is useless
     }
 }

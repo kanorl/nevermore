@@ -2,9 +2,9 @@ package com.shadow.entity;
 
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.RegionEntityCache;
-import com.shadow.entity.id.IdGenerator;
+import com.shadow.entity.id.EntityIdGenerator;
 import com.shadow.util.codec.JsonUtil;
-import com.shadow.util.config.ServerProperty;
+import com.shadow.util.config.ServerConfig;
 import com.shadow.util.injection.Injected;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,9 +23,9 @@ public class IdGenerateTest {
     @Injected
     private EntityCache<Long, Player> playerCache;
     @Autowired
-    private IdGenerator idGenerator;
+    private EntityIdGenerator entityIdGenerator;
     @Autowired
-    private ServerProperty serverProperty;
+    private ServerConfig serverConfig;
 
 
     @Test
@@ -36,7 +36,7 @@ public class IdGenerateTest {
         Player player = playerCache.getOrCreate(playerId, () -> Player.valueOf(playerId));
 
 
-        long itemId = idGenerator.next(Item.class, playerId);
+        long itemId = entityIdGenerator.next(Item.class, playerId);
 //        long itemId = 3057944421862473729L;
         Item item = itemCache.create(Item.valueOf(itemId, playerId));
 

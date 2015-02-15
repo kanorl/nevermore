@@ -14,7 +14,6 @@ import javax.annotation.PreDestroy;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
@@ -46,7 +45,7 @@ public class EventBus {
 
     @PreDestroy
     private void shutdown() {
-        ExecutorUtil.shutdownAndAwaitTermination(executorService, "事件处理", 10, TimeUnit.MINUTES);
+        ExecutorUtil.shutdownAndAwaitTermination(executorService, "事件处理");
     }
 
     public void post(@Nonnull Event event) {

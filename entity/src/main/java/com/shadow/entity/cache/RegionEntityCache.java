@@ -11,8 +11,6 @@ import java.util.Collection;
  */
 public interface RegionEntityCache<K extends Serializable, V extends IEntity<K>> extends EntityCache<K, V> {
 
-    V create(@Nonnull V entity);
-
     @Nonnull
     Collection<V> list(@Nonnull Object indexValue);
 

@@ -6,7 +6,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.util.config.ServerProperty;
+import com.shadow.util.config.ServerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +18,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author nevermore on 2015/1/10
  */
 @Component
-public class IdGenerator {
+public class EntityIdGenerator {
 
     @Autowired
-    private ServerProperty serverProperty;
+    private ServerConfig serverConfig;
     @Autowired
     private DataAccessor dataAccessor;
 
@@ -35,7 +35,7 @@ public class IdGenerator {
                             return CacheBuilder.newBuilder().build(new CacheLoader<Short, AtomicLong>() {
                                 @Override
                                 public AtomicLong load(@Nonnull Short server) throws Exception {
-                                    Range range = IdRule.idRange(platform, server);
+                                    Range range = EntityIdRule.idRange(platform, server);
                                     long currentMaxId = dataAccessor.queryMaxId(entityClass, range).orElse(range.getMin());
                                     return new AtomicLong(currentMaxId);
                                 }
@@ -48,15 +48,15 @@ public class IdGenerator {
 
     @PostConstruct
     private void init() {
-        Range range = IdRule.platformRange();
-        for (Short platform : serverProperty.getPlatforms()) {
+        Range range = EntityIdRule.platformRange();
+        for (Short platform : serverConfig.getPlatforms()) {
             Preconditions.checkState(!range.isOutOfRange(platform), "平台标识超出范围: platform=%s, range=%s", platform, range);
         }
     }
 
     public long next(@Nonnull Class<? extends IEntity<Long>> entityClass, short platform, short server) {
         long id = cache.getUnchecked(entityClass).getUnchecked(platform).getUnchecked(server).incrementAndGet();
-        Range range = IdRule.idRange(platform, server);
+        Range range = EntityIdRule.idRange(platform, server);
         if (range.isOutOfRange(id)) {
             throw new IllegalStateException("ID超出范围: class= " + entityClass.getName() + ", server= " + server + ", id=" + id + ", range=" + range);
         }
@@ -64,6 +64,6 @@ public class IdGenerator {
     }
 
     public long next(@Nonnull Class<? extends IEntity<Long>> entityClass, long ownerId) {
-        return next(entityClass, IdRule.platform(ownerId), IdRule.server(ownerId));
+        return next(entityClass, EntityIdRule.platform(ownerId), EntityIdRule.server(ownerId));
     }
 }

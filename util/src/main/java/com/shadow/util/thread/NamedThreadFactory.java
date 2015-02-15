@@ -26,7 +26,7 @@ public final class NamedThreadFactory implements ThreadFactory {
 
     public NamedThreadFactory(String name, boolean isDaemon, int priority) {
         if (priority < Thread.MIN_PRIORITY || priority > Thread.MAX_PRIORITY) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Thread priority out of range.");
         }
         this.name = name;
         this.isDaemon = isDaemon;

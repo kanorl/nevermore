@@ -3,7 +3,7 @@ package com.shadow.entity.id;
 /**
  * @author nevermore on 2015/1/10
  */
-public class IdRule {
+public class EntityIdRule {
 
     private static final int MAX_LEN = 63;// 排除符号位
     private static final int PLATFORM_LEN = 11;

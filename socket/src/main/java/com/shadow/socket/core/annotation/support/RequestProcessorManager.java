@@ -56,11 +56,8 @@ public final class RequestProcessorManager implements BeanPostProcessor {
                 Parameter p = parameters[i];
                 Class<?> paramType = p.getType();
                 MethodParameter methodParameter;
-                if (p.isAnnotationPresent(com.shadow.socket.core.annotation.Session.class)) {
-                    if (paramType != Session.class) {
-                        throw new RuntimeException();
-                    }
-                    methodParameter = new SessionParameter(handlerMethod, paramType, p.getAnnotation(com.shadow.socket.core.annotation.Session.class));
+                if (paramType == Session.class) {
+                    methodParameter = new SessionParameter(handlerMethod, paramType);
                 } else if (p.isAnnotationPresent(SessionAttr.class)) {
                     methodParameter = new SessionAttrParameter(handlerMethod, paramType, p.getAnnotation(SessionAttr.class));
                 } else if (p.isAnnotationPresent(RequestParam.class)) {
