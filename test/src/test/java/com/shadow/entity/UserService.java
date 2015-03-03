@@ -16,7 +16,7 @@ public class UserService {
     private EntityCache<Integer, User> cacheService;
 
     public User getUser(int id) {
-        return cacheService.get(id);
+        return cacheService.get(id).orElse(null);
     }
 
     @AutoLocked

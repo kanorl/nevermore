@@ -11,12 +11,12 @@ public enum LogLevel {
     DEBUG {
         @Override
         public void before(String taskName) {
-            LOGGER.debug(BEFORE_MSG_PATTERN, taskName);
+            LOGGER.debug(START_MSG_PATTERN, taskName);
         }
 
         @Override
         public void after(String taskName, long startTime) {
-            LOGGER.debug(AFTER_MSG_PATTERN, taskName, System.currentTimeMillis() - startTime);
+            LOGGER.debug(FINISH_MSG_PATTERN, taskName, System.currentTimeMillis() - startTime);
         }
 
         @Override
@@ -27,12 +27,12 @@ public enum LogLevel {
     INFO {
         @Override
         public void before(String taskName) {
-            LOGGER.info(BEFORE_MSG_PATTERN, taskName);
+            LOGGER.info(START_MSG_PATTERN, taskName);
         }
 
         @Override
         public void after(String taskName, long startTime) {
-            LOGGER.info(AFTER_MSG_PATTERN, taskName, System.currentTimeMillis() - startTime);
+            LOGGER.info(FINISH_MSG_PATTERN, taskName, System.currentTimeMillis() - startTime);
         }
 
         @Override
@@ -43,12 +43,12 @@ public enum LogLevel {
     ERROR {
         @Override
         public void before(String taskName) {
-            LOGGER.error(BEFORE_MSG_PATTERN, taskName);
+            LOGGER.error(START_MSG_PATTERN, taskName);
         }
 
         @Override
         public void after(String taskName, long startTime) {
-            LOGGER.error(AFTER_MSG_PATTERN, taskName, System.currentTimeMillis() - startTime);
+            LOGGER.error(FINISH_MSG_PATTERN, taskName, System.currentTimeMillis() - startTime);
         }
 
         @Override
@@ -57,8 +57,8 @@ public enum LogLevel {
         }
     };
 
-    private static final String BEFORE_MSG_PATTERN = "开始 {}......";
-    private static final String AFTER_MSG_PATTERN = "完成 {}，耗时 {}ms.";
+    private static final String START_MSG_PATTERN = "开始 {}......";
+    private static final String FINISH_MSG_PATTERN = "完成 {}，耗时 {}ms.";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(LogLevel.class);
 

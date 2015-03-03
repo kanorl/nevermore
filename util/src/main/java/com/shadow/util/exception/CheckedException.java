@@ -5,6 +5,9 @@ package com.shadow.util.exception;
  */
 public abstract class CheckedException extends RuntimeException {
 
+    public CheckedException() {
+    }
+
     public CheckedException(String msg) {
         super(msg);
     }

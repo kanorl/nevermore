@@ -57,4 +57,14 @@ public class EventBus {
         }
         listeners.forEach(listener -> executorService.submit(() -> listener.onEvent(event)));
     }
+
+    public void syncPost(@Nonnull Event event) {
+        requireNonNull(event, "事件不能为null");
+        Set<EventListener<Event>> listeners = eventListenerManager.getListeners(event.getClass());
+        if (listeners.isEmpty()) {
+            LOGGER.error("未被监听的事件类型[{}]", event.getClass().getName());
+            return;
+        }
+        listeners.forEach(listener -> listener.onEvent(event));
+    }
 }

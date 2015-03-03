@@ -7,7 +7,7 @@ import com.shadow.socket.core.annotation.RequestParam;
 /**
  * @author nevermore on 2015/2/13
  */
-@RequestHandler(module = 0)
+@RequestHandler(module = 9998)
 public interface FacadeService {
 
     @HandlerMethod(cmd = 1)

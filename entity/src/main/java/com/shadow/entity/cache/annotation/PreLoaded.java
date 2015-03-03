@@ -25,7 +25,7 @@ public @interface PreLoaded {
         NAMED_QUERY {
             @Override
             public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, Class<T> clazz) {
-                return dataAccessor.namedQuery(clazz, clazz.getSimpleName() + ".init");
+                return dataAccessor.namedQuery(clazz.getSimpleName() + ".init");
             }
         },
         ALL {

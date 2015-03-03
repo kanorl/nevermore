@@ -36,6 +36,7 @@ public class JsonUtil {
                                 .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
                                 .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
                                 .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                                .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE)
                 );
     }
 

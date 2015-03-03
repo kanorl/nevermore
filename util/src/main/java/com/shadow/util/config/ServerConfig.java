@@ -1,11 +1,13 @@
 package com.shadow.util.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Splitter;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.shadow.util.codec.JsonUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
  * @author nevermore on 2015/1/10
  */
 @Component
-public class ServerConfig {
+public class ServerConfig implements InitializingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfig.class);
 
     @Value("${server.socket.port}")
@@ -32,13 +34,13 @@ public class ServerConfig {
     @Value("${server.config.servers}")
     public void setServers(String servers) {
         checkState(this.servers == null, "重复初始化");
-        Map<String, Set<Short>> map = JsonUtil.fromJson(servers, new TypeReference<Map<String, Set<Short>>>() {
+        Map<Short, Set<Short>> map = JsonUtil.fromJson(servers, new TypeReference<Map<Short, Set<Short>>>() {
         });
         Map<Short, List<Short>> serverMap = Maps.newHashMapWithExpectedSize(map.size());
         map.forEach((k, v) -> {
             List<Short> serverList = new ArrayList<>(v);
             Collections.sort(serverList);
-            serverMap.put(toPlatform(k), Collections.unmodifiableList(serverList));
+            serverMap.put(k, Collections.unmodifiableList(serverList));
         });
 
         if (serverMap.isEmpty()) {
@@ -50,20 +52,12 @@ public class ServerConfig {
     }
 
     @Value("${server.config.platforms}")
-    public void setPlatforms(String platformString) {
+    public void setPlatforms(String platforms) {
         checkState(this.platforms == null, "重复初始化");
-        this.platforms = Maps.uniqueIndex(Splitter.on(",").split(platformString), this::toPlatform);
+        this.platforms = JsonUtil.fromJson(platforms, new TypeReference<Map<Short, String>>() {
+        });
 
-        LOGGER.error("平台标识：platforms=", this.platforms);
-    }
-
-    private short toPlatform(String platformName) {
-        short id = 0;
-        char[] arr = platformName.toCharArray();
-        for (int i = 0; i < arr.length; i++) {
-            id += arr[i] * i;
-        }
-        return id;
+        LOGGER.error("平台标识：platforms={}", this.platforms);
     }
 
     public Set<Short> getPlatforms() {
@@ -72,5 +66,11 @@ public class ServerConfig {
 
     public List<Short> getServers(short platform) {
         return servers.getOrDefault(platform, Collections.emptyList());
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        // check config
+        Preconditions.checkState(CollectionUtils.isEqualCollection(platforms.keySet(), servers.keySet()), "平台标识不匹配: platforms=%s, servers=%s", platforms, servers);
     }
 }

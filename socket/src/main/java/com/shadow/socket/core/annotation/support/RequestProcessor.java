@@ -32,9 +32,13 @@ public class RequestProcessor {
         return requestProcessor;
     }
 
-    public Object handle(@Nonnull Request request) throws InvocationTargetException, IllegalAccessException {
+    public Object handle(@Nonnull Request request) throws InvocationTargetException {
         Object[] args = getArgs(checkNotNull(request));
-        return method.invoke(invoker, args);
+        try {
+            return method.invoke(invoker, args);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("should never happen.");
+        }
     }
 
     public boolean isOmitResponse() {

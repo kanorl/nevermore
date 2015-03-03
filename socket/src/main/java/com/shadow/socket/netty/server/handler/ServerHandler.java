@@ -3,10 +3,11 @@ package com.shadow.socket.netty.server.handler;
 import com.shadow.socket.core.annotation.support.RequestProcessor;
 import com.shadow.socket.core.annotation.support.RequestProcessorManager;
 import com.shadow.socket.core.domain.*;
-import com.shadow.util.exception.CheckedException;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.netty.server.session.ServerSessionHandler;
 import com.shadow.util.codec.ProtostuffCodec;
+import com.shadow.util.exception.CheckedException;
+import com.shadow.util.exception.CheckedExceptionCode;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -46,22 +47,24 @@ public class ServerHandler extends ChannelDuplexHandler {
 
         RequestProcessor requestProcessor = requestProcessorManager.getProcessor(request);
 
-        Object content = null;
-        int code = 0;
+        Object result = null;
+        int code = CheckedExceptionCode.SUCCESS;
         try {
-            content = requestProcessor.handle(request);
-        } catch (CheckedException e) {
-            code = e.code();
-            LOGGER.error(e.getMessage(), e);
+            result = requestProcessor.handle(request);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (e.getCause() instanceof CheckedException) {
+                code = ((CheckedException) e.getCause()).code();
+            } else {
+                code = CheckedExceptionCode.UNKNOWN;
+                LOGGER.error("处理请求发生异常: " + request.getCommand(), e);
+            }
         }
 
         if (requestProcessor.isOmitResponse()) {
             return;
         }
 
-        Response response = Response.valueOf(request.getCommand(), Result.valueOf(code, content));
+        Response response = Response.valueOf(request.getCommand(), Result.valueOf(code, result));
         request.getSession().write(response);
 
         super.channelRead(ctx, msg);

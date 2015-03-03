@@ -70,7 +70,7 @@ public class ServerSessionHandler extends ChannelInboundHandlerAdapter implement
     @Override
     public void bind(Session session, Object identity) {
         if (session.setAttrIfAbsent(AttrKey.IDENTITY, identity).isPresent()) {
-            throw new IllegalStateException("Session已被绑定：identity=" + session.getAttr(AttrKey.IDENTITY));
+            throw new IllegalStateException("Session已被绑定：identity=" + session.getAttr(AttrKey.IDENTITY).get());
         }
         IDENTIFIED_SESSIONS.put(identity, session);
     }
@@ -89,7 +89,8 @@ public class ServerSessionHandler extends ChannelInboundHandlerAdapter implement
         return getSession(identity).isPresent();
     }
 
-    private Optional<Session> getSession(Object identity) {
+    @Override
+    public Optional<Session> getSession(Object identity) {
         return Optional.ofNullable(IDENTIFIED_SESSIONS.get(identity));
     }
 }

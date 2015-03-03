@@ -5,5 +5,7 @@ package com.shadow.util.exception;
  */
 public interface CheckedExceptionCode {
     int SUCCESS = 0;
-    int RESOURCE_NOT_FOUND = -1;
+    int UNKNOWN = -1;
+    int OPERATION_FAILED = -2;
+    int RESOURCE_NOT_FOUND = -3;
 }

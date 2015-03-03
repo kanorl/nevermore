@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author nevermore on 2014/11/30.
  */
-@RequestHandler(module = 1)
+@RequestHandler(module = 9999)
 @Component
 public class RequestHandlerTest {
 

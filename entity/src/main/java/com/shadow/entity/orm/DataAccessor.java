@@ -1,7 +1,7 @@
 package com.shadow.entity.orm;
 
+import com.google.common.collect.Range;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.id.Range;
 import org.hibernate.criterion.Projection;
 
 import javax.annotation.Nonnull;
@@ -29,7 +29,7 @@ public interface DataAccessor {
 
     <V extends IEntity<?>> void saveOrUpdate(@Nonnull V v);
 
-    <V extends IEntity<?>> List<V> namedQuery(@Nonnull Class<V> clazz, @Nonnull String queryName, @Nullable Object... queryParams);
+    <E> List<E> namedQuery(@Nonnull String queryName, @Nullable Object... queryParams);
 
     @Nonnull
     <V extends IEntity<?>> List<V> query(@Nonnull Class<V> clazz);
@@ -40,5 +40,5 @@ public interface DataAccessor {
     @Nonnull
     <K extends Serializable, V extends IEntity<K>> List<K> queryIds(@Nonnull Class<V> clazz, @Nonnull Map<String, Object> stringObjectMap);
 
-    <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range range);
+    <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range<?> range);
 }

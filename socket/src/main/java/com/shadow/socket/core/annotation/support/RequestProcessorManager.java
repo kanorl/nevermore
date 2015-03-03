@@ -87,7 +87,7 @@ public final class RequestProcessorManager implements BeanPostProcessor {
 
     private static class UnknownRequestProcessor extends RequestProcessor {
         @Override
-        public Object handle(@Nonnull Request request) throws InvocationTargetException, IllegalAccessException {
+        public Object handle(@Nonnull Request request) throws InvocationTargetException {
             LOGGER.error("No processor for " + request.getCommand());
             return null;
         }

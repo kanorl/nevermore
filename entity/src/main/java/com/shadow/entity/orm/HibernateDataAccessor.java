@@ -1,7 +1,7 @@
 package com.shadow.entity.orm;
 
+import com.google.common.collect.Range;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.id.Range;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -78,7 +78,7 @@ public class HibernateDataAccessor implements DataAccessor {
     }
 
     @Override
-    public <V extends IEntity<?>> List<V> namedQuery(@Nonnull Class<V> clazz, @Nonnull String queryName, @Nullable Object... queryParams) {
+    public <E> List<E> namedQuery(@Nonnull String queryName, @Nullable Object... queryParams) {
         Query query = currentSession().getNamedQuery(queryName);
         if (queryParams != null) {
             for (int i = 0; i < queryParams.length; i++) {
@@ -117,8 +117,8 @@ public class HibernateDataAccessor implements DataAccessor {
     }
 
     @Override
-    public <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range range) {
+    public <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range<?> range) {
         String pName = sessionFactory.getClassMetadata(clazz).getIdentifierPropertyName();
-        return Optional.ofNullable((K) currentSession().createCriteria(clazz).add(Restrictions.between(pName, range.getMin(), range.getMax())).setProjection(Projections.max(pName)).uniqueResult());
+        return Optional.ofNullable((K) currentSession().createCriteria(clazz).add(Restrictions.between(pName, range.lowerEndpoint(), range.upperEndpoint())).setProjection(Projections.max(pName)).uniqueResult());
     }
 }

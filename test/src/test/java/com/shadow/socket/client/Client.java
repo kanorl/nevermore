@@ -139,7 +139,8 @@ public class Client {
         Map<String, Object> map = Maps.newHashMapWithExpectedSize(params.size());
         for (Param param : params) {
             if (param.getKey() != null) {
-                map.put(param.getKey(), JsonUtil.toObject(param.getValue(), param.getType()));
+                Object value = param.getType() == String.class ? param.getValue() : JsonUtil.toObject(param.getValue(), param.getType());
+                map.put(param.getKey(), value);
             }
         }
 

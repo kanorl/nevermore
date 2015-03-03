@@ -3,6 +3,8 @@ package com.shadow.socket.client.ui;
 
 import com.shadow.socket.client.model.Option;
 import com.shadow.socket.client.model.Param;
+import com.shadow.test.module.player.model.Country;
+import com.shadow.test.module.player.model.Gender;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -15,7 +17,7 @@ import java.util.Collection;
 public class ParamPanel extends JPanel {
     private static final long serialVersionUID = 5113480619726942485L;
 
-    private final Class<?>[] types = {Integer.class, String.class, Long.class};
+    private final Class<?>[] types = {Integer.class, String.class, Long.class, Gender.class, Country.class};
 
     private final JTable table;
 

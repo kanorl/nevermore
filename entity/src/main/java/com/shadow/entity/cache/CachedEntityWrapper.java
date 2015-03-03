@@ -248,15 +248,15 @@ public class CachedEntityWrapper<K extends Serializable, V extends IEntity<K>> {
         return entityClass.getCanonicalName() + "$PROXY";
     }
 
-    private CtClass[] getCtClasses(Class<?>... classes) throws Exception {
-        CtClass[] ctClasses = new CtClass[classes.length];
-        for (int i = 0; i < classes.length; i++) {
-            ctClasses[i] = getCtClass(classes[i]);
-        }
-        return ctClasses;
+    private CtClass[] getCtClasses(Class<?>... classes) {
+        return Arrays.stream(classes).map(this::getCtClass).toArray(CtClass[]::new);
     }
 
-    private CtClass getCtClass(Class<?> clazz) throws Exception {
-        return CLASS_POOL.get(clazz.getCanonicalName());
+    private CtClass getCtClass(Class<?> clazz) {
+        try {
+            return CLASS_POOL.get(clazz.getCanonicalName());
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Range;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.util.config.ServerConfig;
@@ -35,8 +36,8 @@ public class EntityIdGenerator {
                             return CacheBuilder.newBuilder().build(new CacheLoader<Short, AtomicLong>() {
                                 @Override
                                 public AtomicLong load(@Nonnull Short server) throws Exception {
-                                    Range range = EntityIdRule.idRange(platform, server);
-                                    long currentMaxId = dataAccessor.queryMaxId(entityClass, range).orElse(range.getMin());
+                                    Range<Long> range = EntityIdRule.idRange(platform, server);
+                                    long currentMaxId = dataAccessor.queryMaxId(entityClass, range).orElse(range.lowerEndpoint());
                                     return new AtomicLong(currentMaxId);
                                 }
                             });
@@ -48,16 +49,16 @@ public class EntityIdGenerator {
 
     @PostConstruct
     private void init() {
-        Range range = EntityIdRule.platformRange();
+        Range<Short> range = EntityIdRule.platformRange();
         for (Short platform : serverConfig.getPlatforms()) {
-            Preconditions.checkState(!range.isOutOfRange(platform), "平台标识超出范围: platform=%s, range=%s", platform, range);
+            Preconditions.checkState(range.contains(platform), "平台标识超出范围: platform=%s, range=%s", platform, range);
         }
     }
 
     public long next(@Nonnull Class<? extends IEntity<Long>> entityClass, short platform, short server) {
         long id = cache.getUnchecked(entityClass).getUnchecked(platform).getUnchecked(server).incrementAndGet();
-        Range range = EntityIdRule.idRange(platform, server);
-        if (range.isOutOfRange(id)) {
+        Range<Long> range = EntityIdRule.idRange(platform, server);
+        if (!range.contains(id)) {
             throw new IllegalStateException("ID超出范围: class= " + entityClass.getName() + ", server= " + server + ", id=" + id + ", range=" + range);
         }
         return id;
