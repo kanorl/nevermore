@@ -17,7 +17,7 @@ public class App {
         try {
             ctx = new ClassPathXmlApplicationContext("/applicationContext.xml");
         } catch (Exception e) {
-            LOGGER.error("初始化失败", e);
+            LOGGER.error("应用上下文初始化失败", e);
             throw new RuntimeException(e);
         }
         ctx.registerShutdownHook();
@@ -29,10 +29,6 @@ public class App {
             } catch (InterruptedException e) {
                 LOGGER.error(e.getMessage(), e);
             }
-        }
-
-        while (ctx.isRunning()) {
-            Thread.yield();
         }
 
         LOGGER.error("服务器已关闭......");
