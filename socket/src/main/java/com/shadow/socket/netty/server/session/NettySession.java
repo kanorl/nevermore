@@ -7,7 +7,7 @@ import io.netty.channel.Channel;
  * @author nevermore on 2014/11/26
  */
 public final class NettySession extends AbstractSession {
-    private Channel channel;
+    private transient Channel channel;
     private long id;
 
     private NettySession() {
