@@ -5,7 +5,7 @@ import com.shadow.socket.core.annotation.support.RequestProcessorManager;
 import com.shadow.socket.core.domain.*;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.netty.server.session.ServerSessionHandler;
-import com.shadow.util.codec.ProtostuffCodec;
+import com.shadow.util.codec.Codec;
 import com.shadow.util.exception.CheckedException;
 import com.shadow.util.exception.CheckedExceptionCode;
 import io.netty.channel.ChannelDuplexHandler;
@@ -29,12 +29,14 @@ public class ServerHandler extends ChannelDuplexHandler {
     private ServerSessionHandler sessionHandler;
     @Autowired
     private RequestProcessorManager requestProcessorManager;
+    @Autowired
+    private Codec codec;
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (msg instanceof Response) {
             Response response = (Response) msg;
-            byte[] body = ProtostuffCodec.encode(response.getResult());
+            byte[] body = codec.encode(response.getResult());
             msg = Message.valueOf(response.getCommand(), body);
         }
         super.write(ctx, msg, promise);
@@ -71,7 +73,7 @@ public class ServerHandler extends ChannelDuplexHandler {
     }
 
     private Request message2Request(Message msg, Session session) {
-        ParameterContainer pc = ProtostuffCodec.decode(msg.getBody(), ParameterContainer.class);
+        ParameterContainer pc = codec.decode(msg.getBody(), ParameterContainer.class);
         return Request.valueOf(msg.getCommand(), pc, session);
     }
 

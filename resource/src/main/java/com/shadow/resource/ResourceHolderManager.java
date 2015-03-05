@@ -26,9 +26,9 @@ public class ResourceHolderManager implements ApplicationContextAware, Applicati
         Set<Class<?>> resourceTypes = ReflectUtil.getTypesAnnotatedWith(Resource.class);
         resourceTypes.forEach(resourceType -> {
             ResourceHolder<?> resourceHolder = applicationContext.getAutowireCapableBeanFactory().createBean(ResourceHolder.class);
+            resourceHolder.initialize(resourceType);
             holders.putIfAbsent(resourceType, resourceHolder);
         });
-        holders.forEach((k, v) -> v.initialize(k));
     }
 
     public <V> ResourceHolder<?> getResourceHolder(Class<V> clazz) {

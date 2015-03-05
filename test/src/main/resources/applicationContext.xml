@@ -45,4 +45,6 @@
         <property name="ignoreTag" value="NO"/>
         <property name="endTag" value="END"/>
     </bean>
+
+    <bean id="codec" class="com.shadow.util.codec.ProtostuffCodec"/>
 </beans>

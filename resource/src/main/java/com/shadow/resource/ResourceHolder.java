@@ -19,7 +19,6 @@ import org.springframework.util.ReflectionUtils;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -35,19 +34,19 @@ public class ResourceHolder<T> {
     private EventBus eventBus;
 
     private Map<Object, T> resources = Collections.emptyMap();
-    private AtomicReference<Class<T>> typeReference = new AtomicReference<>();
+    private volatile Class<T> resourceType;
 
     @SuppressWarnings("unchecked")
     public void initialize(Class<?> type) {
-        if (!typeReference.compareAndSet(null, (Class<T>) type)) {
-            throw new IllegalStateException("重复初始化");
-        }
+        assert resourceType == null;
+
+        resourceType = (Class<T>) type;
         load();
     }
 
     @Nonnull
     public T get(@Nonnull Object id) {
-        return find(id).orElseThrow(() -> new ResourceNotFoundException("id=" + id + ", class=" + typeReference.get().getSimpleName()));
+        return find(id).orElseThrow(() -> new ResourceNotFoundException("id=" + id + ", class=" + resourceType.getSimpleName()));
     }
 
     public Optional<T> find(@Nonnull Object id) {
@@ -95,13 +94,12 @@ public class ResourceHolder<T> {
     }
 
     public void reload() {
-        LoggedExecution.forName("重新加载资源{}", typeReference.get().getSimpleName()).logLevel(LogLevel.ERROR).execute(this::load);
+        LoggedExecution.forName("重新加载资源{}", resourceType.getSimpleName()).logLevel(LogLevel.ERROR).execute(this::load);
     }
 
     @SuppressWarnings("unchecked")
     private synchronized void load() {
-        LoggedExecution.forName("加载资源{}", typeReference.get().getSimpleName()).execute(() -> {
-            Class<T> resourceType = typeReference.get();
+        LoggedExecution.forName("加载资源{}", resourceType.getSimpleName()).execute(() -> {
             List<T> resourceBeans = resourceReader.read(resourceType);
             if (Validatable.class.isAssignableFrom(resourceType)) {
                 resourceBeans.forEach(bean -> Preconditions.checkState(((Validatable) bean).isValid(), new InvalidResourceException(bean)));

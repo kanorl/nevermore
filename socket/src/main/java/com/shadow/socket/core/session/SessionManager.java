@@ -1,5 +1,6 @@
 package com.shadow.socket.core.session;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -7,11 +8,13 @@ import java.util.Optional;
  */
 public interface SessionManager {
 
-    Optional<Session> getSession(Object identity);
+    Optional<Session> getSession(long identity);
 
-    void bind(Session session, Object identity);
+    void bind(Session session, long identity);
 
-    void write(Object identity, Object data);
+    void write(long identity, short module, short cmd, Object data);
 
-    boolean isOnline(Object identity);
+    void write(Collection<Long> identities, short module, short cmd, Object data);
+
+    boolean isOnline(long identity);
 }

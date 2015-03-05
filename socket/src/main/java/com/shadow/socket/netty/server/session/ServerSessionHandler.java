@@ -1,16 +1,22 @@
 package com.shadow.socket.netty.server.session;
 
+import com.shadow.event.EventBus;
 import com.shadow.socket.core.domain.AttrKey;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.core.session.SessionManager;
+import com.shadow.util.codec.Codec;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.AttributeKey;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -23,12 +29,17 @@ import java.util.concurrent.atomic.AtomicLong;
 @ChannelHandler.Sharable
 public class ServerSessionHandler extends ChannelInboundHandlerAdapter implements SessionManager {
 
+    @Autowired
+    private EventBus eventBus;
+    @Autowired
+    private Codec codec;
+
     private final AtomicLong ID_GENERATOR = new AtomicLong();
     private final ConcurrentMap<Long, Session> SESSIONS = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Object, Session> IDENTIFIED_SESSIONS = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Session> IDENTIFIED_SESSIONS = new ConcurrentHashMap<>();
     private final AttributeKey<Session> SESSION_ATTRIBUTE_KEY = AttributeKey.valueOf("session");
     private static final int MAX_ID_LENGTH = String.valueOf(Long.MAX_VALUE).length();
-    private static final int SUFFIX_MAX = 2 << 12; // 8192
+    private static final int SUFFIX_MAX = 1 << 13; // 8192
     private static final char APPENDER = '0';
 
     @Override
@@ -48,6 +59,7 @@ public class ServerSessionHandler extends ChannelInboundHandlerAdapter implement
         if (session != null) {
             SESSIONS.remove(session.getId());
             session.getAttr(AttrKey.IDENTITY).ifPresent(IDENTIFIED_SESSIONS::remove);
+            eventBus.post(SessionClosedEvent.valueOf(session, session.getAttr(AttrKey.IDENTITY)));
         }
         super.channelInactive(ctx);
     }
@@ -68,7 +80,7 @@ public class ServerSessionHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
-    public void bind(Session session, Object identity) {
+    public void bind(Session session, long identity) {
         if (session.setAttrIfAbsent(AttrKey.IDENTITY, identity).isPresent()) {
             throw new IllegalStateException("Session已被绑定：identity=" + session.getAttr(AttrKey.IDENTITY).get());
         }
@@ -80,17 +92,22 @@ public class ServerSessionHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
-    public void write(Object identity, Object data) {
+    public void write(long identity, short module, short cmd, Object data) {
         getSession(identity).ifPresent(session -> session.write(data));
     }
 
     @Override
-    public boolean isOnline(Object identity) {
+    public void write(Collection<Long> identities, short module, short cmd, Object data) {
+        ByteBuf buf = Unpooled.copiedBuffer(codec.encode(data));
+    }
+
+    @Override
+    public boolean isOnline(long identity) {
         return getSession(identity).isPresent();
     }
 
     @Override
-    public Optional<Session> getSession(Object identity) {
+    public Optional<Session> getSession(long identity) {
         return Optional.ofNullable(IDENTIFIED_SESSIONS.get(identity));
     }
 }

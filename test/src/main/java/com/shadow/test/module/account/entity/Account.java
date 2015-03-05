@@ -18,6 +18,7 @@ public class Account extends CacheableEntity<Long> {
 
     @Id
     private Long id;
+    @Column(unique = true)
     private String name;
     private Date registerTime;
     private Date loginTime;

@@ -7,17 +7,16 @@ import io.netty.channel.Channel;
  * @author nevermore on 2014/11/26
  */
 public final class NettySession extends AbstractSession {
-    private transient Channel channel;
-    private long id;
+    private final transient Channel channel;
+    private final long id;
 
-    private NettySession() {
+    private NettySession(long id, Channel channel) {
+        this.id = id;
+        this.channel = channel;
     }
 
     public static NettySession valueOf(long id, Channel channel) {
-        NettySession nettySession = new NettySession();
-        nettySession.id = id;
-        nettySession.channel = channel;
-        return nettySession;
+        return new NettySession(id, channel);
     }
 
     @Override

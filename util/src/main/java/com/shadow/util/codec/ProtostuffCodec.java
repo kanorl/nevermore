@@ -16,9 +16,9 @@ import static java.util.Objects.requireNonNull;
  * @author nevermore on 2014/11/27
  */
 @SuppressWarnings("unchecked")
-public class ProtostuffCodec {
+public class ProtostuffCodec implements Codec {
 
-    public static <T> T decode(@Nonnull byte[] data, Class<T> type) {
+    public static <T> T toObject(@Nonnull byte[] data, Class<T> type) {
         requireNonNull(data);
         requireNonNull(type);
 
@@ -29,7 +29,7 @@ public class ProtostuffCodec {
     }
 
     @Nonnull
-    public static <T> byte[] encode(T obj) {
+    public static <T> byte[] getBytes(T obj) {
         if (obj == null) {
             return ArrayUtils.EMPTY_BYTE_ARRAY;
         }
@@ -38,5 +38,15 @@ public class ProtostuffCodec {
         Class<T> clazz = (Class<T>) obj.getClass();
         Schema<T> schema = RuntimeSchema.getSchema(clazz);
         return ProtostuffIOUtil.toByteArray(obj, schema, buffer);
+    }
+
+    @Override
+    public <T> T decode(@Nonnull byte[] data, @Nonnull Class<T> type) {
+        return toObject(data, type);
+    }
+
+    @Override
+    public <T> byte[] encode(@Nonnull T obj) {
+        return getBytes(obj);
     }
 }

@@ -106,7 +106,7 @@ public class ExcelReader implements ResourceReader {
                 return row.getRowNum() + 1;
             }
         }
-        throw new IllegalStateException();
+        throw new IllegalStateException("Tag[" + cfg.getTitleTag() + "] not found");
     }
 
     private Map<String, Integer> columnIndexes(Sheet sheet) {

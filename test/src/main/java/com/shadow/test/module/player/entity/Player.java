@@ -18,6 +18,7 @@ public class Player extends CacheableEntity<Long> {
 
     @Id
     private Long id;
+    @Column(unique = true)
     private String name;
     private Gender gender = Gender.MALE;
     private Country country = Country.ONE;
