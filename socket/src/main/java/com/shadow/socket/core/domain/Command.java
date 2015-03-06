@@ -1,26 +1,27 @@
 package com.shadow.socket.core.domain;
 
+import com.google.common.primitives.Shorts;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import java.nio.ByteBuffer;
 
 /**
  * @author nevermore on 2014/11/26.
  */
 public final class Command {
-    private short module;
-    private byte cmd;
+    private final byte[] array = new byte[3];
 
-    public static Command valueOf(short module, byte cmd) {
-        Command command = new Command();
-        command.module = module;
-        command.cmd = cmd;
-        return command;
+    public Command(short module, byte cmd) {
+        array[0] = (byte) (module >> 8);
+        array[1] = (byte) module;
+        array[2] = cmd;
     }
 
-    public byte[] toBytes() {
-        return ByteBuffer.allocate(3).putShort(module).put(cmd).array();
+    public static Command valueOf(short module, byte cmd) {
+        return new Command(module, cmd);
+    }
+
+    public byte[] bytes() {
+        return array;
     }
 
     @Override
@@ -36,29 +37,27 @@ public final class Command {
         }
         Command other = (Command) obj;
         return new EqualsBuilder()
-                .append(other.module, this.module)
-                .append(other.cmd, this.cmd)
+                .append(other.array, this.array)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 31)
-                .append(module)
-                .append(cmd)
+                .append(array)
                 .hashCode();
     }
 
     @Override
     public String toString() {
-        return "Command[module=" + module + ", cmd=" + cmd + "]";
+        return "Command[module=" + getModule() + ", cmd=" + getCmd() + "]";
     }
 
     public short getModule() {
-        return module;
+        return Shorts.fromBytes(array[0], array[1]);
     }
 
     public byte getCmd() {
-        return cmd;
+        return array[2];
     }
 }

@@ -1,7 +1,10 @@
 package com.shadow.socket.netty.server.session;
 
+import com.google.common.collect.Sets;
 import com.shadow.event.EventBus;
 import com.shadow.socket.core.domain.AttrKey;
+import com.shadow.socket.core.domain.Command;
+import com.shadow.socket.core.domain.Result;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.core.session.SessionManager;
 import com.shadow.util.codec.Codec;
@@ -12,6 +15,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.AttributeKey;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,6 +25,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 /**
  * @author nevermore on 2014/11/30.
@@ -92,13 +97,39 @@ public class ServerSessionHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
-    public void write(long identity, short module, short cmd, Object data) {
-        getSession(identity).ifPresent(session -> session.write(data));
+    public void send(long target, Command command, Object data) {
+        send(target, toByteBuf(command, data));
     }
 
     @Override
-    public void write(Collection<Long> identities, short module, short cmd, Object data) {
-        ByteBuf buf = Unpooled.copiedBuffer(codec.encode(data));
+    public void send(Collection<Long> targets, Command command, Object data) {
+        if (CollectionUtils.isEmpty(targets)) {
+            return;
+        }
+
+        ByteBuf msg = toByteBuf(command, data);
+        targets.forEach(id -> send(id, msg.duplicate().retain()));
+    }
+
+    @Override
+    public void sendAll(Command command, Object data) {
+        send(IDENTIFIED_SESSIONS.keySet(), command, data);
+    }
+
+    @Override
+    public void sendOnly(Command command, Object data, Predicate<Long> predicate) {
+        send(Sets.filter(IDENTIFIED_SESSIONS.keySet(), predicate::test), command, data);
+    }
+
+    private void send(Long identity, ByteBuf msg) {
+        if (identity == null) {
+            return;
+        }
+        getSession(identity).ifPresent(session -> session.send(msg));
+    }
+
+    private ByteBuf toByteBuf(Command command, Object data) {
+        return Unpooled.wrappedBuffer(command.bytes(), codec.encode(Result.success(data)));
     }
 
     @Override

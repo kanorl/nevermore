@@ -13,7 +13,7 @@ public interface Session {
 
     long getId();
 
-    void write(Object data);
+    void send(Object data);
 
     <T> Optional<T> getAttr(AttrKey key);
 

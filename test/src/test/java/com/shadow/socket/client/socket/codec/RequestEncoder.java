@@ -10,7 +10,7 @@ public class RequestEncoder extends MessageToByteEncoder<Request> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Request msg, ByteBuf out) throws Exception {
-        byte[] commandBytes = msg.getCommand().toBytes();
+        byte[] commandBytes = msg.getCommand().bytes();
         byte[] data = ProtostuffCodec.getBytes(msg.getBody());
 
         out.writeInt(commandBytes.length + data.length);

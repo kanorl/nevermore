@@ -2,16 +2,18 @@ package com.shadow.socket.netty.server.handler;
 
 import com.shadow.socket.core.annotation.support.RequestProcessor;
 import com.shadow.socket.core.annotation.support.RequestProcessorManager;
-import com.shadow.socket.core.domain.*;
+import com.shadow.socket.core.domain.Message;
+import com.shadow.socket.core.domain.ParameterContainer;
+import com.shadow.socket.core.domain.Request;
+import com.shadow.socket.core.domain.Result;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.netty.server.session.ServerSessionHandler;
 import com.shadow.util.codec.Codec;
 import com.shadow.util.exception.CheckedException;
 import com.shadow.util.exception.CheckedExceptionCode;
-import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ChannelHandler.Sharable
-public class ServerHandler extends ChannelDuplexHandler {
+public class ServerHandler extends SimpleChannelInboundHandler<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
 
     @Autowired
@@ -33,19 +35,8 @@ public class ServerHandler extends ChannelDuplexHandler {
     private Codec codec;
 
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof Response) {
-            Response response = (Response) msg;
-            byte[] body = codec.encode(response.getResult());
-            msg = Message.valueOf(response.getCommand(), body);
-        }
-        super.write(ctx, msg, promise);
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        Message message = (Message) msg;
-        Request request = message2Request(message, sessionHandler.getSession(ctx.channel()));
+    public void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
+        Request request = message2Request(msg, sessionHandler.getSession(ctx.channel()));
 
         RequestProcessor requestProcessor = requestProcessorManager.getProcessor(request);
 
@@ -66,10 +57,8 @@ public class ServerHandler extends ChannelDuplexHandler {
             return;
         }
 
-        Response response = Response.valueOf(request.getCommand(), Result.valueOf(code, result));
-        request.getSession().write(response);
-
-        super.channelRead(ctx, msg);
+        Message respMsg = Message.valueOf(request.getCommand(), codec.encode(Result.valueOf(code, result)));
+        request.getSession().send(respMsg);
     }
 
     private Request message2Request(Message msg, Session session) {

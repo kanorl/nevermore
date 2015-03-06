@@ -25,7 +25,7 @@ public final class NettySession extends AbstractSession {
     }
 
     @Override
-    public void write(Object data) {
+    public void send(Object data) {
         channel.writeAndFlush(data);
     }
 }
