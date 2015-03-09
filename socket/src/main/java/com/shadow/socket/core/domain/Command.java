@@ -4,6 +4,8 @@ import com.google.common.primitives.Shorts;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.Arrays;
+
 /**
  * @author nevermore on 2014/11/26.
  */
@@ -21,7 +23,7 @@ public final class Command {
     }
 
     public byte[] bytes() {
-        return array;
+        return Arrays.copyOf(array, array.length);
     }
 
     @Override

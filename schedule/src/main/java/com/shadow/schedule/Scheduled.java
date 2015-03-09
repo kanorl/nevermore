@@ -1,6 +1,6 @@
 package com.shadow.schedule;
 
-import com.shadow.util.ApplicationContextUtil;
+import org.springframework.context.ApplicationContext;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,17 +23,17 @@ public @interface Scheduled {
     public enum ValueType {
         BEAN_NAME {
             @Override
-            public String value2Cron(String value) {
-                return ApplicationContextUtil.getBean(value, String.class);
+            public String value2Cron(String value, ApplicationContext ctx) {
+                return ctx.getBean(value, String.class);
             }
         },
         EXPRESSION {
             @Override
-            public String value2Cron(String value) {
+            public String value2Cron(String value, ApplicationContext ctx) {
                 return value;
             }
         };
 
-        public abstract String value2Cron(String value);
+        public abstract String value2Cron(String value, ApplicationContext ctx);
     }
 }

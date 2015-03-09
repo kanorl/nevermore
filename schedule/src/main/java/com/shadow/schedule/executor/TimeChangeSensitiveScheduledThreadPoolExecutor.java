@@ -890,7 +890,7 @@ public class TimeChangeSensitiveScheduledThreadPoolExecutor
         private final Condition available = lock.newCondition();
         private long maxAwaitMills;
 
-        public DelayedWorkQueue(long awaitTimeout) {
+        public DelayedWorkQueue(long maxAwaitMills) {
             this.maxAwaitMills = maxAwaitMills;
         }
 

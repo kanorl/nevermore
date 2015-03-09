@@ -193,11 +193,11 @@ public class BitConverter {
     }
 
     private static void print(byte[] b) {
-        String str = "";
+        StringBuilder builder = new StringBuilder();
         for (byte bb : b) {
-            str += bb + ",";
+            builder.append(bb).append(",");
         }
-        System.out.println(str);
+        System.out.println(builder);
     }
 
     /**

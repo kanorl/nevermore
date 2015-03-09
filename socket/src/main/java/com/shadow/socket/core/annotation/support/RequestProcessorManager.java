@@ -57,13 +57,13 @@ public final class RequestProcessorManager implements BeanPostProcessor {
                 Class<?> paramType = p.getType();
                 MethodParameter methodParameter;
                 if (paramType == Session.class) {
-                    methodParameter = new SessionParameter(handlerMethod, paramType);
+                    methodParameter = new SessionParameter();
                 } else if (p.isAnnotationPresent(SessionAttr.class)) {
-                    methodParameter = new SessionAttrParameter(handlerMethod, paramType, p.getAnnotation(SessionAttr.class));
+                    methodParameter = new SessionAttrParameter(p.getAnnotation(SessionAttr.class));
                 } else if (p.isAnnotationPresent(RequestParam.class)) {
-                    methodParameter = new RequestParameter(handlerMethod, paramType, p.getAnnotation(RequestParam.class).value());
+                    methodParameter = new RequestParameter(p.getAnnotation(RequestParam.class).value());
                 } else {
-                    methodParameter = new RequestParameter(handlerMethod, paramType, paramNames[i]);
+                    methodParameter = new RequestParameter(paramNames[i]);
                 }
                 methodParameters[i] = methodParameter;
             }

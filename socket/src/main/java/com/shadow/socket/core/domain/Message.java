@@ -2,6 +2,8 @@ package com.shadow.socket.core.domain;
 
 import com.shadow.util.codec.JsonUtil;
 
+import java.util.Arrays;
+
 /**
  * @author nevermore on 2015/1/1.
  */
@@ -21,7 +23,7 @@ public final class Message {
     }
 
     public byte[] getBody() {
-        return body;
+        return Arrays.copyOf(body, body.length);
     }
 
     @Override
