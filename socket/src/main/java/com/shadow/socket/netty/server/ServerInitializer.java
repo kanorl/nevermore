@@ -3,42 +3,59 @@ package com.shadow.socket.netty.server;
 import com.shadow.socket.netty.codec.HeaderAppender;
 import com.shadow.socket.netty.codec.MessageDecoder;
 import com.shadow.socket.netty.codec.MessageEncoder;
-import io.netty.channel.ChannelHandler;
+import com.shadow.socket.netty.server.handler.ServerHandler;
+import com.shadow.socket.netty.server.session.ServerSessionHandler;
+import com.shadow.util.thread.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
-import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 /**
  * @author nevermore on 2014/11/26
  */
 public class ServerInitializer extends ChannelInitializer<SocketChannel> {
 
-    private ChannelHandler handler;
-    private EventExecutorGroup executors;
-    private Map<String, ChannelHandler> filters;
+    @Value("${server.socket.pool.size:0}")
+    private int poolSize;
+    @Autowired
+    private ServerHandler handler;
+    @Autowired
+    private ServerSessionHandler sessionHandler;
 
-    public ServerInitializer(ChannelHandler handler, EventExecutorGroup executors, Map<String, ChannelHandler> filters) {
-        this.handler = handler;
-        this.executors = executors;
-        this.filters = filters;
+    private EventExecutorGroup executors;
+
+    @PostConstruct
+    private void init() {
+        executors = new DefaultEventExecutorGroup(Math.max(poolSize, Runtime.getRuntime().availableProcessors() + 1), new NamedThreadFactory("Socket Request Handler"));
+    }
+
+    @PreDestroy
+    private void destroy() {
+        executors.shutdownGracefully();
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
 
-        for (Map.Entry<String, ChannelHandler> entry : filters.entrySet()) {
-            p.addLast(entry.getKey(), entry.getValue());
-        }
-
+        // decoder
         p.addLast(new MessageDecoder());
 
+        // encoder
         p.addLast(new HeaderAppender());
         p.addLast(new MessageEncoder());
 
+        // filter
+        p.addLast("sessionHandler", sessionHandler);
+
+        // handler
         p.addLast(executors, "handler", handler);
     }
 }

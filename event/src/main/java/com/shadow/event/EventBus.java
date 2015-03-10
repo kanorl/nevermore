@@ -37,7 +37,7 @@ public class EventBus {
     @PostConstruct
     private void init() {
         if (nThread < 1) {
-            nThread = Runtime.getRuntime().availableProcessors();
+            nThread = Runtime.getRuntime().availableProcessors() + 1;
         }
         LOGGER.error("事件处理线程池大小: " + nThread);
         executorService = Executors.newFixedThreadPool(nThread, new NamedThreadFactory("事件处理"));
