@@ -4,7 +4,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
@@ -15,10 +14,11 @@ import java.lang.reflect.Method;
  * @author nevermore on 2015/2/11
  */
 @Component
-public class ScheduledBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
+public class ScheduledBeanPostProcessor implements BeanPostProcessor {
 
     @Autowired
     private Scheduler scheduler;
+    @Autowired
     private ApplicationContext ctx;
 
     @Override
@@ -58,10 +58,5 @@ public class ScheduledBeanPostProcessor implements BeanPostProcessor, Applicatio
                 }
             }
         };
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.ctx = applicationContext;
     }
 }

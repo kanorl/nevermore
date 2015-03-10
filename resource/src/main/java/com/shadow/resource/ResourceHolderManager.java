@@ -2,9 +2,8 @@ package com.shadow.resource;
 
 import com.shadow.resource.annotation.Resource;
 import com.shadow.util.lang.ReflectUtil;
-import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
@@ -17,8 +16,9 @@ import java.util.Set;
  * @author nevermore on 2015/1/14
  */
 @Component
-public class ResourceHolderManager implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
+public class ResourceHolderManager implements ApplicationListener<ContextRefreshedEvent> {
 
+    @Autowired
     private ApplicationContext applicationContext;
     private Map<Class<?>, ResourceHolder<?>> holders = new HashMap<>();
 
@@ -41,11 +41,6 @@ public class ResourceHolderManager implements ApplicationContextAware, Applicati
 
     public void reload(Class<?> clazz) {
         getResourceHolder(clazz).reload();
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     @Override

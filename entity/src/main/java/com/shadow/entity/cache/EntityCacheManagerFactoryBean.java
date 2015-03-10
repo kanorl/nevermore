@@ -1,9 +1,8 @@
 package com.shadow.entity.cache;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -13,8 +12,9 @@ import javax.annotation.PreDestroy;
  * @author nevermore on 2014/11/26.
  */
 @Component
-public final class EntityCacheManagerFactoryBean implements FactoryBean<EntityCacheManager>, ApplicationContextAware {
+public final class EntityCacheManagerFactoryBean implements FactoryBean<EntityCacheManager> {
 
+    @Autowired
     private ApplicationContext applicationContext;
     private EntityCacheManager entityCacheManager;
 
@@ -41,10 +41,5 @@ public final class EntityCacheManagerFactoryBean implements FactoryBean<EntityCa
     @PreDestroy
     private void shutdown() {
         entityCacheManager.shutdown();
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }

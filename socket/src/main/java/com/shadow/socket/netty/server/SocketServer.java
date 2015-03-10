@@ -12,10 +12,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.stereotype.Component;
@@ -28,17 +27,18 @@ import java.util.concurrent.ThreadFactory;
  * @author nevermore on 2014/11/26
  */
 @Component
-public final class SocketServer implements ApplicationListener<ContextStartedEvent>, ApplicationContextAware {
+public final class SocketServer implements ApplicationListener<ContextStartedEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SocketServer.class);
 
     @Value("${server.socket.port}")
     private int port;
+    @Autowired
+    private ApplicationContext applicationContext;
 
     private Channel channel;
     private EventLoopGroup parentGroup;
     private EventLoopGroup childGroup;
     private ServerInitializer serverInitializer;
-    private ApplicationContext applicationContext;
 
     @PostConstruct
     private void initialize() {
@@ -83,10 +83,5 @@ public final class SocketServer implements ApplicationListener<ContextStartedEve
 
     private EventLoopGroup newEventLoopGroup(int nThread, ThreadFactory threadFactory) {
         return Epoll.isAvailable() ? new EpollEventLoopGroup(nThread, threadFactory) : new NioEventLoopGroup(nThread, threadFactory);
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }
