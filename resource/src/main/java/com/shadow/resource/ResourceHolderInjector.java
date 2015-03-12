@@ -14,7 +14,7 @@ import java.lang.reflect.Type;
  * @author nevermore on 2015/1/16.
  */
 @Component
-public class ResourceHolderInjector implements InjectedAnnotationProcessor<ResourceHolder> {
+public class ResourceHolderInjector implements InjectedAnnotationProcessor {
 
     @Autowired
     private ResourceHolderManager resourceHolderManager;
@@ -34,7 +34,7 @@ public class ResourceHolderInjector implements InjectedAnnotationProcessor<Resou
     }
 
     @Override
-    public Class<ResourceHolder> fieldType() {
+    public Class<?> fieldType() {
         return ResourceHolder.class;
     }
 }

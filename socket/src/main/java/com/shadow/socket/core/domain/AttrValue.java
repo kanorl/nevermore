@@ -9,7 +9,7 @@ import java.util.Objects;
 public final class AttrValue<T> {
     private final T value;
 
-    public static <T> AttrValue valueOf(@Nonnull T value) {
+    public static <T> AttrValue<T> valueOf(@Nonnull T value) {
         return new AttrValue<>(Objects.requireNonNull(value));
     }
 

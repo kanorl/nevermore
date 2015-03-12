@@ -19,7 +19,7 @@ import java.util.Set;
  */
 @SuppressWarnings("unchecked")
 @Component
-public class EntityCacheInjector implements InjectedAnnotationProcessor<EntityCache> {
+public class EntityCacheInjector implements InjectedAnnotationProcessor {
 
     @Autowired
     private EntityCacheManager entityCacheManager;
@@ -45,7 +45,7 @@ public class EntityCacheInjector implements InjectedAnnotationProcessor<EntityCa
     }
 
     @Override
-    public Class<EntityCache> fieldType() {
+    public Class<?> fieldType() {
         return EntityCache.class;
     }
 

@@ -16,13 +16,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class RequestProcessor {
     private Method method;
     private Object invoker;
-    private MethodParameter[] params;
+    private MethodParameter<?>[] params;
     private boolean omitResponse;
 
     protected RequestProcessor() {
     }
 
-    public static RequestProcessor valueOf(@Nonnull Method method, @Nonnull Object invoker, @Nonnull MethodParameter[] params) {
+    public static RequestProcessor valueOf(@Nonnull Method method, @Nonnull Object invoker, @Nonnull MethodParameter<?>[] params) {
         ReflectionUtils.makeAccessible(checkNotNull(method));
         RequestProcessor requestProcessor = new RequestProcessor();
         requestProcessor.method = method;

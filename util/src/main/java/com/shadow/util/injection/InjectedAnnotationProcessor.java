@@ -9,13 +9,12 @@ import java.lang.reflect.Field;
 /**
  * @author nevermore on 2015/1/16
  */
-public interface InjectedAnnotationProcessor<T> extends BeanPostProcessor {
+public interface InjectedAnnotationProcessor extends BeanPostProcessor {
 
     void inject(Object target, Field field) throws IllegalAccessException;
 
-    Class<T> fieldType();
+    Class<?> fieldType();
 
-    @SuppressWarnings("unchecked")
     @Override
     default Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), field -> inject(bean, field), field -> field.isAnnotationPresent(Injected.class) && fieldType().isAssignableFrom(field.getType()));

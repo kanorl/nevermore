@@ -50,14 +50,14 @@ public final class EntityCacheManager {
             }
         });
 
-        entityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends IEntity<?>>, EntityCache<?, ?>>() {
-            @SuppressWarnings("unchecked")
+        entityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends IEntity<?>>, EntityCache<?, ? extends IEntity<?>>>() {
             @Override
-            public EntityCache<?, ?> load(@Nonnull Class<? extends IEntity<?>> clazz) throws Exception {
+            public EntityCache<?, ? extends IEntity<?>> load(@Nonnull Class<? extends IEntity<?>> clazz) throws
+                    Exception {
                 if (ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).isEmpty()) {
-                    return new DefaultEntityCache(clazz, dataAccessor, persistenceProcessors.get(clazz));
+                    return new DefaultEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
                 }
-                return new DefaultRegionEntityCache(clazz, dataAccessor, persistenceProcessors.get(clazz));
+                return new DefaultRegionEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
             }
         });
     }

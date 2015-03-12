@@ -33,7 +33,7 @@ public final class ReflectUtil {
         checkNotNull(type);
         checkNotNull(annotationClass);
 
-        return (A) ReflectionUtils.getAllAnnotations(type, input -> input != null && annotationClass.isInstance(input)).stream().findFirst().orElse(null);
+        return (A) ReflectionUtils.getAllAnnotations(type, annotationClass::isInstance).stream().findFirst().orElse(null);
     }
 
     @SuppressWarnings("unchecked")
