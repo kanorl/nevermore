@@ -37,7 +37,6 @@ public final class RequestProcessorManager implements BeanPostProcessor {
         return bean;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         RequestHandler typeAnnotation = ReflectUtil.getDeclaredAnnotation(bean.getClass(), RequestHandler.class);
@@ -51,11 +50,11 @@ public final class RequestProcessorManager implements BeanPostProcessor {
             String[] paramNames = ReflectUtil.getParamNames(handlerMethod);
             HandlerMethod methodAnnotation = handlerMethod.getAnnotation(HandlerMethod.class);
 
-            MethodParameter[] methodParameters = new MethodParameter[parameters.length];
+            MethodParameter<?>[] methodParameters = new MethodParameter[parameters.length];
             for (int i = 0; i < parameters.length; i++) {
                 Parameter p = parameters[i];
                 Class<?> paramType = p.getType();
-                MethodParameter methodParameter;
+                MethodParameter<?> methodParameter;
                 if (paramType == Session.class) {
                     methodParameter = new SessionParameter();
                 } else if (p.isAnnotationPresent(SessionAttr.class)) {

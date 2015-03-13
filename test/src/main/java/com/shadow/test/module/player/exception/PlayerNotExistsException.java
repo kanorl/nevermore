@@ -6,7 +6,10 @@ import com.shadow.util.exception.CheckedException;
  * @author nevermore on 2015/3/2
  */
 public class PlayerNotExistsException extends CheckedException {
-    @Override
+    
+	private static final long serialVersionUID = 5721927741869942587L;
+
+	@Override
     public int code() {
         return PlayerExceptionCode.PLAYER_NOT_EXISTS;
     }

@@ -13,7 +13,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> {
 
-    private Integer weight;
+	private static final long serialVersionUID = 2971412467683099475L;
+	
+	private Integer weight;
     private boolean isEntity;
     private Class<?> objClass;
 

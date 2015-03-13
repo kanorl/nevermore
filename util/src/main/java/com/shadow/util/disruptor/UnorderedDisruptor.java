@@ -6,6 +6,7 @@ import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.shadow.util.concurrent.ExecutorUtil;
 import com.shadow.util.thread.NamedThreadFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +25,14 @@ final class UnorderedDisruptor<T> implements DisruptorService<T> {
     private final ExecutorService executorService;
     private final RingBuffer<Event<T>> ringBuffer;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("all")
     public UnorderedDisruptor(String name, DisruptorBuilder<? super T> builder, WorkHandler<Event<T>> handler) {
         this.name = name;
         executorService = Executors.newFixedThreadPool(builder.getThreads(), new NamedThreadFactory(name));
         disruptor = new Disruptor<>(Event::new, builder.getBufferSize(), executorService);
 
-        WorkHandler[] handlers = new WorkHandler[builder.getThreads()];
+        
+		WorkHandler[] handlers = new WorkHandler[builder.getThreads()];
         Arrays.fill(handlers, handler);
 
         disruptor.handleExceptionsWith(new ExceptionHandler() {

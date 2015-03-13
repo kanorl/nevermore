@@ -899,7 +899,7 @@ public class TimeChangeSensitiveScheduledThreadPoolExecutor
          */
         private void setIndex(RunnableScheduledFuture<?> f, int idx) {
             if (f instanceof ScheduledFutureTask)
-                ((ScheduledFutureTask) f).heapIndex = idx;
+                ((ScheduledFutureTask<?>) f).heapIndex = idx;
         }
 
         /**
@@ -959,7 +959,7 @@ public class TimeChangeSensitiveScheduledThreadPoolExecutor
         private int indexOf(Object x) {
             if (x != null) {
                 if (x instanceof ScheduledFutureTask) {
-                    int i = ((ScheduledFutureTask) x).heapIndex;
+                    int i = ((ScheduledFutureTask<?>) x).heapIndex;
                     // Sanity check; x could conceivably be a
                     // ScheduledFutureTask from some other pool.
                     if (i >= 0 && i < size && queue[i] == x)

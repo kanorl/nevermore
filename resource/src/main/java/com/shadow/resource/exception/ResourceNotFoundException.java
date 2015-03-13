@@ -8,7 +8,9 @@ import com.shadow.util.exception.CheckedExceptionCode;
  */
 public class ResourceNotFoundException extends CheckedException {
 
-    public ResourceNotFoundException(String msg) {
+	private static final long serialVersionUID = 1839361460868659015L;
+
+	public ResourceNotFoundException(String msg) {
         super(msg);
     }
 

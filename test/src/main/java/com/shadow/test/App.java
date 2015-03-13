@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit;
 public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-    public static void main(String[] args) {
+    @SuppressWarnings("resource")
+	public static void main(String[] args) {
         ClassPathXmlApplicationContext ctx;
         try {
             ctx = new ClassPathXmlApplicationContext("/applicationContext.xml");

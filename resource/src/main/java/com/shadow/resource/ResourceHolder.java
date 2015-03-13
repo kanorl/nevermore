@@ -11,8 +11,6 @@ import com.shadow.resource.exception.ResourcePrimaryKeyNotFoundException;
 import com.shadow.resource.reader.ResourceReader;
 import com.shadow.util.execution.LogLevel;
 import com.shadow.util.execution.LoggedExecution;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
@@ -26,7 +24,6 @@ import java.util.stream.Collectors;
  * @author nevermore on 2015/1/13.
  */
 public class ResourceHolder<T> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceHolder.class);
 
     @Autowired
     private ResourceReader resourceReader;
@@ -109,7 +106,7 @@ public class ResourceHolder<T> {
 
             Map<Object, T> resources;
             if (Comparable.class.isAssignableFrom(resourceType)) {
-                Collections.sort(resourceBeans, (o1, o2) -> ((Comparable) o1).compareTo(((Comparable) o2)));
+                Collections.sort(resourceBeans, (o1, o2) -> ((Comparable<T>) o1).compareTo(o2));
                 resources = new TreeMap<>();
             } else {
                 resources = new HashMap<>();

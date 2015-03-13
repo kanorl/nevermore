@@ -5,7 +5,9 @@ package com.shadow.resource.exception;
  */
 public class ResourcePrimaryKeyNotFoundException extends RuntimeException {
 
-    public ResourcePrimaryKeyNotFoundException(Class<?> resourceType) {
+	private static final long serialVersionUID = 39038079952281082L;
+
+	public ResourcePrimaryKeyNotFoundException(Class<?> resourceType) {
         super("找不到主键：" + resourceType.getName());
     }
 }

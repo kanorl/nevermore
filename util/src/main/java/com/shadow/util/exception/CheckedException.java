@@ -5,7 +5,9 @@ package com.shadow.util.exception;
  */
 public abstract class CheckedException extends RuntimeException {
 
-    public CheckedException() {
+	private static final long serialVersionUID = 6141612821453714608L;
+
+	public CheckedException() {
     }
 
     public CheckedException(String msg) {

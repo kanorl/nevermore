@@ -9,7 +9,9 @@ import java.lang.reflect.Field;
  */
 public class ParameterizedTypeNotFoundException extends RuntimeException {
 
-    public ParameterizedTypeNotFoundException(Field field) {
+	private static final long serialVersionUID = -4257000775236541708L;
+
+	public ParameterizedTypeNotFoundException(Field field) {
         super(MessageFormatter.format("找不到参数化类型: class={}, filed={}", field.getDeclaringClass().getName(), field.getName()).getMessage());
     }
 }

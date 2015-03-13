@@ -7,7 +7,9 @@ import com.shadow.util.exception.CheckedException;
  */
 public class AccountNameExistsException extends CheckedException {
 
-    @Override
+	private static final long serialVersionUID = -8682585243432740716L;
+
+	@Override
     public int code() {
         return AccountExceptionCode.ACCOUNT_NAME_EXISTS;
     }

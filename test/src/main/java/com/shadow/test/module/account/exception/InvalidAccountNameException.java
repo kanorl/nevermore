@@ -7,7 +7,9 @@ import com.shadow.util.exception.CheckedException;
  */
 public class InvalidAccountNameException extends CheckedException {
 
-    public InvalidAccountNameException(String accountName) {
+	private static final long serialVersionUID = -8524901672182887337L;
+
+	public InvalidAccountNameException(String accountName) {
         super(accountName);
     }
 
