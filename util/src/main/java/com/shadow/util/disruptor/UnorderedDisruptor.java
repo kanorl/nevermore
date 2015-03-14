@@ -24,14 +24,14 @@ final class UnorderedDisruptor<T> implements DisruptorService<T> {
     private final ExecutorService executorService;
     private final RingBuffer<Event<T>> ringBuffer;
 
-    @SuppressWarnings("all")
+    @SuppressWarnings("unchecked")
     public UnorderedDisruptor(String name, DisruptorBuilder<? super T> builder, WorkHandler<Event<T>> handler) {
         this.name = name;
         executorService = Executors.newFixedThreadPool(builder.getThreads(), new NamedThreadFactory(name));
         disruptor = new Disruptor<>(Event::new, builder.getBufferSize(), executorService);
 
-        
-		WorkHandler[] handlers = new WorkHandler[builder.getThreads()];
+
+        WorkHandler<Event<T>>[] handlers = new WorkHandler[builder.getThreads()];
         Arrays.fill(handlers, handler);
 
         disruptor.handleExceptionsWith(new ExceptionHandler() {
