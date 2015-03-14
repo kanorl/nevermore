@@ -19,5 +19,10 @@ public class ResourceTest {
     @Test
     public void test() {
         System.out.println(testResources.getAll());
+        TestResource r1 = testResources.random();
+        TestResource r2 = testResources.random();
+
+        System.out.println(r1.getId());
+        System.out.println(r2.getId());
     }
 }

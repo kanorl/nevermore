@@ -55,7 +55,7 @@ public class LoggedExecution {
         try {
             task.run();
         } catch (Exception e) {
-            LOGGER.error("任务[{}]执行失败：{}", e.getMessage());
+            LOGGER.error("任务[{}]执行失败：{}", taskName, e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -78,7 +78,7 @@ public class LoggedExecution {
         try {
             retVal = task.call();
         } catch (Exception e) {
-            LOGGER.error("任务[{}]执行失败：{}", e.getMessage());
+            LOGGER.error("任务[{}]执行失败：{}", taskName, e.getMessage());
             throw new RuntimeException(e);
         }
 

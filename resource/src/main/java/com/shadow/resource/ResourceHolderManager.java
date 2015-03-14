@@ -8,8 +8,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -39,8 +41,11 @@ public class ResourceHolderManager implements ApplicationListener<ContextRefresh
         return resourceHolder;
     }
 
-    public void reload(Class<?> clazz) {
-        getResourceHolder(clazz).reload();
+    public void reload(@Nonnull Class<?>... classes) {
+        Objects.requireNonNull(classes);
+        for (Class<?> type : classes) {
+            getResourceHolder(type).reload();
+        }
     }
 
     @Override

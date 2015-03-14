@@ -1,12 +1,11 @@
 package com.shadow.entity;
 
-import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
  * @author nevermore on 2015/1/10
  */
-@Entity
+//@Entity
 public class Player extends CacheableEntity<Long> {
 
     @Id

@@ -1,9 +1,7 @@
 package com.shadow.resource;
 
-import com.google.common.base.Preconditions;
-import com.shadow.event.EventBus;
+import com.google.common.collect.Iterables;
 import com.shadow.resource.annotation.Id;
-import com.shadow.resource.event.ResourceRefreshedEvent;
 import com.shadow.resource.exception.DuplicateKeyException;
 import com.shadow.resource.exception.InvalidResourceException;
 import com.shadow.resource.exception.ResourceNotFoundException;
@@ -17,6 +15,7 @@ import org.springframework.util.ReflectionUtils;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -27,11 +26,9 @@ public class ResourceHolder<T> {
 
     @Autowired
     private ResourceReader resourceReader;
-    @Autowired
-    private EventBus eventBus;
-
     private Map<Object, T> resources = Collections.emptyMap();
     private volatile Class<T> resourceType;
+    private volatile int rateTotal;
 
     @SuppressWarnings("unchecked")
     public void initialize(Class<?> type) {
@@ -81,16 +78,49 @@ public class ResourceHolder<T> {
     }
 
     public T max() {
+        return navigableResources().lastEntry().getValue();
+    }
+
+    public Optional<T> previous(Object currentKey) {
+        Map.Entry<Object, T> lowerEntry = navigableResources().lowerEntry(currentKey);
+        return lowerEntry == null ? Optional.<T>empty() : Optional.ofNullable(lowerEntry.getValue());
+    }
+
+    public Optional<T> next(Object currentKey) {
+        Map.Entry<Object, T> higherEntry = navigableResources().higherEntry(currentKey);
+        return higherEntry == null ? Optional.<T>empty() : Optional.ofNullable(higherEntry.getValue());
+    }
+
+    public T random() {
+        if (resources.isEmpty()) {
+            throw new ResourceNotFoundException();
+        }
+        if (!Randomable.class.isAssignableFrom(resourceType)) {
+            throw new UnsupportedOperationException("Resource is not Randomized.");
+        }
+        int r = ThreadLocalRandom.current().nextInt(rateTotal);
+        for (T t : resources.values()) {
+            Randomable randomable = (Randomable) t;
+            if (randomable.getRate() > r) {
+                return t;
+            }
+            r -= randomable.getRate();
+        }
+        int randomIndex = ThreadLocalRandom.current().nextInt(resources.values().size());
+        return Iterables.get(resources.values(), randomIndex);
+    }
+
+    private NavigableMap<Object, T> navigableResources() {
         if (resources.isEmpty()) {
             throw new ResourceNotFoundException();
         }
         if (!(resources instanceof NavigableMap)) {
             throw new UnsupportedOperationException("Resource is not comparable.");
         }
-        return ((NavigableMap<Object, T>) resources).lastEntry().getValue();
+        return (NavigableMap<Object, T>) resources;
     }
 
-    public void reload() {
+    void reload() {
         LoggedExecution.forName("重新加载资源{}", resourceType.getSimpleName()).logLevel(LogLevel.ERROR).execute(this::load);
     }
 
@@ -99,7 +129,9 @@ public class ResourceHolder<T> {
         LoggedExecution.forName("加载资源{}", resourceType.getSimpleName()).execute(() -> {
             List<T> resourceBeans = resourceReader.read(resourceType);
             if (Validatable.class.isAssignableFrom(resourceType)) {
-                resourceBeans.forEach(bean -> Preconditions.checkState(((Validatable) bean).isValid(), new InvalidResourceException(bean)));
+                resourceBeans.stream().filter(bean -> !((Validatable) bean).isValid()).findAny().ifPresent(bean -> {
+                    throw new InvalidResourceException(bean);
+                });
             }
             Field idField = Arrays.stream(resourceType.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Id.class)).findFirst().orElseThrow(() -> new ResourcePrimaryKeyNotFoundException(resourceType));
             ReflectionUtils.makeAccessible(idField);
@@ -122,9 +154,12 @@ public class ResourceHolder<T> {
                 }
             });
 
-            this.resources = resources;
+            if (Randomable.class.isAssignableFrom(resourceType)) {
+                rateTotal = resourceBeans.stream().reduce(0, (rate, obj) -> rate + ((Randomable) obj).getRate(),
+                        (rate1, rate2) -> rate1 + rate2);
+            }
 
-            eventBus.post(ResourceRefreshedEvent.valueOf(resourceType));
+            this.resources = resources;
         });
     }
 }
