@@ -3,7 +3,7 @@ package com.shadow.test.module.player.service;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.test.module.player.entity.Player;
-import com.shadow.test.module.player.exception.PlayerNameExistsException;
+import com.shadow.test.module.player.exception.PlayerException;
 import com.shadow.test.module.player.model.Country;
 import com.shadow.test.module.player.model.Gender;
 import com.shadow.util.exception.OperationFailedException;
@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static com.shadow.test.module.player.exception.PlayerExceptionCode.PLAYER_NAME_EXISTS;
 
 /**
  * @author nevermore on 2015/3/2
@@ -43,7 +45,7 @@ public class PlayerManager {
 
     Player create(Long id, String playerName, Gender gender, Country country) {
         if (name2Id.putIfAbsent(playerName, id) != null) {
-            throw new PlayerNameExistsException();
+            throw new PlayerException(PLAYER_NAME_EXISTS);
         }
         try {
             return playerCache.create(Player.valueOf(id, playerName, gender, country));

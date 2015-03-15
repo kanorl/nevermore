@@ -7,9 +7,9 @@ package com.shadow.entity.lock.exception;
  */
 public class IllegalAutoLockedMethodException extends RuntimeException {
 
-	private static final long serialVersionUID = 7831642312238447504L;
+    private static final long serialVersionUID = 7831642312238447504L;
 
-	public IllegalAutoLockedMethodException(String msg) {
+    public IllegalAutoLockedMethodException(String msg) {
         super(msg);
     }
 }

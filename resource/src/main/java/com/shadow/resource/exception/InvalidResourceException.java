@@ -7,9 +7,9 @@ import org.slf4j.helpers.MessageFormatter;
  */
 public class InvalidResourceException extends RuntimeException {
 
-	private static final long serialVersionUID = -8365397922872065056L;
+    private static final long serialVersionUID = -8365397922872065056L;
 
-	public InvalidResourceException(Object resourceBean) {
+    public InvalidResourceException(Object resourceBean) {
         super(MessageFormatter.format("资源校验失败: class=[{}], value=[{}]", resourceBean.getClass().getSimpleName(), resourceBean).getMessage());
     }
 }

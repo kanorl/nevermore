@@ -7,9 +7,9 @@ package com.shadow.entity.lock.exception;
  */
 public class IllegalLockTargetException extends RuntimeException {
 
-	private static final long serialVersionUID = 6716213347022133359L;
+    private static final long serialVersionUID = 6716213347022133359L;
 
-	public IllegalLockTargetException(String msg) {
+    public IllegalLockTargetException(String msg) {
         super(msg);
     }
 }

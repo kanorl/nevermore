@@ -100,21 +100,20 @@ public class ExcelReader implements ResourceReader {
     }
 
     private int firstDataRow(Sheet sheet) {
+        return titleRow(sheet) + 1;
+    }
+
+    private int titleRow(Sheet sheet) {
         for (Row row : sheet) {
-            Cell cell = row.getCell(0);
-            if (cell != null && getCellStringValue(cell).equalsIgnoreCase(cfg.getTitleTag())) {
-                return row.getRowNum() + 1;
+            if (cfg.getTitleTag().equalsIgnoreCase(getCellStringValue(row.getCell(0)))) {
+                return row.getRowNum();
             }
         }
         throw new IllegalStateException("Tag[" + cfg.getTitleTag() + "] not found");
     }
 
     private Map<String, Integer> columnIndexes(Sheet sheet) {
-        int titleRow = 1;
-        Row row = sheet.getRow(titleRow);
-        if (row == null) {
-            throw new IllegalStateException();
-        }
+        Row row = sheet.getRow(titleRow(sheet));
         int numberOfColumns = row.getPhysicalNumberOfCells();
         Map<String, Integer> result = Maps.newHashMapWithExpectedSize(numberOfColumns);
         for (int i = 0; i < numberOfColumns; i++) {

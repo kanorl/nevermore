@@ -1,6 +1,7 @@
 package com.shadow.test.module.account.model;
 
-import com.shadow.test.module.account.exception.InvalidAccountNameException;
+import com.shadow.test.module.account.exception.AccountException;
+import com.shadow.test.module.account.exception.AccountExceptionCode;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -24,7 +25,7 @@ public class AccountInfo {
             String[] arr = StringUtils.split(accountName, '_');
             return new AccountInfo(accountName, Short.parseShort(arr[1]), Short.parseShort(arr[2]));
         } catch (Exception e) {
-            throw new InvalidAccountNameException(accountName);
+            throw new AccountException(AccountExceptionCode.INVALID_ACCOUNT_NAME);
         }
     }
 

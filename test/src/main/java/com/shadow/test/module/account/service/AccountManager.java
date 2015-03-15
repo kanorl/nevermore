@@ -4,7 +4,8 @@ import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.id.EntityIdGenerator;
 import com.shadow.entity.orm.DataAccessor;
 import com.shadow.test.module.account.entity.Account;
-import com.shadow.test.module.account.exception.AccountNameExistsException;
+import com.shadow.test.module.account.exception.AccountException;
+import com.shadow.test.module.account.exception.AccountExceptionCode;
 import com.shadow.test.module.account.model.AccountInfo;
 import com.shadow.util.exception.OperationFailedException;
 import com.shadow.util.injection.Injected;
@@ -59,7 +60,7 @@ public class AccountManager {
         }
 
         if (name2Id.putIfAbsent(name, 0L) != null) {
-            throw new AccountNameExistsException();
+            throw new AccountException(AccountExceptionCode.ACCOUNT_NAME_EXISTS);
         }
 
         try {

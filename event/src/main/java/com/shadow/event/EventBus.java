@@ -52,7 +52,7 @@ public class EventBus {
         requireNonNull(event, "事件不能为null");
         Set<EventListener<Event>> listeners = eventListenerManager.getListeners(event.getClass());
         if (listeners.isEmpty()) {
-            LOGGER.error("未被监听的事件类型[{}]", event.getClass().getName());
+            LOGGER.info("未被监听的事件类型[{}]", event.getClass().getName());
             return;
         }
         listeners.forEach(listener -> executorService.submit(() -> listener.onEvent(event)));
@@ -62,7 +62,7 @@ public class EventBus {
         requireNonNull(event, "事件不能为null");
         Set<EventListener<Event>> listeners = eventListenerManager.getListeners(event.getClass());
         if (listeners.isEmpty()) {
-            LOGGER.error("未被监听的事件类型[{}]", event.getClass().getName());
+            LOGGER.info("未被监听的事件类型[{}]", event.getClass().getName());
             return;
         }
         listeners.forEach(listener -> listener.onEvent(event));

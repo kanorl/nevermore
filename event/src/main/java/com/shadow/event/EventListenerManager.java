@@ -70,9 +70,7 @@ public class EventListenerManager implements BeanPostProcessor, ApplicationListe
             Set<EventListener<Event>> listeners = listenerScope.keySet().stream().filter(listener -> listenerScope.get(listener).contains(eventType)).collect(Collectors.toSet());
             eventScope.put(eventType, unmodifiableSet(listeners));
 
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("事件[{}]的监听器: {}", eventType.getName(), listeners);
-            }
+            LOGGER.info("事件[{}]的监听器: {}", eventType.getName(), listeners);
         });
         this.eventScope = Collections.unmodifiableMap(eventScope);
         listenerScope = null;// release as it is useless

@@ -8,18 +8,13 @@ import com.shadow.util.exception.CheckedExceptionCode;
  */
 public class ResourceNotFoundException extends CheckedException {
 
-	private static final long serialVersionUID = 1839361460868659015L;
-
-	public ResourceNotFoundException(String msg) {
-        super(msg);
-    }
-
-    @Override
-    public int code() {
-        return CheckedExceptionCode.RESOURCE_NOT_FOUND;
-    }
+    private static final long serialVersionUID = 1839361460868659015L;
 
     public ResourceNotFoundException() {
         this("找不到资源");
+    }
+
+    public ResourceNotFoundException(String msg) {
+        super(CheckedExceptionCode.RESOURCE_NOT_FOUND, msg);
     }
 }

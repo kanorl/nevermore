@@ -46,7 +46,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<Message> {
             result = requestProcessor.handle(request);
         } catch (Exception e) {
             if (e.getCause() instanceof CheckedException) {
-                code = ((CheckedException) e.getCause()).code();
+                code = ((CheckedException) e.getCause()).getCode();
             } else {
                 code = CheckedExceptionCode.UNKNOWN;
                 LOGGER.error("处理请求发生异常: " + request.getCommand(), e);

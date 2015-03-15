@@ -7,9 +7,9 @@ import io.netty.handler.codec.LengthFieldPrepender;
 /**
  * @author nevermore on 2015/3/6
  */
-public class HeaderAppender extends LengthFieldPrepender {
+public class HeaderPrepender extends LengthFieldPrepender {
 
-    public HeaderAppender() {
+    public HeaderPrepender() {
         super(4, 0, false);
     }
 

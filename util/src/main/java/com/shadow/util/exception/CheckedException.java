@@ -5,14 +5,19 @@ package com.shadow.util.exception;
  */
 public abstract class CheckedException extends RuntimeException {
 
-	private static final long serialVersionUID = 6141612821453714608L;
+    private static final long serialVersionUID = 6141612821453714608L;
+    private final int code;
 
-	public CheckedException() {
+    public CheckedException(int code) {
+        this.code = code;
     }
 
-    public CheckedException(String msg) {
+    public CheckedException(int code, String msg) {
         super(msg);
+        this.code = code;
     }
 
-    public abstract int code();
+    public int getCode() {
+        return code;
+    }
 }

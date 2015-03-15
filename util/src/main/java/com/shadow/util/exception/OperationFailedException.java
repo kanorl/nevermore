@@ -5,10 +5,9 @@ package com.shadow.util.exception;
  */
 public class OperationFailedException extends CheckedException {
 
-	private static final long serialVersionUID = -815410314593435805L;
+    private static final long serialVersionUID = -815410314593435805L;
 
-	@Override
-    public int code() {
-        return CheckedExceptionCode.OPERATION_FAILED;
+    public OperationFailedException() {
+        super(CheckedExceptionCode.OPERATION_FAILED);
     }
 }

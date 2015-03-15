@@ -43,6 +43,6 @@ public class EntityIdRule {
         System.out.println(server(range.lowerEndpoint()));
 
         System.out.println((long) platform << (MAX_LEN - PLATFORM_LEN));
-        System.out.println(idRange((short)1,(short)1));
+        System.out.println(idRange((short) 1, (short) 1));
     }
 }
