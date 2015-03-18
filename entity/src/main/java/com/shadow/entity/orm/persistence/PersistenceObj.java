@@ -2,6 +2,8 @@ package com.shadow.entity.orm.persistence;
 
 import com.shadow.entity.IEntity;
 
+import java.util.Optional;
+
 /**
  * 持久化对象
  *
@@ -10,12 +12,12 @@ import com.shadow.entity.IEntity;
 final class PersistenceObj {
     private IEntity<?> entity;
     private PersistenceOperation operation;
-    private Runnable callback;
+    private Optional<Runnable> callback;
 
     private PersistenceObj(IEntity<?> entity, PersistenceOperation operation, Runnable callback) {
         this.entity = entity;
         this.operation = operation;
-        this.callback = callback;
+        this.callback = Optional.ofNullable(callback);
     }
 
     public static <T extends IEntity<?>> PersistenceObj saveOf(T t, Runnable callback) {
@@ -38,7 +40,7 @@ final class PersistenceObj {
         return operation;
     }
 
-    public Runnable getCallback() {
+    public Optional<Runnable> getCallback() {
         return callback;
     }
 }

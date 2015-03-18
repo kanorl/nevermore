@@ -206,11 +206,8 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
             }
 
             if (notification.wasEvicted()) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("实体类 [{}] 缓存清理数据: Cause={}, id={}", clazz.getSimpleName(), notification.getCause(), notification.getKey());
-                }
-
                 if (value instanceof CachedEntity && !((CachedEntity) value).isPersisted()) {
+                    LOGGER.error("缓存失效且数据未入库: id={}, class={}", id, clazz.getSimpleName());
                     updating.put(id, value);
                 }
                 return;

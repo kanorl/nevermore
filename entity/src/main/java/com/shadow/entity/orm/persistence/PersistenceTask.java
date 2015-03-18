@@ -51,6 +51,6 @@ class PersistenceTask implements Runnable {
             ((CachedEntity) entity).postPersist();// update DB Version to Edit Version
         }
 
-        obj.getCallback().run();
+        obj.getCallback().ifPresent(Runnable::run);
     }
 }

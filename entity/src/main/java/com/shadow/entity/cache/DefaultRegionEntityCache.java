@@ -17,10 +17,11 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
@@ -42,6 +43,7 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
                 .orElseThrow(() -> new IllegalStateException(format("在{}中找不到注解为{}的属性", clazz.getSimpleName(), CacheIndex.class.getSimpleName()).getMessage()));
         indexField.setAccessible(true);
 
+        // todo confirm cache specification
         this.indexCache = CacheBuilder.newBuilder().maximumSize(CacheSize.Size.DEFAULT.get()).concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<Object, Set<K>>() {
             @Override
             public Set<K> load(@Nonnull Object value) throws Exception {
@@ -72,9 +74,8 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     @Override
     public Collection<V> list(@Nonnull Object indexValue) {
         validate(indexValue);
-        return Collections.unmodifiableCollection(
-                indexCache.getUnchecked(indexValue).stream().collect(HashSet<V>::new, (vs, k) -> get(k).ifPresent(vs::add), HashSet<V>::addAll)
-        );
+        return indexCache.getUnchecked(indexValue).stream().map(k -> get(k).orElse(null)).filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     @Override

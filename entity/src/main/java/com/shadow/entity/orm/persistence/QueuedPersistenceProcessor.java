@@ -22,8 +22,6 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     private final DataAccessor dataAccessor;
     private final Class<T> entityType;
     private static final NamedThreadFactory threadFactory = new NamedThreadFactory("队列持久化");
-    private static final Runnable DEFAULT_CALLBACK = () -> {
-    };
 
     public QueuedPersistenceProcessor(DataAccessor dataAccessor, int nThread, Class<T> entityType) {
         this.dataAccessor = dataAccessor;
@@ -39,28 +37,13 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     }
 
     @Override
-    public void save(T t) {
-        save(t, DEFAULT_CALLBACK);
-    }
-
-    @Override
     public void save(T t, Runnable callback) {
         executor(t).submit(PersistenceTask.newTask(PersistenceObj.saveOf(t, callback), dataAccessor));
     }
 
     @Override
-    public void update(T t) {
-        update(t, DEFAULT_CALLBACK);
-    }
-
-    @Override
     public void update(T t, Runnable callback) {
         executor(t).submit(PersistenceTask.newTask(PersistenceObj.updateOf(t, callback), dataAccessor));
-    }
-
-    @Override
-    public void delete(T t) {
-        delete(t, DEFAULT_CALLBACK);
     }
 
     @Override

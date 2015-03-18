@@ -9,15 +9,21 @@ import com.shadow.entity.IEntity;
  */
 public interface PersistenceProcessor<T extends IEntity<?>> {
 
-    void save(T t);
+    default void save(T t) {
+        save(t, null);
+    }
 
     void save(T t, Runnable callback);
 
-    void update(T t);
+    default void update(T t) {
+        update(t, null);
+    }
 
     void update(T t, Runnable callback);
 
-    void delete(T t);
+    default void delete(T t) {
+        delete(t, null);
+    }
 
     void delete(T t, Runnable callback);
 
