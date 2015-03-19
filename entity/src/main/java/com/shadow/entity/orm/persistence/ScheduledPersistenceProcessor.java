@@ -54,15 +54,10 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
     public void save(T t, Runnable callback) {
         r.lock();
         try {
-            mapFor(t).putIfAbsent(t.getId(), PersistenceObj.saveOf(t, null));
+            mapFor(t).put(t.getId(), PersistenceObj.saveOf(t, null));
         } finally {
             r.unlock();
         }
-    }
-
-    private ConcurrentMap<Object, PersistenceObj> mapFor(T t) {
-        IEntity<?> entity = t instanceof CachedEntity ? ((CachedEntity) t).getEntity() : t;
-        return cache.getUnchecked(entity.getClass());
     }
 
     @Override
@@ -94,6 +89,11 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
     public void shutdown() {
         ExecutorUtil.shutdownAndAwaitTermination(executorService, "定时入库");
         new Task().run();
+    }
+
+    private ConcurrentMap<Object, PersistenceObj> mapFor(T t) {
+        IEntity<?> entity = t instanceof CachedEntity ? ((CachedEntity) t).getEntity() : t;
+        return cache.getUnchecked(entity.getClass());
     }
 
     private class Task implements Runnable {
