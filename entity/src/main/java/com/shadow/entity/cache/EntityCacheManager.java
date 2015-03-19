@@ -6,13 +6,16 @@ import com.google.common.cache.LoadingCache;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.entity.cache.annotation.CacheSize;
+import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.orm.DataAccessor;
+import com.shadow.entity.orm.persistence.PersistencePolicy;
 import com.shadow.entity.orm.persistence.PersistenceProcessor;
 import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
-import com.shadow.util.execution.LoggedExecution;
+import com.shadow.entity.orm.persistence.ScheduledPersistenceProcessor;
 import org.reflections.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
@@ -32,10 +35,9 @@ public final class EntityCacheManager {
     private int minimumCacheSize;
     @Value("${server.cache.size.default}")
     private int defaultCacheSize;
-    @Value("${server.persistence.pool.size:1}")
-    private int persistencePoolSize;
+    @Autowired
+    private ApplicationContext ctx;
 
-    private LoadingCache<Class<? extends IEntity<?>>, PersistenceProcessor<? extends IEntity<?>>> persistenceProcessors;
     private LoadingCache<Class<? extends IEntity<?>>, EntityCache<?, ? extends IEntity<?>>> entityCaches;
 
     @PostConstruct
@@ -43,31 +45,30 @@ public final class EntityCacheManager {
         CacheSize.Size.MINIMUM.set(minimumCacheSize);
         CacheSize.Size.DEFAULT.set(defaultCacheSize);
 
-        persistenceProcessors = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends IEntity<?>>, PersistenceProcessor<? extends IEntity<?>>>() {
-            @Override
-            public PersistenceProcessor<? extends IEntity<?>> load(@Nonnull Class<? extends IEntity<?>> clazz) throws Exception {
-                return new QueuedPersistenceProcessor<>(dataAccessor, persistencePoolSize, clazz);
-            }
-        });
-
         entityCaches = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends IEntity<?>>, EntityCache<?, ? extends IEntity<?>>>() {
             @Override
             public EntityCache<?, ? extends IEntity<?>> load(@Nonnull Class<? extends IEntity<?>> clazz) throws
                     Exception {
                 if (ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).isEmpty()) {
-                    return new DefaultEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
+                    return new DefaultEntityCache<>(clazz, dataAccessor, getPersistenceProcessor(clazz));
                 }
-                return new DefaultRegionEntityCache<>(clazz, dataAccessor, persistenceProcessors.get(clazz));
+                return new DefaultRegionEntityCache<>(clazz, dataAccessor, getPersistenceProcessor(clazz));
             }
         });
     }
 
-    public void shutdown() {
-        LoggedExecution.forName("关闭持久化处理器").execute(() -> persistenceProcessors.asMap().values().forEach(PersistenceProcessor::shutdown));
+    private PersistenceProcessor<?> getPersistenceProcessor(Class<? extends IEntity<?>> entityType) {
+        Cacheable cacheable = entityType.getAnnotation(Cacheable.class);
+        return cacheable != null && cacheable.persistencePolicy() == PersistencePolicy.SCHEDULED ?
+                ctx.getBean(ScheduledPersistenceProcessor.class)
+                : ctx.getBean(QueuedPersistenceProcessor.class);
     }
 
     @Nonnull
     public <K extends Serializable, V extends IEntity<K>> EntityCache<K, V> getEntityCache(@Nonnull Class<? extends IEntity<?>> clazz) {
+        if (!clazz.isAnnotationPresent(Cacheable.class)) {
+            throw new UnsupportedOperationException("Class is not " + Cacheable.class.getSimpleName());
+        }
         return (EntityCache<K, V>) entityCaches.getUnchecked(clazz);
     }
 }

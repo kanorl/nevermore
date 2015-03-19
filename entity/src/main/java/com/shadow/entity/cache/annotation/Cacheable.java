@@ -1,5 +1,7 @@
 package com.shadow.entity.cache.annotation;
 
+import com.shadow.entity.orm.persistence.PersistencePolicy;
+
 import java.lang.annotation.*;
 
 /**
@@ -18,6 +20,13 @@ public @interface Cacheable {
      * @return
      */
     public CacheSize cacheSize() default @CacheSize;
+
+    /**
+     * 入库策略
+     *
+     * @return
+     */
+    public PersistencePolicy persistencePolicy() default PersistencePolicy.SCHEDULED;
 
     /**
      * 并发级别

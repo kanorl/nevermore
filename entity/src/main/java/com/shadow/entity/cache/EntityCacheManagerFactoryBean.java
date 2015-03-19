@@ -6,7 +6,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 /**
  * @author nevermore on 2014/11/26.
@@ -36,10 +35,5 @@ public final class EntityCacheManagerFactoryBean implements FactoryBean<EntityCa
     @Override
     public boolean isSingleton() {
         return true;
-    }
-
-    @PreDestroy
-    private void shutdown() {
-        entityCacheManager.shutdown();
     }
 }

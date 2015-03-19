@@ -1,5 +1,8 @@
 package com.shadow.entity;
 
+import com.shadow.test.module.player.model.Country;
+import com.shadow.test.module.player.model.Gender;
+import com.shadow.test.module.player.service.PlayerService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +33,15 @@ public class EntityServiceTest {
         start = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
             userService.addUser(i);
+        }
+
+        for (int i = 0; i < n; i++) {
+            userService.updateUsername(i, "username" + 1);
+        }
+
+        PlayerService playerService = context.getBean(PlayerService.class);
+        for (int i = 0; i < n; i++) {
+            playerService.create((long) i, String.valueOf(i), Gender.FEMALE, Country.FOUR);
         }
     }
 

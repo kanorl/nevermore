@@ -48,16 +48,18 @@ public class PackageScanner {
             Resource[] resources = resourcePatternResolver.getResources(pattern);
             return Arrays.stream(resources)
                     .filter(Resource::isReadable)
-                    .map(resource -> {
-                        try {
-                            String className = readerFactory.getMetadataReader(resource).getClassMetadata().getClassName();
-                            return resourcePatternResolver.getClassLoader().loadClass(className);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    .map(PackageScanner::loadClass);
         } catch (Exception e) {
             throw new RuntimeException("类扫描异常：package=" + packageToScan, e);
+        }
+    }
+
+    private static Class<?> loadClass(Resource resource) {
+        try {
+            return resourcePatternResolver.getClassLoader().loadClass(readerFactory.getMetadataReader(resource)
+                    .getClassMetadata().getClassName());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
