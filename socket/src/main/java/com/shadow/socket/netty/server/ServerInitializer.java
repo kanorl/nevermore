@@ -22,7 +22,7 @@ import javax.annotation.PreDestroy;
  */
 public class ServerInitializer extends ChannelInitializer<SocketChannel> {
 
-    @Value("${server.socket.pool.size:0}")
+    @Value("${server.socket.poolSize:0}")
     private int poolSize;
     @Autowired
     private ServerHandler handler;

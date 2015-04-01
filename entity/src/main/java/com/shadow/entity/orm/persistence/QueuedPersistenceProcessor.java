@@ -29,7 +29,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Autowired
     private DataAccessor dataAccessor;
-    @Value("${server.persistence.pool.size:0}")
+    @Value("${server.persistence.poolSize:0}")
     private int nThread;
 
     private ExecutorService[] executors;
@@ -42,7 +42,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
         }
         executors = new ExecutorService[MathUtil.ensurePowerOf2(nThread)];
         for (int i = 0; i < executors.length; i++) {
-            executors[i] = Executors.newSingleThreadExecutor(threadFactory);
+            executors[i] = Executors.newFixedThreadPool(1, threadFactory);
         }
         LOGGER.error("队列持久化线程池大小={}", nThread);
     }
@@ -75,7 +75,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     @PreDestroy
     public void shutdown() {
         for (int i = 0; i < executors.length; i++) {
-            ExecutorUtil.shutdownAndAwaitTermination(executors[i], threadFactory.getName() + "-" + i);
+            ExecutorUtil.shutdownAndAwaitTermination(executors[i], threadFactory.getName() + "-" + (i + 1));
         }
     }
 }

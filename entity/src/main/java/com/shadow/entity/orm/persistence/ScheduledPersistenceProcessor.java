@@ -16,12 +16,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * @author nevermore on 2015/3/19
@@ -31,7 +31,7 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledPersistenceProcessor.class);
 
     @Autowired
-    private QueuedPersistenceProcessor<T> processor;
+    private QueuedPersistenceProcessor<T> delegate;
     @Value("${server.persistence.interval:60}")
     private long interval;
 
@@ -54,7 +54,7 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
     public void save(T t, Runnable callback) {
         r.lock();
         try {
-            mapFor(t).put(t.getId(), PersistenceObj.saveOf(t, null));
+            mapFor(t).put(t.getId(), PersistenceObj.saveOf(t, callback));
         } finally {
             r.unlock();
         }
@@ -64,7 +64,7 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
     public void update(T t, Runnable callback) {
         r.lock();
         try {
-            mapFor(t).putIfAbsent(t.getId(), PersistenceObj.updateOf(t, null));
+            mapFor(t).putIfAbsent(t.getId(), PersistenceObj.updateOf(t, callback));
         } finally {
             r.unlock();
         }
@@ -74,7 +74,7 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
     public void delete(T t, Runnable callback) {
         r.lock();
         try {
-            mapFor(t).put(t.getId(), PersistenceObj.deleteOf(t, null));
+            mapFor(t).put(t.getId(), PersistenceObj.deleteOf(t, callback));
         } finally {
             r.unlock();
         }
@@ -82,7 +82,7 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
 
     @Override
     public long remainTasks() {
-        return processor.remainTasks();
+        return delegate.remainTasks();
     }
 
     @PreDestroy
@@ -100,21 +100,17 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
 
         @Override
         public void run() {
-            List<List<PersistenceObj>> objLists;
+            List<PersistenceObj> elements;
             w.lock();
             try {
-                ConcurrentMap<Class<?>, ConcurrentMap<Object, PersistenceObj>> maps = cache.asMap();
-                objLists = new ArrayList<>(maps.size());
-                for (ConcurrentMap<Object, PersistenceObj> objs : maps.values()) {
-                    objLists.add(new ArrayList<>(objs.values()));
-                    objs.clear();
-                }
+                elements = cache.asMap().values().stream().flatMap(m -> m.values().stream()).collect(Collectors.toList());
+                cache.invalidateAll();
             } finally {
                 w.unlock();
             }
-            objLists.forEach(objList -> objList.forEach(processor::submit));
+            elements.forEach(delegate::submit);
 
-            LOGGER.info("本次定时入库提交了{}个任务", objLists.stream().mapToLong(List::size).sum());
+            LOGGER.info("本次定时入库提交了{}个任务", elements.size());
         }
     }
 }

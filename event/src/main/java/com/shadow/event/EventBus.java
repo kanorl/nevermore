@@ -29,16 +29,14 @@ public class EventBus {
 
     @Autowired
     private EventListenerManager eventListenerManager;
-    @Value("${server.event.pool.size:0}")
-    private int nThread;
+    @Value("${server.event.poolSize:0}")
+    private int poolSize;
 
     private ExecutorService executorService;
 
     @PostConstruct
     private void init() {
-        if (nThread < 1) {
-            nThread = Runtime.getRuntime().availableProcessors() + 1;
-        }
+        int nThread = poolSize == 0 ? Runtime.getRuntime().availableProcessors() + 1 : poolSize;
         LOGGER.error("事件处理线程池大小: " + nThread);
         executorService = Executors.newFixedThreadPool(nThread, new NamedThreadFactory("事件处理"));
     }

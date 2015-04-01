@@ -23,14 +23,15 @@ public class DefaultScheduler extends ThreadPoolTaskScheduler implements Schedul
 
     private static final long serialVersionUID = 5403439503341559182L;
 
-    @Value("${server.schedule.maxAwaitMills:5000}")
+    @Value("${server.scheduler.maxAwaitMills:5000}")
     private long maxAwaitMills;
-    @Value("${server.schedule.poolSize:16}")
+    @Value("${server.scheduler.poolSize:0}")
     private int poolSize;
 
     @Override
     protected ScheduledExecutorService createExecutor(int poolSize, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
-        return new TimeChangeSensitiveScheduledThreadPoolExecutor(this.poolSize, maxAwaitMills, new NamedThreadFactory("定时任务处理"));
+        int nThread = this.poolSize == 0 ? Runtime.getRuntime().availableProcessors() + 1 : this.poolSize;
+        return new TimeChangeSensitiveScheduledThreadPoolExecutor(nThread, maxAwaitMills, new NamedThreadFactory("定时任务处理"));
     }
 
     @Override
