@@ -46,5 +46,5 @@
         <property name="endTag" value="END"/>
     </bean>
 
-    <bean id="codec" class="com.shadow.util.codec.ProtostuffCodec"/>
+    <bean id="codec" class="com.shadow.common.util.codec.ProtostuffCodec"/>
 </beans>

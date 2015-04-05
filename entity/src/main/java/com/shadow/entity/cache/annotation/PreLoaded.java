@@ -19,9 +19,9 @@ import java.util.List;
 @Target(ElementType.TYPE)
 public @interface PreLoaded {
 
-    public Policy policy();
+    Policy policy();
 
-    public enum Policy {
+    enum Policy {
         NAMED_QUERY {
             @Override
             public <T extends IEntity<?>> List<T> load(DataAccessor dataAccessor, Class<T> clazz) {

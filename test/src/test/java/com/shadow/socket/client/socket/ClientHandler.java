@@ -1,10 +1,10 @@
 package com.shadow.socket.client.socket;
 
+import com.shadow.common.util.codec.JsonUtil;
+import com.shadow.common.util.codec.ProtostuffCodec;
 import com.shadow.socket.client.Client;
 import com.shadow.socket.core.domain.Message;
 import com.shadow.socket.core.domain.Result;
-import com.shadow.util.codec.JsonUtil;
-import com.shadow.util.codec.ProtostuffCodec;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 

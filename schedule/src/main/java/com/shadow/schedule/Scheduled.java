@@ -14,13 +14,13 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Scheduled {
 
-    public String name();
+    String name();
 
-    public String value();
+    String value();
 
-    public ValueType valueType() default ValueType.BEAN_NAME;
+    ValueType valueType() default ValueType.BEAN_NAME;
 
-    public enum ValueType {
+    enum ValueType {
         BEAN_NAME {
             @Override
             public String value2Cron(String value, ApplicationContext ctx) {

@@ -20,12 +20,12 @@ import java.util.Collections;
 @Target(ElementType.PARAMETER)
 public @interface LockTarget {
 
-    public Type value() default Type.Object;
+    Type value() default Type.Object;
 
     /**
      * 加锁对象的类型
      */
-    public enum Type {
+    enum Type {
 
         /**
          * 对指定对象加锁

@@ -1,7 +1,7 @@
 package com.shadow.resource.exception;
 
-import com.shadow.util.exception.CheckedException;
-import com.shadow.util.exception.CheckedExceptionCode;
+import com.shadow.common.exception.CheckedException;
+import com.shadow.common.exception.CheckedExceptionCode;
 
 /**
  * @author nevermore on 2015/1/14

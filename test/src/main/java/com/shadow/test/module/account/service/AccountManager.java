@@ -1,5 +1,7 @@
 package com.shadow.test.module.account.service;
 
+import com.shadow.common.exception.OperationFailedException;
+import com.shadow.common.injection.Injected;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.id.EntityIdGenerator;
 import com.shadow.entity.orm.DataAccessor;
@@ -7,8 +9,6 @@ import com.shadow.test.module.account.entity.Account;
 import com.shadow.test.module.account.exception.AccountException;
 import com.shadow.test.module.account.exception.AccountExceptionCode;
 import com.shadow.test.module.account.model.AccountInfo;
-import com.shadow.util.exception.OperationFailedException;
-import com.shadow.util.injection.Injected;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

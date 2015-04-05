@@ -1,13 +1,13 @@
 package com.shadow.socket.netty.server.session;
 
 import com.google.common.collect.Sets;
+import com.shadow.common.util.codec.Codec;
 import com.shadow.event.EventBus;
 import com.shadow.socket.core.domain.AttrKey;
 import com.shadow.socket.core.domain.Command;
 import com.shadow.socket.core.domain.Result;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.core.session.SessionManager;
-import com.shadow.util.codec.Codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;

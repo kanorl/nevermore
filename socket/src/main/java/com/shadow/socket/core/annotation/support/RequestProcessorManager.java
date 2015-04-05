@@ -1,5 +1,6 @@
 package com.shadow.socket.core.annotation.support;
 
+import com.shadow.common.util.lang.ReflectUtil;
 import com.shadow.socket.core.annotation.HandlerMethod;
 import com.shadow.socket.core.annotation.RequestHandler;
 import com.shadow.socket.core.annotation.RequestParam;
@@ -7,7 +8,6 @@ import com.shadow.socket.core.annotation.SessionAttr;
 import com.shadow.socket.core.domain.Command;
 import com.shadow.socket.core.domain.Request;
 import com.shadow.socket.core.session.Session;
-import com.shadow.util.lang.ReflectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;

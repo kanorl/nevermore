@@ -1,7 +1,7 @@
 package com.shadow.event;
 
-import com.shadow.util.concurrent.ExecutorUtil;
-import com.shadow.util.thread.NamedThreadFactory;
+import com.shadow.common.util.concurrent.ExecutorUtil;
+import com.shadow.common.util.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class EventBus {
 
     @Autowired
     private EventListenerManager eventListenerManager;
-    @Value("${server.event.pool.size:0}")
+    @Value("${server.event.poolSize:0}")
     private int nThread;
 
     private ExecutorService executorService;

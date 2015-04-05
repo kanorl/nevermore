@@ -1,14 +1,14 @@
 package com.shadow.resource;
 
+import com.shadow.common.util.RandomUtil;
+import com.shadow.common.util.execution.LogLevel;
+import com.shadow.common.util.execution.LoggedExecution;
 import com.shadow.resource.annotation.Id;
 import com.shadow.resource.exception.DuplicateKeyException;
 import com.shadow.resource.exception.InvalidResourceException;
 import com.shadow.resource.exception.ResourceNotFoundException;
 import com.shadow.resource.exception.ResourcePrimaryKeyNotFoundException;
 import com.shadow.resource.reader.ResourceReader;
-import com.shadow.util.RandomUtil;
-import com.shadow.util.execution.LogLevel;
-import com.shadow.util.execution.LoggedExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ReflectionUtils;
 
@@ -36,32 +36,33 @@ public class ResourceHolder<T> {
 
     @SuppressWarnings("unchecked")
     private synchronized void load() {
-        LoggedExecution.forName("加载资源{}", resourceType.getSimpleName()).execute(() -> {
-            List<T> resourceBeans = resourceReader.read(resourceType);
-            if (Validatable.class.isAssignableFrom(resourceType)) {
-                resourceBeans.stream().filter(bean -> !((Validatable) bean).isValid()).findAny().ifPresent(bean -> {
-                    throw new InvalidResourceException(bean);
+        LoggedExecution.forName("加载资源{}", resourceType.getSimpleName())
+                .execute(() -> {
+                    List<T> resourceBeans = resourceReader.read(resourceType);
+                    if (Validatable.class.isAssignableFrom(resourceType)) {
+                        resourceBeans.stream().filter(bean -> !((Validatable) bean).isValid()).findAny().ifPresent(bean -> {
+                            throw new InvalidResourceException(bean);
+                        });
+                    }
+                    Field idField = Arrays.stream(resourceType.getDeclaredFields()).filter(field -> field.isAnnotationPresent
+                            (Id.class)).findFirst().orElseThrow(() -> new ResourcePrimaryKeyNotFoundException(resourceType));
+                    ReflectionUtils.makeAccessible(idField);
+
+                    Map<Object, T> resources;
+                    if (Comparable.class.isAssignableFrom(resourceType)) {
+                        resources = new TreeMap<>();
+                    } else {
+                        resources = new HashMap<>();
+                    }
+                    resourceBeans.forEach(bean -> {
+                        Object key = ReflectionUtils.getField(idField, bean);
+                        if (resources.putIfAbsent(key, bean) != null) {
+                            throw new DuplicateKeyException(resourceType, key);
+                        }
+                    });
+
+                    this.resources = resources;
                 });
-            }
-            Field idField = Arrays.stream(resourceType.getDeclaredFields()).filter(field -> field.isAnnotationPresent
-                    (Id.class)).findFirst().orElseThrow(() -> new ResourcePrimaryKeyNotFoundException(resourceType));
-            ReflectionUtils.makeAccessible(idField);
-
-            Map<Object, T> resources;
-            if (Comparable.class.isAssignableFrom(resourceType)) {
-                resources = new TreeMap<>();
-            } else {
-                resources = new HashMap<>();
-            }
-            resourceBeans.forEach(bean -> {
-                Object key = ReflectionUtils.getField(idField, bean);
-                if (resources.putIfAbsent(key, bean) != null) {
-                    throw new DuplicateKeyException(resourceType, key);
-                }
-            });
-
-            this.resources = resources;
-        });
     }
 
     @Nonnull

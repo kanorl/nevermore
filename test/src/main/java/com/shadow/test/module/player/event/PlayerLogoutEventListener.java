@@ -1,8 +1,8 @@
 package com.shadow.test.module.player.event;
 
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.event.EventListener;
 import com.shadow.test.module.player.entity.Player;
-import com.shadow.util.codec.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

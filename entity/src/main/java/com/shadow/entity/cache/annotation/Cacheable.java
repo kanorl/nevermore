@@ -19,28 +19,28 @@ public @interface Cacheable {
      *
      * @return
      */
-    public CacheSize cacheSize() default @CacheSize;
+    CacheSize cacheSize() default @CacheSize;
 
     /**
      * 入库策略
      *
      * @return
      */
-    public PersistencePolicy persistencePolicy() default PersistencePolicy.SCHEDULED;
+    PersistencePolicy persistencePolicy() default PersistencePolicy.SCHEDULED;
 
     /**
      * 并发级别
      *
      * @return
      */
-    public int concurrencyLevel() default 16;
+    int concurrencyLevel() default 16;
 
     /**
      * 读操作后存活时间
      *
      * @return
      */
-    public String expireAfterAccess() default "30m";
+    String expireAfterAccess() default "30m";
 
 
     /**
@@ -48,19 +48,19 @@ public @interface Cacheable {
      *
      * @return
      */
-    public String expireAfterWrite() default "";
+    String expireAfterWrite() default "";
 
     /**
      * 是否记录缓存统计数据
      *
      * @return
      */
-    public boolean recordStats() default true;
+    boolean recordStats() default true;
 
     /**
      * 缓存key是否为弱引用
      *
      * @return
      */
-    public boolean weakKeys() default false;
+    boolean weakKeys() default false;
 }

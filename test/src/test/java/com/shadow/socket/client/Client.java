@@ -1,6 +1,7 @@
 package com.shadow.socket.client;
 
 import com.google.common.collect.Maps;
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.socket.client.model.Param;
 import com.shadow.socket.client.socket.SocketClient;
 import com.shadow.socket.client.ui.ParamPanel;
@@ -9,7 +10,6 @@ import com.shadow.socket.client.ui.TopPanel;
 import com.shadow.socket.core.domain.Command;
 import com.shadow.socket.core.domain.ParameterContainer;
 import com.shadow.socket.core.domain.Request;
-import com.shadow.util.codec.JsonUtil;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.swing.*;

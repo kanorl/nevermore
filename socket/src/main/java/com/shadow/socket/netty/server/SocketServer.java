@@ -1,7 +1,7 @@
 package com.shadow.socket.netty.server;
 
-import com.shadow.util.execution.LoggedExecution;
-import com.shadow.util.thread.NamedThreadFactory;
+import com.shadow.common.util.execution.LoggedExecution;
+import com.shadow.common.util.thread.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;

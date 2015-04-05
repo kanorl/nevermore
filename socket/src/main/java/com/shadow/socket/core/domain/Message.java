@@ -1,6 +1,6 @@
 package com.shadow.socket.core.domain;
 
-import com.shadow.util.codec.JsonUtil;
+import com.shadow.common.util.codec.JsonUtil;
 
 import java.util.Arrays;
 

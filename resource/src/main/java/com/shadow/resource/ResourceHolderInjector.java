@@ -1,7 +1,7 @@
 package com.shadow.resource;
 
-import com.shadow.util.injection.InjectedAnnotationProcessor;
-import com.shadow.util.injection.ParameterizedTypeNotFoundException;
+import com.shadow.common.injection.InjectedAnnotationProcessor;
+import com.shadow.common.injection.ParameterizedTypeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;

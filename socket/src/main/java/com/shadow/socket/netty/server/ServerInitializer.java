@@ -1,11 +1,11 @@
 package com.shadow.socket.netty.server;
 
+import com.shadow.common.util.thread.NamedThreadFactory;
 import com.shadow.socket.netty.codec.HeaderPrepender;
 import com.shadow.socket.netty.codec.MessageDecoder;
 import com.shadow.socket.netty.codec.MessageEncoder;
 import com.shadow.socket.netty.server.handler.ServerHandler;
 import com.shadow.socket.netty.server.session.ServerSessionHandler;
-import com.shadow.util.thread.NamedThreadFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -22,7 +22,7 @@ import javax.annotation.PreDestroy;
  */
 public class ServerInitializer extends ChannelInitializer<SocketChannel> {
 
-    @Value("${server.socket.pool.size:0}")
+    @Value("${server.socket.poolSize:0}")
     private int poolSize;
     @Autowired
     private ServerHandler handler;

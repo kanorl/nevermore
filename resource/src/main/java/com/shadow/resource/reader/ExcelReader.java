@@ -1,9 +1,9 @@
 package com.shadow.resource.reader;
 
 import com.google.common.collect.Maps;
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.resource.ResourceConfiguration;
 import com.shadow.resource.annotation.Resource;
-import com.shadow.util.codec.JsonUtil;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

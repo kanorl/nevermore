@@ -1,11 +1,14 @@
 package com.shadow.entity;
 
+import com.shadow.common.config.ServerConfig;
+import com.shadow.common.injection.Injected;
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.id.EntityIdGenerator;
-import com.shadow.util.codec.JsonUtil;
-import com.shadow.util.config.ServerConfig;
-import com.shadow.util.injection.Injected;
+import com.shadow.test.module.player.entity.Player;
+import com.shadow.test.module.player.model.Country;
+import com.shadow.test.module.player.model.Gender;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +36,7 @@ public class IdGenerateTest {
 //        short server = serverProperty.getServers().get(0);
 //        long playerId = idGenerator.next(Player.class, server);
         long playerId = 3057944421862473729L;
-        Player player = playerCache.getOrCreate(playerId, () -> Player.valueOf(playerId));
+        Player player = playerCache.getOrCreate(playerId, () -> Player.valueOf(playerId, "pName", Gender.FEMALE, Country.FOUR));
 
 
         long itemId = entityIdGenerator.next(Item.class, playerId);

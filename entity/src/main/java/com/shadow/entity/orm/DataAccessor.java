@@ -40,5 +40,5 @@ public interface DataAccessor {
     @Nonnull
     <K extends Serializable, V extends IEntity<K>> List<K> queryIds(@Nonnull Class<V> clazz, @Nonnull Map<String, Object> stringObjectMap);
 
-    <K extends Serializable, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range<?> range);
+    <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range<?> range);
 }

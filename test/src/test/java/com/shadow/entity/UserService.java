@@ -1,9 +1,9 @@
 package com.shadow.entity;
 
+import com.shadow.common.injection.Injected;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.lock.annotation.AutoLocked;
 import com.shadow.entity.lock.annotation.LockTarget;
-import com.shadow.util.injection.Injected;
 import org.springframework.stereotype.Component;
 
 /**

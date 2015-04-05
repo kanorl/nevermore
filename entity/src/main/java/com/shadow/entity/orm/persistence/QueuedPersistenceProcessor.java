@@ -1,10 +1,10 @@
 package com.shadow.entity.orm.persistence;
 
+import com.shadow.common.util.concurrent.ExecutorUtil;
+import com.shadow.common.util.lang.MathUtil;
+import com.shadow.common.util.thread.NamedThreadFactory;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.util.concurrent.ExecutorUtil;
-import com.shadow.util.lang.MathUtil;
-import com.shadow.util.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     @Autowired
     private DataAccessor dataAccessor;
-    @Value("${server.persistence.pool.size:0}")
+    @Value("${server.persistence.poolSize:0}")
     private int nThread;
 
     private ExecutorService[] executors;
@@ -40,11 +40,12 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
         if (nThread <= 0) {
             nThread = Runtime.getRuntime().availableProcessors() + 1;
         }
-        executors = new ExecutorService[MathUtil.ensurePowerOf2(nThread)];
+        int poolSize = MathUtil.ensurePowerOf2(nThread);
+        executors = new ExecutorService[poolSize];
         for (int i = 0; i < executors.length; i++) {
-            executors[i] = Executors.newSingleThreadExecutor(threadFactory);
+            executors[i] = Executors.newFixedThreadPool(1, threadFactory);
         }
-        LOGGER.error("队列持久化线程池大小={}", nThread);
+        LOGGER.error("队列持久化线程池大小={}", poolSize);
     }
 
     void submit(PersistenceObj obj) {
@@ -75,7 +76,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     @PreDestroy
     public void shutdown() {
         for (int i = 0; i < executors.length; i++) {
-            ExecutorUtil.shutdownAndAwaitTermination(executors[i], threadFactory.getName() + "-" + i);
+            ExecutorUtil.shutdownAndAwaitTermination(executors[i], threadFactory.getName() + "-" + (i + 1));
         }
     }
 }

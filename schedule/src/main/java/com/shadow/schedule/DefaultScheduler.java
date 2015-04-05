@@ -1,8 +1,10 @@
 package com.shadow.schedule;
 
+import com.shadow.common.util.execution.LoggedExecution;
+import com.shadow.common.util.thread.NamedThreadFactory;
 import com.shadow.schedule.executor.TimeChangeSensitiveScheduledThreadPoolExecutor;
-import com.shadow.util.execution.LoggedExecution;
-import com.shadow.util.thread.NamedThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -22,15 +24,20 @@ import java.util.concurrent.ThreadFactory;
 public class DefaultScheduler extends ThreadPoolTaskScheduler implements Scheduler {
 
     private static final long serialVersionUID = 5403439503341559182L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     @Value("${server.schedule.maxAwaitMills:5000}")
     private long maxAwaitMills;
-    @Value("${server.schedule.poolSize:16}")
-    private int poolSize;
+    @Value("${server.scheduled.poolSize:0}")
+    private int nThread;
 
     @Override
     protected ScheduledExecutorService createExecutor(int poolSize, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
-        return new TimeChangeSensitiveScheduledThreadPoolExecutor(this.poolSize, maxAwaitMills, new NamedThreadFactory("定时任务处理"));
+        if (nThread < 1) {
+            nThread = Runtime.getRuntime().availableProcessors() + 1;
+        }
+        LOGGER.error("定时任务处理线程池大小={}", nThread);
+        return new TimeChangeSensitiveScheduledThreadPoolExecutor(nThread, maxAwaitMills, new NamedThreadFactory("定时任务处理"));
     }
 
     @Override

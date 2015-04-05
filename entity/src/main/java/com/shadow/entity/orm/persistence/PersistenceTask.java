@@ -1,9 +1,9 @@
 package com.shadow.entity.orm.persistence;
 
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.CachedEntity;
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.util.codec.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

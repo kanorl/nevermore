@@ -1,6 +1,6 @@
 package com.shadow.event;
 
-import com.shadow.util.codec.JsonUtil;
+import com.shadow.common.util.codec.JsonUtil;
 import org.springframework.stereotype.Component;
 
 /**

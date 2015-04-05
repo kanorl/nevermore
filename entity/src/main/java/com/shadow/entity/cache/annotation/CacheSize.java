@@ -22,20 +22,20 @@ public @interface CacheSize {
      *
      * @return
      */
-    public Size size() default Size.DEFAULT;
+    Size size() default Size.DEFAULT;
 
     /**
      * 容量系数
      *
      * @return
      */
-    public double factor() default 1;
+    double factor() default 1;
 
 
     /**
      * 缓存容量系数
      */
-    public enum Size {
+    enum Size {
         /**
          * 最小容量
          */

@@ -1,8 +1,8 @@
 package com.shadow.resource;
 
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.resource.annotation.Id;
 import com.shadow.resource.annotation.Resource;
-import com.shadow.util.codec.JsonUtil;
 
 /**
  * @author nevermore on 2015/1/15

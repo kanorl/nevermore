@@ -1,10 +1,10 @@
 package com.shadow.test.module.player.event;
 
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.event.EventListener;
 import com.shadow.socket.core.domain.Command;
 import com.shadow.socket.core.session.SessionManager;
 import com.shadow.test.module.player.entity.Player;
-import com.shadow.util.codec.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

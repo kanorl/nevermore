@@ -1,11 +1,12 @@
 package com.shadow.resource;
 
+import com.shadow.common.util.lang.ReflectUtil;
 import com.shadow.resource.annotation.Resource;
-import com.shadow.util.lang.ReflectUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -18,7 +19,7 @@ import java.util.Set;
  * @author nevermore on 2015/1/14
  */
 @Component
-public class ResourceHolderManager implements ApplicationListener<ContextRefreshedEvent> {
+public class ResourceHolderManager implements ApplicationListener<ContextRefreshedEvent>, Ordered {
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -51,5 +52,10 @@ public class ResourceHolderManager implements ApplicationListener<ContextRefresh
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         init();
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

@@ -1,6 +1,6 @@
 package com.shadow.event;
 
-import com.shadow.util.lang.ReflectUtil;
+import com.shadow.common.util.lang.ReflectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -37,6 +37,9 @@ public class EventListenerManager implements BeanPostProcessor, ApplicationListe
      */
     @Nonnull
     Set<EventListener<Event>> getListeners(Class<? extends Event> eventType) {
+        if (eventScope == null) {
+            throw new IllegalStateException("事件模块未初始化完成");
+        }
         return eventScope.getOrDefault(eventType, Collections.emptySet());
     }
 

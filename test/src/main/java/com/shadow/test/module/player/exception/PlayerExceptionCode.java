@@ -1,6 +1,6 @@
 package com.shadow.test.module.player.exception;
 
-import com.shadow.util.exception.CheckedExceptionCode;
+import com.shadow.common.exception.CheckedExceptionCode;
 
 /**
  * @author nevermore on 2015/3/2

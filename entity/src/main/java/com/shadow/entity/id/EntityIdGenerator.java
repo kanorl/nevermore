@@ -5,9 +5,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Range;
+import com.shadow.common.config.ServerConfig;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.util.config.ServerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

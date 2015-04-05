@@ -1,7 +1,7 @@
 package com.shadow.socket.client.socket.codec;
 
+import com.shadow.common.util.codec.ProtostuffCodec;
 import com.shadow.socket.core.domain.Request;
-import com.shadow.util.codec.ProtostuffCodec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;

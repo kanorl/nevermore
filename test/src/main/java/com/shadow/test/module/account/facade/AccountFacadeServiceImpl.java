@@ -1,5 +1,6 @@
 package com.shadow.test.module.account.facade;
 
+import com.shadow.common.config.ServerConfig;
 import com.shadow.event.EventBus;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.core.session.SessionManager;
@@ -13,7 +14,6 @@ import com.shadow.test.module.player.event.PlayerLoginEvent;
 import com.shadow.test.module.player.model.Country;
 import com.shadow.test.module.player.model.Gender;
 import com.shadow.test.module.player.service.PlayerService;
-import com.shadow.util.config.ServerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

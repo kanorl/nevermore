@@ -1,6 +1,6 @@
 package com.shadow.socket.client.socket;
 
-import com.shadow.util.codec.JsonUtil;
+import com.shadow.common.util.codec.JsonUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

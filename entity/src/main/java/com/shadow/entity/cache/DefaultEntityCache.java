@@ -110,11 +110,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
                 V cachedEntity = entityWrapper.wrap(entity);
                 ((CachedEntity) cachedEntity).postEdit();// mark as modified
-                persistenceProcessor.save(cachedEntity, () -> {
-                    if (((CachedEntity) cachedEntity).isPersisted()) {
-                        updating.remove(cachedEntity.getId());
-                    }
-                });
+                persistenceProcessor.save(cachedEntity);
                 return cachedEntity;
             });
         } catch (ExecutionException e) {
@@ -135,18 +131,20 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
             ((CachedEntity) entity).postEdit();// mark as modified
         }
 
-        persistenceProcessor.update(entity, () -> {
-            if (entity instanceof CachedEntity && ((CachedEntity) entity).isPersisted()) {
-                updating.remove(entity.getId());
-            }
-        });
+        persistenceProcessor.update(entity);
         return true;
     }
 
     @Override
     public void remove(@Nonnull K id) {
         requireNonNull(id);
-        cache.invalidate(id);
+        get(id).ifPresent(entity -> {
+            if (entity instanceof CachedEntity) {
+                ((CachedEntity) entity).postEdit();// mark as modified
+            }
+            cache.invalidate(id);
+        });
+        cache.invalidateAll();
     }
 
     private String toCacheSpec(Cacheable cacheable) {
@@ -207,8 +205,8 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
 
             if (notification.wasEvicted()) {
                 if (value instanceof CachedEntity && !((CachedEntity) value).isPersisted()) {
-                    LOGGER.error("缓存失效且数据未入库: id={}, class={}", id, clazz.getSimpleName());
                     updating.put(id, value);
+                    LOGGER.error("缓存失效且数据未入库: id={}, class={}", id, clazz.getSimpleName());
                 }
                 return;
             }

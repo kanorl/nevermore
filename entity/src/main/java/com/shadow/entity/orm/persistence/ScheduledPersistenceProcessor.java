@@ -4,10 +4,10 @@ import com.google.common.base.Supplier;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.shadow.common.util.concurrent.ExecutorUtil;
+import com.shadow.common.util.thread.NamedThreadFactory;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.CachedEntity;
-import com.shadow.util.concurrent.ExecutorUtil;
-import com.shadow.util.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +16,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * @author nevermore on 2015/3/19
@@ -100,21 +100,17 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
 
         @Override
         public void run() {
-            List<List<PersistenceObj>> objLists;
+            List<PersistenceObj> objLists;
             w.lock();
             try {
-                ConcurrentMap<Class<?>, ConcurrentMap<Object, PersistenceObj>> maps = cache.asMap();
-                objLists = new ArrayList<>(maps.size());
-                for (ConcurrentMap<Object, PersistenceObj> objs : maps.values()) {
-                    objLists.add(new ArrayList<>(objs.values()));
-                    objs.clear();
-                }
+                objLists = cache.asMap().values().stream().flatMap(m -> m.values().stream()).collect(Collectors.toList());
+                cache.invalidateAll();
             } finally {
                 w.unlock();
             }
-            objLists.forEach(objList -> objList.forEach(processor::submit));
+            objLists.forEach(processor::submit);
 
-            LOGGER.info("本次定时入库提交了{}个任务", objLists.stream().mapToLong(List::size).sum());
+            LOGGER.info("本次定时入库提交了{}个任务", objLists.size());
         }
     }
 }

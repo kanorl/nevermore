@@ -14,11 +14,11 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface AutoSave {
 
-    public Result forResult() default Result.NULL;
+    Result forResult() default Result.NULL;
 
-    public boolean withIndexValueChanged() default false;
+    boolean withIndexValueChanged() default false;
 
-    public enum Result {
+    enum Result {
 
         NULL(""),
 
@@ -28,7 +28,7 @@ public @interface AutoSave {
 
         private String value;
 
-        private Result(String value) {
+        Result(String value) {
             this.value = value;
         }
 

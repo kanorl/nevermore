@@ -1,8 +1,8 @@
 package com.shadow.entity;
 
+import com.shadow.common.injection.Injected;
 import com.shadow.entity.cache.RegionEntityCache;
 import com.shadow.entity.orm.DataAccessor;
-import com.shadow.util.injection.Injected;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

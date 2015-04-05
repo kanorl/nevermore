@@ -117,7 +117,7 @@ public class HibernateDataAccessor implements DataAccessor {
     }
 
     @Override
-    public <K extends Serializable, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range<?> range) {
+    public <K extends Long, V extends IEntity<K>> Optional<K> queryMaxId(@Nonnull Class<V> clazz, Range<?> range) {
         String pName = sessionFactory.getClassMetadata(clazz).getIdentifierPropertyName();
         return Optional.ofNullable((K) currentSession().createCriteria(clazz).add(Restrictions.between(pName, range.lowerEndpoint(), range.upperEndpoint())).setProjection(Projections.max(pName)).uniqueResult());
     }

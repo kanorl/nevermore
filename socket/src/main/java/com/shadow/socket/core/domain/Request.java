@@ -1,8 +1,8 @@
 package com.shadow.socket.core.domain;
 
 
+import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.socket.core.session.Session;
-import com.shadow.util.codec.JsonUtil;
 
 /**
  * @author nevermore on 2014/11/26.
