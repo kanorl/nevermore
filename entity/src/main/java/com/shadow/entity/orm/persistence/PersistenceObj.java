@@ -20,27 +20,27 @@ final class PersistenceObj {
         this.callback = Optional.ofNullable(callback);
     }
 
-    public static <T extends IEntity<?>> PersistenceObj saveOf(T t, Runnable callback) {
+    static <T extends IEntity<?>> PersistenceObj saveOf(T t, Runnable callback) {
         return new PersistenceObj(t, PersistenceOperation.SAVE, callback);
     }
 
-    public static <T extends IEntity<?>> PersistenceObj updateOf(T t, Runnable callback) {
+    static <T extends IEntity<?>> PersistenceObj updateOf(T t, Runnable callback) {
         return new PersistenceObj(t, PersistenceOperation.UPDATE, callback);
     }
 
-    public static <T extends IEntity<?>> PersistenceObj deleteOf(T t, Runnable callback) {
+    static <T extends IEntity<?>> PersistenceObj deleteOf(T t, Runnable callback) {
         return new PersistenceObj(t, PersistenceOperation.DELETE, callback);
     }
 
-    public IEntity<?> getEntity() {
+    IEntity<?> getEntity() {
         return entity;
     }
 
-    public PersistenceOperation getOperation() {
+    PersistenceOperation getOperation() {
         return operation;
     }
 
-    public Optional<Runnable> getCallback() {
+    Optional<Runnable> getCallback() {
         return callback;
     }
 }
