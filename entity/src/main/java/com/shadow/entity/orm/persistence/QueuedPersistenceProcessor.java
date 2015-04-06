@@ -45,7 +45,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
         for (int i = 0; i < executors.length; i++) {
             executors[i] = Executors.newFixedThreadPool(1, threadFactory);
         }
-        LOGGER.error("队列持久化线程池大小={}", poolSize);
+        LOGGER.error("队列持久化线程池大小: {}", poolSize);
     }
 
     void submit(PersistenceObj obj) {

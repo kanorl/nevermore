@@ -47,7 +47,7 @@ public class ScheduledPersistenceProcessor<T extends IEntity<?>> implements Pers
     @PostConstruct
     private void init() {
         executorService.scheduleWithFixedDelay(new Task(), interval, interval, TimeUnit.SECONDS);
-        LOGGER.error("定时入库间隔时间 {}s", interval);
+        LOGGER.error("定时入库间隔时间: {}s", interval);
     }
 
     @Override

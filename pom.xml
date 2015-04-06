@@ -22,6 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <aspectj.version>1.8.2</aspectj.version>
+        <c3p0.version>0.9.5</c3p0.version>
         <commons.lang.version>3.3.2</commons.lang.version>
         <commons.collection.version>4.0</commons.collection.version>
         <disruptor.version>3.3.0</disruptor.version>
@@ -37,6 +38,7 @@
         <poi.version>3.11</poi.version>
         <protostuff.version>1.0.8</protostuff.version>
         <reflections.version>0.9.9-RC2</reflections.version>
+        <slf4j.version>1.7.12</slf4j.version>
         <spring.version>4.0.6.RELEASE</spring.version>
     </properties>
 
@@ -110,13 +112,19 @@
             <version>${hibernate.version}</version>
         </dependency>
 
+        <!--C3P0-->
+        <dependency>
+            <groupId>com.mchange</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>${c3p0.version}</version>
+        </dependency>
+
         <!--Mysql-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.connector.version}</version>
         </dependency>
-
 
         <!--Log4j2-->
         <dependency>
@@ -135,6 +143,13 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${log4j.version}</version>
+        </dependency>
+
+        <!--CommonLogging SLF4J Bridge-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
 
         <!--JbossLogging-->

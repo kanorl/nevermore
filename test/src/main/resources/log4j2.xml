@@ -9,17 +9,6 @@
         </Console>
     </Appenders>
     <Loggers>
-        <logger name="org.springframework.core" level="info">
-            <AppenderRef ref="Console"/>
-        </logger>
-        <logger name="org.springframework.beans" level="info">
-            <AppenderRef ref="Console"/>
-        </logger>
-        <logger name="org.springframework.context" level="info">
-            <AppenderRef ref="Console"/>
-        </logger>
-        <logger name="com.mchange.v2" level="debug">
-        </logger>
         <Root level="info">
             <AppenderRef ref="Console"/>
         </Root>

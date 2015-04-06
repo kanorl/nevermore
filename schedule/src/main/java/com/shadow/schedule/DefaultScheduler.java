@@ -36,7 +36,7 @@ public class DefaultScheduler extends ThreadPoolTaskScheduler implements Schedul
         if (nThread < 1) {
             nThread = Runtime.getRuntime().availableProcessors() + 1;
         }
-        LOGGER.error("定时任务处理线程池大小={}", nThread);
+        LOGGER.error("定时任务处理线程池大小: {}", nThread);
         return new TimeChangeSensitiveScheduledThreadPoolExecutor(nThread, maxAwaitMills, new NamedThreadFactory("定时任务处理"));
     }
 
