@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/applicationContext.xml")
+@Component
 public class ScheduleTest {
 
     @Autowired
@@ -26,9 +28,9 @@ public class ScheduleTest {
     @Test
     public void test() {
 
-        Instant instant = LocalDateTime.parse("2015-02-11T18:30:00").atZone(ZoneId.systemDefault()).toInstant();
+        Instant instant = LocalDateTime.parse("2015-04-09T11:26:10").atZone(ZoneId.systemDefault()).toInstant();
 
-        scheduler.schedule(new NamedTask() {
+        scheduler.schedule(new ScheduledTask() {
             @Override
             public String getName() {
                 return "定时调用测试";
@@ -39,11 +41,6 @@ public class ScheduleTest {
                 System.out.println("=============定时调用测试============> " + new Date());
             }
         }, Date.from(instant));
-    }
-
-    @Scheduled(name = "测试定时任务", value = "0 45 19 * * *", valueType = Scheduled.ValueType.EXPRESSION)
-    private void task() {
-        System.out.println("aaaaaaaaaaaaaa");
     }
 
     @After

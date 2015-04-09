@@ -56,7 +56,7 @@ public class LoggedExecution {
             task.run();
         } catch (Exception e) {
             LOGGER.error("任务[{}]执行失败：{}", taskName, e.getMessage());
-            throw new RuntimeException(e);
+            return;
         }
 
         if (logLevel.isEnabled()) {
@@ -79,7 +79,7 @@ public class LoggedExecution {
             retVal = task.call();
         } catch (Exception e) {
             LOGGER.error("任务[{}]执行失败：{}", taskName, e.getMessage());
-            throw new RuntimeException(e);
+            return null;
         }
 
         if (logLevel.isEnabled()) {

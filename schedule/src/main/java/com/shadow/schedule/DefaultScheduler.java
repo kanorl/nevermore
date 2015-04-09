@@ -41,41 +41,41 @@ public class DefaultScheduler extends ThreadPoolTaskScheduler implements Schedul
     }
 
     @Override
-    public ScheduledFuture<?> schedule(NamedTask task, String cron) {
+    public ScheduledFuture<?> schedule(ScheduledTask task, String cron) {
         return schedule(task, new CronTrigger(cron));
     }
 
     @Override
-    public ScheduledFuture<?> schedule(NamedTask task, Trigger trigger) {
+    public ScheduledFuture<?> schedule(ScheduledTask task, Trigger trigger) {
         return schedule(decorate(task), trigger);
     }
 
     @Override
-    public ScheduledFuture<?> schedule(NamedTask task, Date startTime) {
+    public ScheduledFuture<?> schedule(ScheduledTask task, Date startTime) {
         return schedule(decorate(task), startTime);
     }
 
     @Override
-    public ScheduledFuture<?> scheduleAtFixedRate(NamedTask task, Date startTime, long period) {
+    public ScheduledFuture<?> scheduleAtFixedRate(ScheduledTask task, Date startTime, long period) {
         return scheduleAtFixedRate(decorate(task), startTime, period);
     }
 
     @Override
-    public ScheduledFuture<?> scheduleAtFixedRate(NamedTask task, long period) {
+    public ScheduledFuture<?> scheduleAtFixedRate(ScheduledTask task, long period) {
         return scheduleAtFixedRate(decorate(task), period);
     }
 
     @Override
-    public ScheduledFuture<?> scheduleWithFixedDelay(NamedTask task, Date startTime, long delay) {
+    public ScheduledFuture<?> scheduleWithFixedDelay(ScheduledTask task, Date startTime, long delay) {
         return scheduleWithFixedDelay(decorate(task), startTime, delay);
     }
 
     @Override
-    public ScheduledFuture<?> scheduleWithFixedDelay(NamedTask task, long delay) {
+    public ScheduledFuture<?> scheduleWithFixedDelay(ScheduledTask task, long delay) {
         return scheduleWithFixedDelay(decorate(task), delay);
     }
 
-    private Runnable decorate(NamedTask task) {
+    private Runnable decorate(ScheduledTask task) {
         return () -> LoggedExecution.forName(task.getName()).execute(task);
     }
 }
