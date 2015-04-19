@@ -15,6 +15,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +110,8 @@ public class ServerSessionHandler extends ChannelInboundHandlerAdapter implement
 
         ByteBuf msg = toByteBuf(command, data);
         targets.forEach(id -> send(id, msg.duplicate().retain()));
+
+        ReferenceCountUtil.release(msg);
     }
 
     @Override

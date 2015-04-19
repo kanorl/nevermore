@@ -12,6 +12,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,6 +74,6 @@ public class ScheduledBeanPostProcessor implements BeanPostProcessor, Applicatio
         for (Map.Entry<ScheduledTask, String> entry : tasks.entrySet()) {
             scheduler.schedule(entry.getKey(), entry.getValue());
         }
-        tasks = null;
+        tasks = Collections.emptyMap();
     }
 }
