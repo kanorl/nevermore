@@ -26,7 +26,7 @@ public class ExecutorUtil {
 
             if (!service.isTerminated()) {
                 List<Runnable> tasks = service.shutdownNow();
-                LOGGER.error("[{}]线程池无法在规定时间内[{} {}]关闭，未执行的任务：", serviceName, timeout, unit, JsonUtil.toJson(tasks));
+                LOGGER.error("[{}]线程池无法在规定时间内[{} {}]关闭，未执行的任务：{}", serviceName, timeout, unit, JsonUtil.toJson(tasks));
             }
         });
     }

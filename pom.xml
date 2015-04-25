@@ -28,6 +28,7 @@
         <disruptor.version>3.3.0</disruptor.version>
         <guava.version>18.0</guava.version>
         <hibernate.version>4.3.6.Final</hibernate.version>
+        <j2v8.version>2.2.1</j2v8.version>
         <jackson.version>2.3.3</jackson.version>
         <jboss.logging.version>3.2.1.Final</jboss.logging.version>
         <jsr305.version>3.0.0</jsr305.version>
@@ -238,6 +239,13 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>${poi.version}</version>
+        </dependency>
+
+        <!--V8-->
+        <dependency>
+            <groupId>com.eclipsesource.j2v8</groupId>
+            <artifactId>j2v8_win32_x86_64</artifactId>
+            <version>${j2v8.version}</version>
         </dependency>
     </dependencies>
 
