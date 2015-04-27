@@ -2,7 +2,9 @@ package com.shadow.resource.reader;
 
 import com.google.common.collect.Maps;
 import com.shadow.common.util.codec.JsonUtil;
+import com.shadow.common.util.lang.ReflectUtil;
 import com.shadow.resource.ResourceConfiguration;
+import com.shadow.resource.annotation.AfterPropertiesSet;
 import com.shadow.resource.annotation.Resource;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +98,13 @@ public class ExcelReader implements ResourceReader {
             ReflectionUtils.makeAccessible(field);
             field.set(bean, filedValue);
         }
+        ReflectUtil.getDeclaredMethodsAnnotatedWith(resourceType, AfterPropertiesSet.class).stream().findFirst().ifPresent(m -> {
+            if (m.getParameterCount() > 0) {
+                throw new UnsupportedOperationException(AfterPropertiesSet.class.getSimpleName() + "方法不能带参数");
+            }
+            ReflectionUtils.makeAccessible(m);
+            ReflectionUtils.invokeMethod(m, bean);
+        });
         return bean;
     }
 
