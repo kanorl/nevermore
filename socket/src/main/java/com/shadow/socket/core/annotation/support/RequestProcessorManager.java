@@ -1,10 +1,7 @@
 package com.shadow.socket.core.annotation.support;
 
 import com.shadow.common.util.lang.ReflectUtil;
-import com.shadow.socket.core.annotation.HandlerMethod;
-import com.shadow.socket.core.annotation.RequestHandler;
-import com.shadow.socket.core.annotation.RequestParam;
-import com.shadow.socket.core.annotation.SessionAttr;
+import com.shadow.socket.core.annotation.*;
 import com.shadow.socket.core.domain.Command;
 import com.shadow.socket.core.domain.Request;
 import com.shadow.socket.core.session.Session;
@@ -19,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +28,7 @@ public final class RequestProcessorManager implements BeanPostProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestProcessorManager.class);
 
     private final Map<Command, RequestProcessor> requestProcessors = new HashMap<>();
+    private final Set<Command> commandsNotRequireIdentity = new HashSet<>();
     private static final RequestProcessor DEFAULT_PROCESSOR = new UnknownRequestProcessor();
 
     @Override
@@ -75,8 +74,24 @@ public final class RequestProcessorManager implements BeanPostProcessor {
             if (preProcessor != null) {
                 LOGGER.error("请求处理器被覆盖：" + command);
             }
+
+            if (!isIdentityRequired(handlerMethod)) {
+                commandsNotRequireIdentity.add(command);
+            }
         }
         return bean;
+    }
+
+    private boolean isIdentityRequired(Method method) {
+        IdentityRequired identityRequired = method.getAnnotation(IdentityRequired.class);
+        if (identityRequired == null) {
+            identityRequired = method.getDeclaringClass().getAnnotation(IdentityRequired.class);
+        }
+        return identityRequired == null || identityRequired.value();
+    }
+
+    public boolean isIdentityRequired(Command command) {
+        return !commandsNotRequireIdentity.contains(command);
     }
 
     @Nonnull

@@ -7,4 +7,6 @@ public interface Module {
     short FOUR = 4;
     short FIVE = 5;
     short SIX = 6;
+    short M9998 = 9998;
+    short M9999 = 9999;
 }

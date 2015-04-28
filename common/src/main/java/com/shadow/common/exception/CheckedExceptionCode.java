@@ -8,4 +8,5 @@ public interface CheckedExceptionCode {
     int UNKNOWN = -1;
     int OPERATION_FAILED = -2;
     int RESOURCE_NOT_FOUND = -3;
+    int UNAUTHENTICATED = -4;
 }

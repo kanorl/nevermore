@@ -5,10 +5,7 @@ import com.shadow.common.exception.CheckedExceptionCode;
 import com.shadow.common.util.codec.Codec;
 import com.shadow.socket.core.annotation.support.RequestProcessor;
 import com.shadow.socket.core.annotation.support.RequestProcessorManager;
-import com.shadow.socket.core.domain.Message;
-import com.shadow.socket.core.domain.ParameterContainer;
-import com.shadow.socket.core.domain.Request;
-import com.shadow.socket.core.domain.Result;
+import com.shadow.socket.core.domain.*;
 import com.shadow.socket.core.session.Session;
 import com.shadow.socket.netty.server.session.ServerSessionHandler;
 import io.netty.channel.ChannelHandler;
@@ -36,7 +33,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<Message> {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-        Request request = message2Request(msg, sessionHandler.getSession(ctx.channel()));
+        Session session = sessionHandler.getSession(ctx.channel());
+        if (requestProcessorManager.isIdentityRequired(msg.getCommand()) && !session.getAttr(AttrKey.IDENTITY).isPresent()) {
+            session.send(Message.valueOf(msg.getCommand(), codec.encode(Result.error(CheckedExceptionCode.UNAUTHENTICATED))));
+            return;
+        }
+
+        Request request = message2Request(msg, session);
 
         RequestProcessor requestProcessor = requestProcessorManager.getProcessor(request);
 

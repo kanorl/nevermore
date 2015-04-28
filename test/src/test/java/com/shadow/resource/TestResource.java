@@ -1,6 +1,7 @@
 package com.shadow.resource;
 
 import com.shadow.common.util.codec.JsonUtil;
+import com.shadow.resource.annotation.AfterPropertiesSet;
 import com.shadow.resource.annotation.Id;
 import com.shadow.resource.annotation.Resource;
 
@@ -14,7 +15,7 @@ public class TestResource implements Comparable<TestResource>, Randomable {
 
     @Id
     private int id;
-    private String name;
+    private String name = "default";
     private int rate;
 
     public int getId() {
@@ -34,6 +35,11 @@ public class TestResource implements Comparable<TestResource>, Randomable {
             return -1;
         }
         return Integer.compare(this.id, o.id);
+    }
+
+    @AfterPropertiesSet
+    private void afterPropertiesSet() {
+        System.out.println("afterPropertiesSet invoked.");
     }
 
     @Override
