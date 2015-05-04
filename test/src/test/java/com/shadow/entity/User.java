@@ -5,11 +5,9 @@ import com.shadow.entity.cache.annotation.AutoSave;
 import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.PreLoaded;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import java.util.Date;
 
 /**
@@ -17,9 +15,8 @@ import java.util.Date;
  */
 @Entity
 @Cacheable(cacheSize = @CacheSize(factor = 2))
-@PreLoaded(policy = PreLoaded.Policy.NAMED_QUERY)
-@NamedQueries(@NamedQuery(name = "User.init", query = "From User where date >= curdate() "))
-public class User extends CacheableEntity<Integer> {
+@PreLoaded(policy = PreLoaded.Policy.QUERY)
+public class User implements IEntity<Integer> {
 
     @Id
     private int id;

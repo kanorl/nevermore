@@ -1,4 +1,4 @@
-package com.shadow.entity.orm.persistence;
+package com.shadow.entity.db.persistence;
 
 import com.google.common.base.Supplier;
 import com.google.common.cache.CacheBuilder;

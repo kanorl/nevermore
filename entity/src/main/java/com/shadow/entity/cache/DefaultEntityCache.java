@@ -2,17 +2,15 @@ package com.shadow.entity.cache;
 
 import com.google.common.cache.*;
 import com.google.common.collect.Sets;
-import com.shadow.entity.CacheableEntity;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.cache.annotation.Cacheable;
 import com.shadow.entity.cache.annotation.PreLoaded;
-import com.shadow.entity.orm.DataAccessor;
-import com.shadow.entity.orm.persistence.PersistenceProcessor;
+import com.shadow.entity.db.Repository;
+import com.shadow.entity.db.persistence.PersistenceProcessor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DuplicateKeyException;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -34,7 +32,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEntityCache.class);
 
     protected final Class<V> clazz;
-    private final DataAccessor dataAccessor;
+    private final Repository repository;
     private final PersistenceProcessor<V> persistenceProcessor;
     private final LoadingCache<K, V> cache;
     private final CacheLoader<K, V> cacheLoader = new DbLoader();
@@ -43,23 +41,23 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
     private final ConcurrentMap<K, V> updating = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
-    public DefaultEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
+    public DefaultEntityCache(Class<? extends IEntity<?>> clazz, Repository repository, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
         this.clazz = (Class<V>) clazz;
-        this.dataAccessor = dataAccessor;
+        this.repository = repository;
         this.persistenceProcessor = (PersistenceProcessor<V>) persistenceProcessor;
 
         // 代理类生成器
         entityWrapper = new CachedEntityWrapper<>(this, this.clazz);
 
         // 构建缓存
-        Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : CacheableEntity.class.getAnnotation(Cacheable.class);
+        Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : IEntity.class.getAnnotation(Cacheable.class);
         String cacheSpec = toCacheSpec(cacheable);
         cache = CacheBuilder.from(cacheSpec).removalListener(new DbRemovalListener()).build(cacheLoader);
 
         // 预加载数据
         PreLoaded preLoaded = clazz.getAnnotation(PreLoaded.class);
         if (preLoaded != null) {
-            preLoaded.policy().load(dataAccessor, this.clazz).stream().forEach(v -> cache.put(v.getId(), v));
+            preLoaded.policy().load(repository, this.clazz).stream().forEach(v -> cache.put(v.getId(), v));
         }
     }
 
@@ -71,7 +69,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         V entity2 = getOrCreate(entity.getId(), () -> entity);
         V obj = entity2 instanceof CachedEntity ? ((CachedEntity) entity2).getEntity() : entity2;
         if (entity != obj) {
-            throw new DuplicateKeyException("重复的主键[" + entity.getId() + "]");
+            throw new IllegalStateException("重复的主键[" + entity.getId() + "]");
         }
         return entity2;
     }
@@ -183,7 +181,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
                 return null;
             }
 
-            V dbEntity = dataAccessor.get(key, clazz);
+            V dbEntity = repository.get(key, clazz);
             V updatingEntity = updating.remove(key);
             if (updatingEntity != null) {
                 return entityWrapper.wrap(updatingEntity);

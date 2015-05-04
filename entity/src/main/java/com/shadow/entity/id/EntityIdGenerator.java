@@ -7,7 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Range;
 import com.shadow.common.config.ServerConfig;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.orm.DataAccessor;
+import com.shadow.entity.db.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,27 +24,18 @@ public class EntityIdGenerator {
     @Autowired
     private ServerConfig serverConfig;
     @Autowired
-    private DataAccessor dataAccessor;
+    private Repository repository;
 
     private final LoadingCache<Class<? extends IEntity<Long>>, LoadingCache<Short, LoadingCache<Short, AtomicLong>>> cache = CacheBuilder.newBuilder().concurrencyLevel(16).build(
-            new CacheLoader<Class<? extends IEntity<Long>>, LoadingCache<Short, LoadingCache<Short, AtomicLong>>>() {
-                @Override
-                public LoadingCache<Short, LoadingCache<Short, AtomicLong>> load(@Nonnull Class<? extends IEntity<Long>> entityClass) throws Exception {
-                    return CacheBuilder.newBuilder().build(new CacheLoader<Short, LoadingCache<Short, AtomicLong>>() {
-                        @Override
-                        public LoadingCache<Short, AtomicLong> load(@Nonnull Short platform) throws Exception {
-                            return CacheBuilder.newBuilder().build(new CacheLoader<Short, AtomicLong>() {
-                                @Override
-                                public AtomicLong load(@Nonnull Short server) throws Exception {
-                                    Range<Long> range = EntityIdRule.idRange(platform, server);
-                                    long currentMaxId = dataAccessor.queryMaxId(entityClass, range).orElse(range.lowerEndpoint());
-                                    return new AtomicLong(currentMaxId);
-                                }
-                            });
-                        }
-                    });
-                }
-            }
+            CacheLoader.from(entityClass -> CacheBuilder.newBuilder().build(
+                    CacheLoader.from(platform -> CacheBuilder.newBuilder().build(
+                            CacheLoader.from(server -> {
+                                Range<Long> range = EntityIdRule.idRange(platform, server);
+                                long currentMaxId = repository.getMaxId(entityClass, range).orElse(range.lowerEndpoint());
+                                return new AtomicLong(currentMaxId);
+                            })
+                    ))
+            ))
     );
 
     @PostConstruct

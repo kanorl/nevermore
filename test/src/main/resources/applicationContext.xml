@@ -2,32 +2,38 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:tx="http://www.springframework.org/schema/tx"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
        http://www.springframework.org/schema/context
        http://www.springframework.org/schema/context/spring-context-4.0.xsd
        http://www.springframework.org/schema/aop
-       http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
-       http://www.springframework.org/schema/tx
-       http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+       http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
 
     <context:component-scan base-package="com.shadow"/>
-    <context:property-placeholder location="classpath:server.properties"/>
+    <context:property-placeholder location="classpath:server.properties,classpath:mongo.properties"/>
 
-    <bean name="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
-        <property name="packagesToScan" value="com.shadow"/>
+    <bean id="mongoClientOptions" class="com.shadow.entity.db.mongo.MongoClientOptionsFactoryBean">
+        <property name="connectionsPerHost" value="${mongo.maxConnectionsPerHost}"/>
+        <property name="threadsAllowedToBlockForConnectionMultiplier"
+                  value="${mongo.threadsAllowedToBlockForConnectionMultiplier}"/>
+        <property name="maxConnectionIdleTime" value="${mongo.maxConnectionIdleTime}"/>
     </bean>
 
-    <bean id="transactionManager"
-          class="org.springframework.orm.hibernate4.HibernateTransactionManager">
-        <property name="sessionFactory" ref="sessionFactory"/>
+    <bean id="mongoClient" class="com.shadow.entity.db.mongo.MongoClientFactoryBean">
+        <property name="host" value="${mongo.host}"/>
+        <property name="port" value="${mongo.port}"/>
+        <property name="mongoClientOptions" ref="mongoClientOptions"/>
+    </bean>
+
+    <bean class="com.shadow.entity.db.mongo.MongoDataStoreFactoryBean">
+        <property name="dbName" value="${mongo.dbName}"/>
+        <property name="mongoClient" ref="mongoClient"/>
     </bean>
 
     <!--The <tx:annotation-driven>(the transaction-manager attribute defaults to transactionManager)
     configuration element tells Spring to examine all beans in the application context and to look
     for beans that are annotated with @Transactional, either at the class level or at the method level.-->
-    <tx:annotation-driven/>
+    <!--<tx:annotation-driven/>-->
 
     <!--If the proxy-target-class attribute is set to true, then class-based (cglib) proxies are created.
     If proxy-target-class is false or if the attribute is omitted, then standard JDK interface-based proxies are created-->
@@ -36,7 +42,7 @@
     <!--PersistenceExceptionTranslationPostProcessor is a bean post processor which adds an advisor
     to any bean that’s annotated with @Repository so that any platform-specific exceptions are caught
     and then rethrown as one of Spring’s unchecked data access exceptions-->
-    <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+    <!--<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>-->
 
     <bean id="resourceConfiguration" class="com.shadow.resource.ResourceConfiguration">
         <property name="resourceLocation" value="classpath:resource"/>

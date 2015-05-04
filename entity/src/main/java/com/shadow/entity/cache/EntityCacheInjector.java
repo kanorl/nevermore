@@ -4,7 +4,6 @@ import com.shadow.common.injection.InjectedAnnotationProcessor;
 import com.shadow.common.injection.ParameterizedTypeNotFoundException;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheIndex;
-import com.shadow.entity.cache.annotation.Cacheable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
@@ -33,9 +32,6 @@ public class EntityCacheInjector implements InjectedAnnotationProcessor {
         ParameterizedType parameterizedType = (ParameterizedType) type;
         Type[] types = parameterizedType.getActualTypeArguments();
         Class<? extends IEntity<?>> entityClass = (Class<? extends IEntity<?>>) types[1];
-        if (!entityClass.isAnnotationPresent(Cacheable.class)) {
-            throw new IllegalStateException("实体类[" + entityClass.getName() + "]找不到" + Cacheable.class.getSimpleName() + "注解");
-        }
 
         validate(field.getType(), entityClass);
 

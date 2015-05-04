@@ -1,6 +1,6 @@
 package com.shadow.entity.cache.annotation;
 
-import com.shadow.entity.orm.persistence.PersistencePolicy;
+import com.shadow.entity.db.persistence.PersistencePolicy;
 
 import java.lang.annotation.*;
 

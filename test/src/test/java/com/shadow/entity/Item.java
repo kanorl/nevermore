@@ -3,15 +3,14 @@ package com.shadow.entity;
 import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.entity.cache.annotation.AutoSave;
 import com.shadow.entity.cache.annotation.CacheIndex;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 
 /**
  * @author nevermore on 2015/1/5
  */
 @Entity
-public class Item extends CacheableEntity<Long> {
+public class Item implements IEntity<Long> {
 
     @Id
     private Long id;

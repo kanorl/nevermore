@@ -6,11 +6,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.ThreadLocalRandom.current;
 
 /**
  * @author nevermore on 2015/3/15.
@@ -23,7 +23,7 @@ public class RandomUtil {
             return Optional.<E>empty();
         }
         int total = c.stream().mapToInt(rateProducer::apply).sum();
-        int random = ThreadLocalRandom.current().nextInt(total);
+        int random = current().nextInt(total);
         for (E e : c) {
             int rate = rateProducer.apply(e);
             if (rate > random) {
@@ -42,7 +42,7 @@ public class RandomUtil {
             return Optional.<E>empty();
         }
         int total = c.stream().filter(predicate).mapToInt(rateProducer::apply).sum();
-        int random = ThreadLocalRandom.current().nextInt(total);
+        int random = current().nextInt(total);
         for (E e : Collections2.filter(c, predicate::test)) {
             int rate = rateProducer.apply(e);
             if (rate > random) {
@@ -51,5 +51,13 @@ public class RandomUtil {
             random -= rate;
         }
         throw new IllegalStateException("should never happen.");
+    }
+
+    public static int nextInt(int bound) {
+        return current().nextInt(bound);
+    }
+
+    public static int nextInt(int origin, int bound) {
+        return current().nextInt(origin, bound);
     }
 }

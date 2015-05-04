@@ -2,7 +2,7 @@ package com.shadow.entity;
 
 import com.shadow.common.injection.Injected;
 import com.shadow.entity.cache.RegionEntityCache;
-import com.shadow.entity.orm.DataAccessor;
+import com.shadow.entity.db.Repository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +20,7 @@ public class RegionEntityCacheTest {
     @Injected
     private RegionEntityCache<Long, Item> entityCache;
     @Autowired
-    private DataAccessor dataAccessor;
+    private Repository repository;
 
     @Before
     public void before() {

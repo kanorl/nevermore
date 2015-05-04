@@ -7,11 +7,11 @@ import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.cache.annotation.Cacheable;
-import com.shadow.entity.orm.DataAccessor;
-import com.shadow.entity.orm.persistence.PersistencePolicy;
-import com.shadow.entity.orm.persistence.PersistenceProcessor;
-import com.shadow.entity.orm.persistence.QueuedPersistenceProcessor;
-import com.shadow.entity.orm.persistence.ScheduledPersistenceProcessor;
+import com.shadow.entity.db.Repository;
+import com.shadow.entity.db.persistence.PersistencePolicy;
+import com.shadow.entity.db.persistence.PersistenceProcessor;
+import com.shadow.entity.db.persistence.QueuedPersistenceProcessor;
+import com.shadow.entity.db.persistence.ScheduledPersistenceProcessor;
 import org.reflections.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +30,7 @@ import java.io.Serializable;
 public final class EntityCacheManager {
 
     @Autowired
-    private DataAccessor dataAccessor;
+    private Repository repository;
     @Value("${server.cache.size.minimum}")
     private int minimumCacheSize;
     @Value("${server.cache.size.default}")
@@ -50,9 +50,9 @@ public final class EntityCacheManager {
             public EntityCache<?, ? extends IEntity<?>> load(@Nonnull Class<? extends IEntity<?>> clazz) throws
                     Exception {
                 if (ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).isEmpty()) {
-                    return new DefaultEntityCache<>(clazz, dataAccessor, getPersistenceProcessor(clazz));
+                    return new DefaultEntityCache<>(clazz, repository, getPersistenceProcessor(clazz));
                 }
-                return new DefaultRegionEntityCache<>(clazz, dataAccessor, getPersistenceProcessor(clazz));
+                return new DefaultRegionEntityCache<>(clazz, repository, getPersistenceProcessor(clazz));
             }
         });
     }
@@ -66,9 +66,6 @@ public final class EntityCacheManager {
 
     @Nonnull
     public <K extends Serializable, V extends IEntity<K>> EntityCache<K, V> getEntityCache(@Nonnull Class<? extends IEntity<?>> clazz) {
-        if (!clazz.isAnnotationPresent(Cacheable.class)) {
-            throw new UnsupportedOperationException("Class is not " + Cacheable.class.getSimpleName());
-        }
         return (EntityCache<K, V>) entityCaches.getUnchecked(clazz);
     }
 }

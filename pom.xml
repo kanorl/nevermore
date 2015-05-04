@@ -34,6 +34,8 @@
         <jsr305.version>3.0.0</jsr305.version>
         <junit.version>4.11</junit.version>
         <log4j.version>2.2</log4j.version>
+        <mongo.driver.version>3.0.0</mongo.driver.version>
+        <morphia.version>0.111</morphia.version>
         <mysql.connector.version>5.1.32</mysql.connector.version>
         <netty.version>4.0.23.Final</netty.version>
         <poi.version>3.11</poi.version>
@@ -41,6 +43,7 @@
         <reflections.version>0.9.9-RC2</reflections.version>
         <slf4j.version>1.7.12</slf4j.version>
         <spring.version>4.0.6.RELEASE</spring.version>
+        <spring.data.mongo.version>1.7.0.RELEASE</spring.data.mongo.version>
     </properties>
 
     <dependencies>
@@ -83,10 +86,17 @@
             <!--</exclusion>-->
             <!--</exclusions>-->
         </dependency>
+
+        <!--MongoDB-->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-orm</artifactId>
-            <version>${spring.version}</version>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>${mongo.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb.morphia</groupId>
+            <artifactId>morphia</artifactId>
+            <version>${morphia.version}</version>
         </dependency>
 
         <!--AspectJ-->
@@ -99,32 +109,6 @@
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
             <version>${aspectj.version}</version>
-        </dependency>
-
-        <!--Hibernate-->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-c3p0</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-
-        <!--C3P0-->
-        <dependency>
-            <groupId>com.mchange</groupId>
-            <artifactId>c3p0</artifactId>
-            <version>${c3p0.version}</version>
-        </dependency>
-
-        <!--Mysql-->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql.connector.version}</version>
         </dependency>
 
         <!--Log4j2-->

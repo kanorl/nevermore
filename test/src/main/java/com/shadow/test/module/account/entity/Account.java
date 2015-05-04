@@ -1,24 +1,22 @@
 package com.shadow.test.module.account.entity;
 
-import com.shadow.entity.CacheableEntity;
+import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.AutoSave;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 
-import javax.persistence.*;
 import java.util.Date;
 
 /**
  * @author nevermore on 2015/3/1
  */
 @Entity
-@Table(indexes = @Index(name = "Account.name", columnList = "name", unique = true))
-@NamedQueries(@NamedQuery(name = Account.QUERY_NAME_AND_ID, query = "select name, id from Account"))
-public class Account extends CacheableEntity<Long> {
+public class Account implements IEntity<Long> {
 
     public static final String QUERY_NAME_AND_ID = "Account.name2Id";
 
     @Id
     private Long id;
-    @Column(unique = true)
     private String name;
     private Date registerTime;
     private Date loginTime;

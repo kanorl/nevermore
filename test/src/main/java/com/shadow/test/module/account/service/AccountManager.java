@@ -4,17 +4,18 @@ import com.shadow.common.exception.OperationFailedException;
 import com.shadow.common.injection.Injected;
 import com.shadow.entity.cache.EntityCache;
 import com.shadow.entity.id.EntityIdGenerator;
-import com.shadow.entity.orm.DataAccessor;
 import com.shadow.test.module.account.entity.Account;
 import com.shadow.test.module.account.exception.AccountException;
 import com.shadow.test.module.account.exception.AccountExceptionCode;
 import com.shadow.test.module.account.model.AccountInfo;
+import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +30,7 @@ public class AccountManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountManager.class);
 
     @Autowired
-    private DataAccessor dataAccessor;
+    private Datastore ds;
     @Autowired
     private EntityIdGenerator idGenerator;
     @Injected
@@ -39,7 +40,8 @@ public class AccountManager {
 
     @PostConstruct
     private void init() {
-        List<Object[]> result = dataAccessor.namedQuery(Account.QUERY_NAME_AND_ID);
+
+        List<Object[]> result = Collections.emptyList();
         name2Id = new ConcurrentHashMap<>(result.size());
         result.forEach(e -> name2Id.put((String) e[0], (Long) e[1]));
     }

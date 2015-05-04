@@ -1,4 +1,4 @@
-package com.shadow.entity.orm.persistence;
+package com.shadow.entity.db.persistence;
 
 /**
  * 入库策略

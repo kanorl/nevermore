@@ -3,20 +3,18 @@ package com.shadow.test.module.player.service;
 import com.shadow.common.exception.OperationFailedException;
 import com.shadow.common.injection.Injected;
 import com.shadow.entity.cache.EntityCache;
-import com.shadow.entity.orm.DataAccessor;
 import com.shadow.test.module.player.entity.Player;
 import com.shadow.test.module.player.exception.PlayerException;
 import com.shadow.test.module.player.model.Country;
 import com.shadow.test.module.player.model.Gender;
+import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.shadow.test.module.player.exception.PlayerExceptionCode.PLAYER_NAME_EXISTS;
@@ -29,7 +27,7 @@ public class PlayerManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerManager.class);
 
     @Autowired
-    private DataAccessor dataAccessor;
+    private Datastore ds;
 
     @Injected
     private EntityCache<Long, Player> playerCache;
@@ -38,9 +36,9 @@ public class PlayerManager {
 
     @PostConstruct
     private void init() {
-        List<Object[]> result = dataAccessor.namedQuery(Player.QUERY_NAME_AND_ID);
-        name2Id = new ConcurrentHashMap<>(result.size());
-        result.forEach(e -> name2Id.put((String) e[0], (Long) e[1]));
+//        List<Object[]> result = ds.namedQuery(Player.QUERY_NAME_AND_ID);
+//        name2Id = new ConcurrentHashMap<>(result.size());
+//        result.forEach(e -> name2Id.put((String) e[0], (Long) e[1]));
     }
 
     Player create(Long id, String playerName, Gender gender, Country country) {

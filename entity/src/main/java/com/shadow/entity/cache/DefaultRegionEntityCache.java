@@ -7,15 +7,18 @@ import com.google.common.collect.Sets;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.entity.cache.annotation.CacheSize;
-import com.shadow.entity.orm.DataAccessor;
-import com.shadow.entity.orm.persistence.PersistenceProcessor;
+import com.shadow.entity.db.Repository;
+import com.shadow.entity.db.persistence.PersistenceProcessor;
 import org.apache.commons.lang3.ClassUtils;
 import org.reflections.ReflectionUtils;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -34,8 +37,8 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
     private final LoadingCache<Object, Set<K>> indexCache;
     private final Field indexField;
 
-    public DefaultRegionEntityCache(Class<? extends IEntity<?>> clazz, DataAccessor dataAccessor, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
-        delegate = new DefaultEntityCache<>(clazz, dataAccessor, persistenceProcessor);
+    public DefaultRegionEntityCache(Class<? extends IEntity<?>> clazz, Repository repository, PersistenceProcessor<? extends IEntity<?>> persistenceProcessor) {
+        delegate = new DefaultEntityCache<>(clazz, repository, persistenceProcessor);
 
         indexField = ReflectionUtils.getAllFields(clazz, field -> field.isAnnotationPresent(CacheIndex.class)).stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException(format("在{}中找不到注解为{}的属性", clazz.getSimpleName(), CacheIndex.class.getSimpleName()).getMessage()));
@@ -45,7 +48,7 @@ public class DefaultRegionEntityCache<K extends Serializable, V extends IEntity<
         this.indexCache = CacheBuilder.newBuilder().maximumSize(CacheSize.Size.DEFAULT.get()).concurrencyLevel(16).expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<Object, Set<K>>() {
             @Override
             public Set<K> load(@Nonnull Object value) throws Exception {
-                return Sets.newConcurrentHashSet(dataAccessor.queryIds((Class<V>) clazz, Collections.singletonMap(indexField.getName(), value)));
+                return Sets.newConcurrentHashSet(repository.getIds((Class<V>) clazz, indexField.getName(), value));
             }
         });
     }

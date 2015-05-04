@@ -1,10 +1,10 @@
-package com.shadow.entity.orm.persistence;
+package com.shadow.entity.db.persistence;
 
 import com.shadow.common.util.concurrent.ExecutorUtil;
 import com.shadow.common.util.lang.MathUtil;
 import com.shadow.common.util.thread.NamedThreadFactory;
 import com.shadow.entity.IEntity;
-import com.shadow.entity.orm.DataAccessor;
+import com.shadow.entity.db.Crud;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
     private static final Logger LOGGER = LoggerFactory.getLogger(QueuedPersistenceProcessor.class);
 
     @Autowired
-    private DataAccessor dataAccessor;
+    private Crud crud;
     @Value("${server.persistence.poolSize:0}")
     private int nThread;
 
@@ -50,7 +50,7 @@ public class QueuedPersistenceProcessor<T extends IEntity<?>> implements Persist
 
     void submit(PersistenceObj obj) {
         executors[obj.getEntity().getId().hashCode() & (executors.length - 1)].submit(PersistenceTask.newTask(obj,
-                dataAccessor));
+                crud));
     }
 
     @Override

@@ -1,9 +1,9 @@
-package com.shadow.entity.orm.persistence;
+package com.shadow.entity.db.persistence;
 
 import com.shadow.common.util.codec.JsonUtil;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.CachedEntity;
-import com.shadow.entity.orm.DataAccessor;
+import com.shadow.entity.db.Crud;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,15 +16,15 @@ class PersistenceTask implements Runnable {
     public static final Logger LOGGER = LoggerFactory.getLogger(PersistenceTask.class);
 
     private PersistenceObj obj;
-    private DataAccessor dataAccessor;
+    private Crud crud;
 
-    public PersistenceTask(PersistenceObj obj, DataAccessor dataAccessor) {
+    public PersistenceTask(PersistenceObj obj, Crud crud) {
         this.obj = obj;
-        this.dataAccessor = dataAccessor;
+        this.crud = crud;
     }
 
-    public static PersistenceTask newTask(PersistenceObj obj, DataAccessor dataAccessor) {
-        return new PersistenceTask(obj, dataAccessor);
+    public static PersistenceTask newTask(PersistenceObj obj, Crud crud) {
+        return new PersistenceTask(obj, crud);
     }
 
     @Override
@@ -40,10 +40,10 @@ class PersistenceTask implements Runnable {
 
         IEntity<?> actualEntity = isCachedEntity ? ((CachedEntity) entity).getEntity() : entity;
         try {
-            operation.perform(dataAccessor, actualEntity);
+            operation.perform(crud, actualEntity);
         } catch (Exception e) {
             if (!(isCachedEntity && ((CachedEntity) entity).isPersisted())) {
-                LOGGER.error(format("入库失败[class={}, entity={}]", actualEntity.getClass().getSimpleName(), JsonUtil.toJson(actualEntity)).getMessage(), e);
+                LOGGER.error(format("入库失败[class={}, entity={}, operation={}]", actualEntity.getClass().getSimpleName(), JsonUtil.toJson(actualEntity)).getMessage(), operation, e);
                 return;
             }
         }
