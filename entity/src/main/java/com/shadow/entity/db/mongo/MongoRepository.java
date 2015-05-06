@@ -42,8 +42,14 @@ public class MongoRepository implements Repository {
     }
 
     @Override
-    public <K extends Serializable, V extends IEntity<K>> List<V> query(@Nonnull Class<V> clazz, @Nonnull String where) {
+    public <V extends IEntity<?>> List<V> query(@Nonnull Class<V> clazz, @Nonnull String where) {
         return ds.createQuery(clazz).where(where).asList();
+    }
+
+    @Nonnull
+    @Override
+    public <V extends IEntity<?>> List<V> getAll(@Nonnull Class<V> clazz) {
+        return ds.find(clazz).asList();
     }
 
     @Nullable

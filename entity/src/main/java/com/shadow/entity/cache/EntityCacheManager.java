@@ -3,6 +3,7 @@ package com.shadow.entity.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.shadow.common.util.lang.ReflectUtil;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheIndex;
 import com.shadow.entity.cache.annotation.CacheSize;
@@ -58,8 +59,11 @@ public final class EntityCacheManager {
     }
 
     private PersistenceProcessor<?> getPersistenceProcessor(Class<? extends IEntity<?>> entityType) {
-        Cacheable cacheable = entityType.getAnnotation(Cacheable.class);
-        return cacheable != null && cacheable.persistencePolicy() == PersistencePolicy.SCHEDULED ?
+        Cacheable cacheable = ReflectUtil.getDeclaredAnnotation(entityType, Cacheable.class);
+        if (cacheable == null) {
+            throw new IllegalStateException("@Cacheable not found in " + entityType.getSimpleName());
+        }
+        return cacheable.persistencePolicy() == PersistencePolicy.SCHEDULED ?
                 ctx.getBean(ScheduledPersistenceProcessor.class)
                 : ctx.getBean(QueuedPersistenceProcessor.class);
     }

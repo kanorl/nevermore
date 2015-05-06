@@ -98,6 +98,12 @@
             <artifactId>morphia</artifactId>
             <version>${morphia.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.mongodb.morphia</groupId>
+            <artifactId>morphia-logging-slf4j</artifactId>
+            <version>${morphia.version}</version>
+        </dependency>
+
 
         <!--AspectJ-->
         <dependency>

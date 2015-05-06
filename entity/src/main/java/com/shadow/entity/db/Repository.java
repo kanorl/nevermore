@@ -19,5 +19,8 @@ public interface Repository extends Crud {
     @Nonnull
     <K extends Serializable, V extends IEntity<K>> List<K> getIds(@Nonnull Class<V> clazz, @Nonnull String field, Object value);
 
-    <K extends Serializable, V extends IEntity<K>> List<V> query(@Nonnull Class<V> clazz, @Nonnull String sql);
+    <V extends IEntity<?>> List<V> query(@Nonnull Class<V> clazz, @Nonnull String where);
+
+    @Nonnull
+    <V extends IEntity<?>> List<V> getAll(@Nonnull Class<V> clazz);
 }

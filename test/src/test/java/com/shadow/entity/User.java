@@ -15,7 +15,7 @@ import java.util.Date;
  */
 @Entity
 @Cacheable(cacheSize = @CacheSize(factor = 2))
-@PreLoaded(policy = PreLoaded.Policy.QUERY)
+@PreLoaded(policy = PreLoaded.Policy.ALL)
 public class User implements IEntity<Integer> {
 
     @Id

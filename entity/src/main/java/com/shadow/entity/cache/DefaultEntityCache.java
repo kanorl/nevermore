@@ -2,6 +2,7 @@ package com.shadow.entity.cache;
 
 import com.google.common.cache.*;
 import com.google.common.collect.Sets;
+import com.shadow.common.util.lang.ReflectUtil;
 import com.shadow.entity.IEntity;
 import com.shadow.entity.cache.annotation.CacheSize;
 import com.shadow.entity.cache.annotation.Cacheable;
@@ -50,7 +51,7 @@ public class DefaultEntityCache<K extends Serializable, V extends IEntity<K>> im
         entityWrapper = new CachedEntityWrapper<>(this, this.clazz);
 
         // 构建缓存
-        Cacheable cacheable = clazz.isAnnotationPresent(Cacheable.class) ? clazz.getAnnotation(Cacheable.class) : IEntity.class.getAnnotation(Cacheable.class);
+        Cacheable cacheable = ReflectUtil.getDeclaredAnnotation(clazz, Cacheable.class);
         String cacheSpec = toCacheSpec(cacheable);
         cache = CacheBuilder.from(cacheSpec).removalListener(new DbRemovalListener()).build(cacheLoader);
 

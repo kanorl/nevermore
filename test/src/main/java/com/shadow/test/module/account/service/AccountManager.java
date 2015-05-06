@@ -1,25 +1,26 @@
 package com.shadow.test.module.account.service;
 
+import com.mongodb.client.model.Projections;
 import com.shadow.common.exception.OperationFailedException;
 import com.shadow.common.injection.Injected;
 import com.shadow.entity.cache.EntityCache;
+import com.shadow.entity.db.mongo.MongoDataStore;
 import com.shadow.entity.id.EntityIdGenerator;
 import com.shadow.test.module.account.entity.Account;
 import com.shadow.test.module.account.exception.AccountException;
 import com.shadow.test.module.account.exception.AccountExceptionCode;
 import com.shadow.test.module.account.model.AccountInfo;
-import org.mongodb.morphia.Datastore;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 
 /**
  * @author nevermore on 2015/3/1
@@ -30,20 +31,20 @@ public class AccountManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountManager.class);
 
     @Autowired
-    private Datastore ds;
+    private MongoDataStore ds;
     @Autowired
     private EntityIdGenerator idGenerator;
     @Injected
     private EntityCache<Long, Account> accountCache;
 
-    private ConcurrentMap<String, Long> name2Id;
+    private ConcurrentMap<String, Long> name2Id = new ConcurrentHashMap<>();
 
     @PostConstruct
     private void init() {
-
-        List<Object[]> result = Collections.emptyList();
-        name2Id = new ConcurrentHashMap<>(result.size());
-        result.forEach(e -> name2Id.put((String) e[0], (Long) e[1]));
+        ds.getMongoCollection(Account.class).find().projection(Projections.include("_id", "name")).forEach((Consumer<Document>) document -> {
+            Long prev = name2Id.put(document.get("name", String.class), document.get("_id", Long.class));
+            assert prev == null;
+        });
     }
 
     Optional<Account> getAccountByName(String name) {

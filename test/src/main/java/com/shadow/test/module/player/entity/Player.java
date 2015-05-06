@@ -1,10 +1,13 @@
 package com.shadow.test.module.player.entity;
 
 import com.shadow.entity.IEntity;
+import com.shadow.test.module.account.entity.Account;
 import com.shadow.test.module.player.model.Country;
 import com.shadow.test.module.player.model.Gender;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Reference;
 
 /**
  * @author nevermore on 2015/3/1
