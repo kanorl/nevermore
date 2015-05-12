@@ -28,12 +28,19 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
     private ServerHandler handler;
     @Autowired
     private ServerSessionHandler sessionHandler;
+    @Autowired
+    private HeaderPrepender headerPrepender;
+    @Autowired
+    private MessageEncoder messageEncoder;
 
     private EventExecutorGroup executors;
 
     @PostConstruct
     private void init() {
-        executors = new DefaultEventExecutorGroup(Math.max(poolSize, Runtime.getRuntime().availableProcessors() + 1), new NamedThreadFactory("Socket Request Handler"));
+        if (poolSize < 1) {
+            poolSize = Runtime.getRuntime().availableProcessors() + 1;
+        }
+        executors = new DefaultEventExecutorGroup(poolSize, new NamedThreadFactory("Socket Request Handler"));
     }
 
     @PreDestroy
@@ -49,8 +56,8 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast(new MessageDecoder());
 
         // encoder
-        p.addLast(new HeaderPrepender());
-        p.addLast(new MessageEncoder());
+        p.addLast(headerPrepender);
+        p.addLast(messageEncoder);
 
         // filter
         p.addLast("sessionHandler", sessionHandler);

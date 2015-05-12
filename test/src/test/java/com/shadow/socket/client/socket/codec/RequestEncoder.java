@@ -13,6 +13,7 @@ public class RequestEncoder extends MessageToByteEncoder<Request> {
         byte[] commandBytes = msg.getCommand().bytes();
         byte[] data = ProtostuffCodec.getBytes(msg.getBody());
 
+        out.writeByte(-1);
         out.writeInt(commandBytes.length + data.length);
         out.writeBytes(commandBytes);
         out.writeBytes(data);
