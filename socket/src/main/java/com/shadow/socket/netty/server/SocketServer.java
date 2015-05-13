@@ -73,7 +73,7 @@ public final class SocketServer implements ApplicationListener<ContextStartedEve
             return;
         }
 
-        LoggedExecution.forName("关闭Socket服务").execute(() -> {
+        LoggedExecution.forName("关闭Socket服务").executeSilently(() -> {
             channel.close().syncUninterruptibly();
             parentGroup.shutdownGracefully();
             childGroup.shutdownGracefully();

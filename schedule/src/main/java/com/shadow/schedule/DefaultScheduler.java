@@ -76,7 +76,7 @@ public class DefaultScheduler extends ThreadPoolTaskScheduler implements Schedul
     }
 
     private Runnable decorate(ScheduledTask task) {
-        return () -> LoggedExecution.forName(task.getName()).execute(task);
+        return () -> LoggedExecution.forName(task.getName()).executeSilently(task);
     }
 }
 

@@ -5,6 +5,8 @@ import com.shadow.resource.annotation.AfterPropertiesSet;
 import com.shadow.resource.annotation.Id;
 import com.shadow.resource.annotation.Resource;
 
+import javax.sound.midi.Soundbank;
+
 /**
  * @author nevermore on 2015/1/15
  */
@@ -28,13 +30,7 @@ public class TestResource implements Comparable<TestResource>, Randomable {
 
     @Override
     public int compareTo(TestResource o) {
-        if (this.id == 1) {
-            return 1;
-        }
-        if (o.id == 1) {
-            return -1;
-        }
-        return Integer.compare(this.id, o.id);
+        return this.getName().compareTo(o.getName());
     }
 
     @AfterPropertiesSet

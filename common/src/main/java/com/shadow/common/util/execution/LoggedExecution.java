@@ -56,7 +56,7 @@ public class LoggedExecution {
             task.run();
         } catch (Exception e) {
             LOGGER.error("任务[{}]执行失败：{}", taskName, e.getMessage());
-            return;
+            throw new RuntimeException(e);
         }
 
         if (logLevel.isEnabled()) {
@@ -64,7 +64,15 @@ public class LoggedExecution {
         }
     }
 
-    public <T> T execute(Callable<T> task) {
+    public void executeSilently(Runnable task) {
+        try {
+            execute(task);
+        } catch (Exception ignored) {
+
+        }
+    }
+
+    public <T> T execute(Callable<T> task) throws Exception {
         String taskName = this.taskName;
         if (logLevel.isEnabled()) {
             if (taskNameArgs != null) {
@@ -79,12 +87,20 @@ public class LoggedExecution {
             retVal = task.call();
         } catch (Exception e) {
             LOGGER.error("任务[{}]执行失败：{}", taskName, e.getMessage());
-            return null;
+            throw new RuntimeException(e);
         }
 
         if (logLevel.isEnabled()) {
             logLevel.after(taskName, startTime);
         }
         return retVal;
+    }
+
+    public <T> T executeSilently(Callable<T> task) {
+        try {
+            return execute(task);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

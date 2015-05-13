@@ -28,5 +28,13 @@ public class ResourceTest {
 
         System.out.println(r1.getId());
         System.out.println(r2.getId());
+
+        TestResource min = testResources.min();
+        System.out.println(min.getId());
+
+        System.out.println(testResources.next(min.getId()).get().getId());
+
+        System.out.println(testResources.max().getId());
+
     }
 }

@@ -1,5 +1,6 @@
 package com.shadow.resource;
 
+import com.google.common.collect.ImmutableSortedSet;
 import com.shadow.common.util.RandomUtil;
 import com.shadow.common.util.execution.LogLevel;
 import com.shadow.common.util.execution.LoggedExecution;
@@ -27,6 +28,7 @@ public class ResourceHolder<T> {
     private ResourceReader resourceReader;
     private Map<Object, T> resources = Collections.emptyMap();
     private Class<T> resourceType;
+    private NavigableSet<T> navigableResources = Collections.emptyNavigableSet();
 
     @SuppressWarnings("unchecked")
     synchronized void initialize(Class<?> type) {
@@ -59,13 +61,13 @@ public class ResourceHolder<T> {
                     this.resources = resources;
 
                     if (Comparable.class.isAssignableFrom(resourceType)) {
-                        Map<Object, T> sortedMap = new TreeMap<>((k1, k2) -> {
-                            T t1 = resources.get(k1);
-                            T t2 = resources.get(k2);
-                            return ((Comparable) t1).compareTo(t2);
-                        });
-                        sortedMap.putAll(resources);
-                        this.resources = sortedMap;
+                        TreeSet<T> set = new TreeSet<>();
+                        for (T t : resources.values()) {
+                            if (!set.add(t)) {
+                                throw new IllegalStateException("存在比较相等的两条数据: class=" + resourceType.getCanonicalName());
+                            }
+                        }
+                        navigableResources = ImmutableSortedSet.copyOf(set);
                     }
                 });
     }
@@ -106,18 +108,10 @@ public class ResourceHolder<T> {
 
     @Nonnull
     public Optional<T> findMin() {
-        return extractValue(navigableResources().firstEntry());
-    }
-
-    private Optional<T> extractValue(Map.Entry<Object, T> entry) {
-        return entry == null ? Optional.<T>empty() : Optional.ofNullable(entry.getValue());
-    }
-
-    private NavigableMap<Object, T> navigableResources() {
-        if (!(resources instanceof NavigableMap)) {
-            throw new UnsupportedOperationException("Resource is not comparable.");
+        if (navigableResources.isEmpty()) {
+            return Optional.empty();
         }
-        return (NavigableMap<Object, T>) resources;
+        return Optional.of(navigableResources.first());
     }
 
     @Nonnull
@@ -127,17 +121,28 @@ public class ResourceHolder<T> {
 
     @Nonnull
     public Optional<T> findMax() {
-        return extractValue(navigableResources().lastEntry());
+        if (navigableResources.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(navigableResources.last());
     }
 
     @Nonnull
     public Optional<T> previous(Object currentKey) {
-        return extractValue(navigableResources().lowerEntry(currentKey));
+        T curr = resources.get(currentKey);
+        if (curr == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(navigableResources.lower(curr));
     }
 
     @Nonnull
     public Optional<T> next(Object currentKey) {
-        return extractValue(navigableResources().higherEntry(currentKey));
+        T curr = resources.get(currentKey);
+        if (curr == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(navigableResources.higher(curr));
     }
 
     @Nonnull

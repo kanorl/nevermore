@@ -16,7 +16,7 @@ public class ExecutorUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorUtil.class);
 
     public static void shutdownAndAwaitTermination(ExecutorService service, String serviceName, long timeout, TimeUnit unit) {
-        LoggedExecution.forName("关闭{}线程池", serviceName).execute(() -> {
+        LoggedExecution.forName("关闭{}线程池", serviceName).executeSilently(() -> {
             service.shutdown();
             try {
                 service.awaitTermination(timeout, unit);
