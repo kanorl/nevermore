@@ -48,12 +48,7 @@ public class ResourceHolder<T> {
                             (Id.class)).findFirst().orElseThrow(() -> new ResourcePrimaryKeyNotFoundException(resourceType));
                     ReflectionUtils.makeAccessible(idField);
 
-                    Map<Object, T> resources;
-                    if (Comparable.class.isAssignableFrom(resourceType)) {
-                        resources = new TreeMap<>();
-                    } else {
-                        resources = new HashMap<>();
-                    }
+                    Map<Object, T> resources = new HashMap<>();
                     resourceBeans.forEach(bean -> {
                         Object key = ReflectionUtils.getField(idField, bean);
                         if (resources.putIfAbsent(key, bean) != null) {
@@ -62,6 +57,16 @@ public class ResourceHolder<T> {
                     });
 
                     this.resources = resources;
+
+                    if (Comparable.class.isAssignableFrom(resourceType)) {
+                        Map<Object, T> sortedMap = new TreeMap<>((k1, k2) -> {
+                            T t1 = resources.get(k1);
+                            T t2 = resources.get(k2);
+                            return ((Comparable) t1).compareTo(t2);
+                        });
+                        sortedMap.putAll(resources);
+                        this.resources = sortedMap;
+                    }
                 });
     }
 
